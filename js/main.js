@@ -139,22 +139,18 @@ const STANDALONE = {
 };
 
 const HIW_STEPS = [
-  { num:"01", nav:"Your Home", title:"Tell Us About Your Property",
-    summary:"Select your property type, number of bedrooms, and tick any extras like conservatories or skylights. We'll calculate your exact price.",
+  { num:"01", nav:"Your Price", title:"Get Your Price",
+    summary:"Tell us your property type and postcode. You'll see your exact price instantly — both 4-weekly and 8-weekly, side by side.",
     detail:"The whole thing takes about 30 seconds. No sign-up required to see your price.",
     visual:'pills' },
-  { num:"02", nav:"Your Price", title:"See Your Price Instantly",
-    summary:"Enter your postcode to check we cover your area, then your email so we can send you a copy of the quote.",
-    detail:"You'll see both the 4-weekly and 8-weekly price side by side, so you can choose the schedule that suits you.",
-    visual:'gate' },
-  { num:"03", nav:"Your Schedule", title:"Choose Your Schedule",
-    summary:"Confirm your name, phone number, and whether you'd like 4-weekly or 8-weekly cleans. Most customers choose 4-weekly for the best value.",
+  { num:"02", nav:"Your Schedule", title:"Choose Your Schedule",
+    summary:"Pick the frequency that suits you, confirm your details, and add any extras like gutters or fascias. That's it — you're booked.",
     detail:"Once you've chosen, we'll send you a confirmation with your first clean date and a secure link to register your card.",
     visual:'schedule' },
-  { num:"04", nav:"Optional Extras", title:"Add Optional Extras",
-    summary:"While you're here, you can also add gutter clearing, fascia cleaning, or conservatory roof cleans. Book multiple together and save up to 20%.",
-    detail:"These are completely optional — you can always add them later. No pressure.",
-    visual:'addons' }
+  { num:"03", nav:"The Easy Part", title:"We Handle the Rest",
+    summary:"You'll get a text the night before each clean. We turn up, we clean, your card is charged automatically. Simple, every time.",
+    detail:"Most new customers are on the round within a week.",
+    visual:'gate' }
 ];
 
 /* ──────────────────────────────────────────
@@ -679,7 +675,7 @@ function initHiw() {
       const total = spacer.offsetHeight - window.innerHeight;
       if (total <= 0) return;
       const progress = Math.max(0, Math.min(1, -rect.top / total));
-      const step = Math.min(Math.floor(progress * 4), 3);
+      const step = Math.min(Math.floor(progress * HIW_STEPS.length), HIW_STEPS.length - 1);
       if (step !== activeHiw) {
         activeHiw = step;
         stepsEl.querySelectorAll('.hiw-step').forEach((el,i) => el.classList.toggle('active', i===step));
@@ -828,7 +824,7 @@ function renderQuote() {
 function renderEntry() {
   return `<div class="widget-frame">
     <div class="widget-header" style="text-align:center">
-      <h3 class="widget-title">What are you looking for?</h3>
+      <h3 class="widget-title">What would you like a price for?</h3>
       <p class="widget-copy">Choose the service that suits you and get an instant price.</p>
     </div>
     <div class="entry-grid">
