@@ -1,0 +1,15 @@
+# Cloudflare Pages redirects
+# Old area pages → homepage with quote section
+/luton             /#quote  301
+/dunstable         /#quote  301
+/harpenden         /#quote  301
+/st-albans         /#quote  301
+/hemel-hempstead   /#quote  301
+/hitchin           /#quote  301
+/ampthill          /#quote  301
+/flitwick          /#quote  301
+/barton-le-clay    /#quote  301
+/milton-keynes     /#quote  301
+
+# Old blog pages → homepage blog section
+/blog/*            /#blog   301
