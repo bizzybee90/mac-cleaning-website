@@ -17,7 +17,7 @@
    When populated, they get the real Stripe card form.
    ────────────────────────────────────────── */
 const STRIPE_PK = 'pk_live_F9lKTLJaVfsKk8ePmjxR2JsN';
-const STRIPE_SETUP_ENDPOINT = ''; // e.g. 'https://your-n8n.app/webhook/mac-stripe-setup'
+const STRIPE_SETUP_ENDPOINT = 'https://bizzybee.app.n8n.cloud/webhook/mac-stripe-setup';
 
 /* ──────────────────────────────────────────
    GOCARDLESS CONFIGURATION
