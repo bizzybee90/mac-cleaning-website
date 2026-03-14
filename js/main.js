@@ -85,7 +85,7 @@ const SUPABASE_ANON_KEY = ''; // Not used for writes — n8n handles DB via serv
    ──────────────────────────────────────────
    Paste your GA4 Measurement ID below (format: G-XXXXXXXXXX)
    ────────────────────────────────────────── */
-const GA_ID = ''; // e.g. 'G-ABC123DEF4'
+const GA_ID = 'G-FN4DKHCLME';
 
 /* ──────────────────────────────────────────
    DATA
