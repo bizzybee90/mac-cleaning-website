@@ -4,12 +4,12 @@
 
 | File | Subject Line | When Sent |
 |------|-------------|-----------|
-| `quote-delivery.html` | Your MAC Cleaning Quote — {{frequency}} from {{price_per_clean}}/clean | Immediately after quote completion |
+| `quote-delivery.html` | Your price — {{frequency}} window cleaning from £{{price_per_clean}}/clean | Immediately after quote completion |
 | `chase-1.html` | Still thinking it over, {{name}}? | 1 hour after quote |
-| `chase-2.html` | 840 customers can't be wrong, {{name}} | 24 hours after quote |
-| `chase-3.html` | Last chance for your quote, {{name}} | 3 days after quote |
-| `signup-confirmation.html` | Welcome to MAC Cleaning, {{name}}! | After card/DD registration |
-| `partial-recovery.html` | You started a quote for {{postcode}} — finish it in 60 seconds | 1 hour after partial lead |
+| `chase-2.html` | 840+ customers can't be wrong, {{name}} | 24 hours after quote |
+| `chase-3.html` | Your quote for {{postcode}} — just checking in | 3 days after quote |
+| `signup-confirmation.html` | You're in, {{name}} — here's what happens next | After card/DD registration |
+| `partial-recovery.html` | Your window cleaning quote for {{postcode}} — still waiting for you | 1 hour after partial lead |
 
 ## Template Variables
 

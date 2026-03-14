@@ -4,10 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="color-scheme" content="light">
-<title>Welcome to MAC Cleaning!</title>
+<title>You're in</title>
 <style>
   body,table,td,a{-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%}
   table,td{mso-table-lspace:0pt;mso-table-rspace:0pt}
+  img{border:0;height:auto;line-height:100%;outline:none;text-decoration:none}
   body{margin:0;padding:0;width:100%!important;background-color:#f4f3f0;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif}
   @media only screen and (max-width:620px){
     .container{width:100%!important}
@@ -28,16 +29,16 @@
 <!-- SUCCESS BANNER -->
 <tr><td style="background:linear-gradient(135deg,#166534,#15803d);padding:28px 40px;text-align:center">
   <p style="font-size:32px;margin:0 0 8px">&#10003;</p>
-  <p style="font-size:20px;font-weight:700;color:#ffffff;margin:0">You're all set!</p>
+  <p style="font-size:20px;font-weight:700;color:#ffffff;margin:0">You're all set.</p>
 </td></tr>
 
 <!-- BODY -->
 <tr><td class="body-content" style="background:#ffffff;padding:40px">
 
-  <p style="font-size:18px;color:#1C2434;font-weight:600;margin:0 0 16px">Welcome aboard, {{name}}!</p>
+  <p style="font-size:18px;color:#1C2434;font-weight:600;margin:0 0 16px">Welcome to MAC Cleaning, {{name}}.</p>
 
   <p style="font-size:15px;color:#444;line-height:1.65;margin:0 0 24px">
-    Your registration is complete. Here's what happens next:
+    Here's what happens now:
   </p>
 
   <!-- STEPS -->
@@ -50,8 +51,7 @@
             <div style="width:32px;height:32px;background:#1C2434;border-radius:50%;text-align:center;line-height:32px;color:#fff;font-size:14px;font-weight:700">1</div>
           </td>
           <td style="vertical-align:top;padding-left:12px">
-            <p style="font-size:15px;color:#1C2434;font-weight:600;margin:0 0 4px">We'll assign your cleaning day</p>
-            <p style="font-size:13px;color:#888;margin:0">Within the next 24 hours</p>
+            <p style="font-size:15px;color:#1C2434;font-weight:600;margin:0">We'll assign your cleaning day within 24 hours</p>
           </td>
         </tr>
       </table>
@@ -64,8 +64,7 @@
             <div style="width:32px;height:32px;background:#1C2434;border-radius:50%;text-align:center;line-height:32px;color:#fff;font-size:14px;font-weight:700">2</div>
           </td>
           <td style="vertical-align:top;padding-left:12px">
-            <p style="font-size:15px;color:#1C2434;font-weight:600;margin:0 0 4px">Text reminder the night before</p>
-            <p style="font-size:13px;color:#888;margin:0">So you know exactly when we're coming</p>
+            <p style="font-size:15px;color:#1C2434;font-weight:600;margin:0">You'll get a text the night before each visit</p>
           </td>
         </tr>
       </table>
@@ -78,8 +77,7 @@
             <div style="width:32px;height:32px;background:#1C2434;border-radius:50%;text-align:center;line-height:32px;color:#fff;font-size:14px;font-weight:700">3</div>
           </td>
           <td style="vertical-align:top;padding-left:12px">
-            <p style="font-size:15px;color:#1C2434;font-weight:600;margin:0 0 4px">Automatic payment after each clean</p>
-            <p style="font-size:13px;color:#888;margin:0">Your card is charged only after the job is done</p>
+            <p style="font-size:15px;color:#1C2434;font-weight:600;margin:0">Your card is charged only after each clean is done</p>
           </td>
         </tr>
       </table>
@@ -93,15 +91,11 @@
     </td></tr>
     <tr><td style="padding:14px 20px;border-bottom:1px solid #e8e6e1;font-size:14px">
       <span style="color:#888;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em">Property</span><br>
-      <span style="color:#1C2434">{{property_type}} ({{bedrooms}} bed)</span>
+      <span style="color:#1C2434">{{build_type}} {{property_type}}, {{bedrooms}} bed</span>
     </td></tr>
     <tr><td style="padding:14px 20px;border-bottom:1px solid #e8e6e1;font-size:14px">
       <span style="color:#888;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em">Schedule</span><br>
-      <span style="color:#1C2434">Every {{frequency}}</span>
-    </td></tr>
-    <tr><td style="padding:14px 20px;border-bottom:1px solid #e8e6e1;font-size:14px">
-      <span style="color:#888;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em">Price</span><br>
-      <span style="color:#1C2434;font-weight:700">&pound;{{price_per_clean}}/clean</span>
+      <span style="color:#1C2434">Every {{frequency}} &mdash; &pound;{{price_per_clean}}/clean</span>
     </td></tr>
     <tr><td style="padding:14px 20px;font-size:14px">
       <span style="color:#888;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em">Area</span><br>
@@ -109,18 +103,14 @@
     </td></tr>
   </table>
 
-  <p style="font-size:14px;color:#666;line-height:1.65;margin:0 0 4px">
-    <strong style="color:#1C2434">No payment is taken until after your first clean.</strong>
+  <p style="font-size:15px;color:#444;line-height:1.65;margin:0 0 24px">
+    That's it &mdash; we'll take it from here. If you ever need to skip a clean, change your schedule, or ask a question, just reply to this email.
   </p>
 
-  <div style="height:1px;background:#e8e6e1;margin:28px 0"></div>
+  <div style="height:1px;background:#e8e6e1;margin:0 0 24px"></div>
 
   <p style="font-size:14px;color:#666;line-height:1.65;margin:0">
-    Questions? Just reply to this email or <a href="https://wa.me/441582858588" style="color:#B8860B;text-decoration:none;font-weight:600">WhatsApp us</a>.
-  </p>
-
-  <p style="font-size:14px;color:#666;line-height:1.65;margin:16px 0 0">
-    Welcome aboard!<br>
+    Welcome aboard.<br>
     <strong style="color:#1C2434">MAC Cleaning</strong>
   </p>
 
