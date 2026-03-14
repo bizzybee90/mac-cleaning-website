@@ -189,6 +189,7 @@ document.addEventListener('DOMContentLoaded', () => {
   loadGooglePlaces();
   loadStripe();
   loadGA();
+  handleStripeReturn();
   renderQuote();
 });
 
@@ -334,6 +335,8 @@ async function mountStripeElement() {
  */
 async function confirmStripeSetup() {
   if (!_stripe || !_stripeElements) return { success: false, error: 'Stripe not ready.' };
+  /* Save quote state before potential 3D Secure redirect */
+  try { sessionStorage.setItem('mac_quote', JSON.stringify(Q)); } catch(e) {}
   const { error } = await _stripe.confirmSetup({
     elements: _stripeElements,
     confirmParams: {
@@ -346,6 +349,33 @@ async function confirmStripeSetup() {
     return { success: false, error: error.message };
   }
   return { success: true };
+}
+
+/**
+ * Handle return from 3D Secure / SCA redirect.
+ * Stripe appends ?setup_intent=...&setup_intent_client_secret=...&redirect_status=succeeded
+ */
+function handleStripeReturn() {
+  const params = new URLSearchParams(window.location.search);
+  if (!params.has('setup_intent') && !params.has('setup')) return false;
+  /* Restore quote state from sessionStorage */
+  try {
+    const saved = sessionStorage.getItem('mac_quote');
+    if (saved) {
+      const restored = JSON.parse(saved);
+      Object.assign(Q, restored);
+      sessionStorage.removeItem('mac_quote');
+    }
+  } catch(e) {}
+  const status = params.get('redirect_status');
+  if (status === 'succeeded' || params.get('setup') === 'complete') {
+    Q.submitted = true;
+    Q.cardRegistered = true;
+    Q.paymentMethod = 'card';
+  }
+  /* Clean up URL without reload */
+  window.history.replaceState({}, '', window.location.pathname);
+  return true;
 }
 
 /* ─── GOCARDLESS DIRECT DEBIT ────────────── */
