@@ -29,7 +29,7 @@ const STRIPE_SETUP_ENDPOINT = 'https://bizzybee.app.n8n.cloud/webhook/mac-stripe
    When empty, only card payment is shown.
    When populated, customers can choose Card or Direct Debit.
    ────────────────────────────────────────── */
-const GOCARDLESS_SETUP_ENDPOINT = ''; // e.g. 'https://your-n8n.app/webhook/mac-gocardless-setup'
+const GOCARDLESS_SETUP_ENDPOINT = 'https://bizzybee.app.n8n.cloud/webhook/mac-gocardless-setup';
 
 /* ──────────────────────────────────────────
    GOOGLE PLACES CONFIGURATION
@@ -59,7 +59,7 @@ const GOOGLE_PLACES_KEY = 'AIzaSyAApbgPqrc-IXXu2mcKrM2fAcdS7mUUGpk';
    When this is empty, form submissions are logged to console only.
    When populated, leads are POSTed to your n8n workflow.
    ────────────────────────────────────────── */
-const N8N_WEBHOOK = ''; // e.g. 'https://your-n8n.app/webhook/mac-cleaning-lead'
+const N8N_WEBHOOK = 'https://bizzybee.app.n8n.cloud/webhook/mac-cleaning-lead';
 
 /* ──────────────────────────────────────────
    GOOGLE ANALYTICS CONFIGURATION
