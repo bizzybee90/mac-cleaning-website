@@ -62,6 +62,24 @@ const GOOGLE_PLACES_KEY = 'AIzaSyAApbgPqrc-IXXu2mcKrM2fAcdS7mUUGpk';
 const N8N_WEBHOOK = 'https://bizzybee.app.n8n.cloud/webhook/mac-cleaning-lead';
 
 /* ──────────────────────────────────────────
+   LEAD PIPELINE CONFIGURATION
+   ──────────────────────────────────────────
+   Separate endpoints for partial (soft gate) and
+   full (quote accepted) lead capture.
+   When empty, falls back to N8N_WEBHOOK above.
+   ────────────────────────────────────────── */
+const LEAD_PARTIAL_URL = ''; // e.g. 'https://bizzybee.app.n8n.cloud/webhook/mac-lead-partial'
+const LEAD_COMPLETE_URL = ''; // e.g. 'https://bizzybee.app.n8n.cloud/webhook/mac-lead-complete'
+
+/* ──────────────────────────────────────────
+   SUPABASE CONFIGURATION
+   ──────────────────────────────────────────
+   For photo uploads and future direct DB access.
+   ────────────────────────────────────────── */
+const SUPABASE_URL = ''; // e.g. 'https://atukvssploxwyqpwjmrc.supabase.co'
+const SUPABASE_ANON_KEY = ''; // Your Supabase anon key
+
+/* ──────────────────────────────────────────
    GOOGLE ANALYTICS CONFIGURATION
    ──────────────────────────────────────────
    Paste your GA4 Measurement ID below (format: G-XXXXXXXXXX)
@@ -407,9 +425,52 @@ async function createGoCardlessSetup() {
 }
 
 /* ─── LEAD SUBMISSION ────────────────────── */
+/* ─── SOURCE TRACKING ──────────────────── */
+function getSourceData() {
+  const params = new URLSearchParams(window.location.search);
+  return {
+    source_page: window.location.pathname,
+    referrer: document.referrer || null,
+    utm_source: params.get('utm_source') || null,
+    utm_medium: params.get('utm_medium') || null,
+    utm_campaign: params.get('utm_campaign') || null
+  };
+}
+
+/* ─── PARTIAL LEAD CAPTURE (soft gate) ── */
+function capturePartialLead() {
+  const url = LEAD_PARTIAL_URL || N8N_WEBHOOK;
+  if (!url) { console.warn('[MAC] No webhook configured for partial lead.'); return; }
+  const payload = {
+    status: 'partial',
+    timestamp: new Date().toISOString(),
+    email: Q.email,
+    postcode: Q.postcode,
+    property_type: Q.property,
+    build_type: getBuild(),
+    bedrooms: Q.beds,
+    extras: Q.extras,
+    ...getSourceData()
+  };
+  console.log('[MAC] Partial lead captured:', payload);
+  if (typeof gtag === 'function') {
+    gtag('event', 'soft_gate_passed', { property: Q.property });
+  }
+  fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  }).then(r => {
+    if (!r.ok) console.error('[MAC] Partial lead webhook error:', r.status);
+    else console.log('[MAC] Partial lead sent');
+  }).catch(err => console.error('[MAC] Partial lead failed:', err));
+}
+
+/* ─── FULL LEAD PAYLOAD ─────────────────── */
 function buildLeadPayload() {
   const isRegular = Q.mode === 'regular';
   const payload = {
+    status: 'quoted',
     timestamp: new Date().toISOString(),
     type: isRegular ? 'regular' : 'oneoff',
     /* Customer */
@@ -419,28 +480,46 @@ function buildLeadPayload() {
     address: Q.address,
     postcode: Q.postcode,
     /* Property */
-    property: Q.property,
-    build: getBuild(),
-    beds: Q.beds,
+    property_type: Q.property,
+    build_type: getBuild(),
+    bedrooms: Q.beds,
+    /* Source tracking */
+    ...getSourceData()
   };
   if (isRegular) {
     payload.frequency = Q.frequency;
-    payload.pricePerClean = getPrice(Q.frequency);
+    payload.price_per_clean = getPrice(Q.frequency);
     /* Extras */
+    payload.extras_detail = Q.extras;
     const extras = Object.entries(Q.extras).filter(([,v])=>v).map(([k])=>k==='skylights'?Q.skylightCount+' skylight'+(Q.skylightCount>1?'s':''):k);
     if (extras.length) payload.extras = extras.join(', ');
     /* Add-ons */
     const disc = getBundleDiscount();
-    const addons = Object.entries(Q.addons).filter(([,a])=>a.selected).map(([k])=>{
+    const addonData = {};
+    const addonLabels = [];
+    Object.entries(Q.addons).filter(([,a])=>a.selected).forEach(([k,a])=>{
       const price = Math.round(getStandalonePrice(k) * (1 - disc));
-      return STANDALONE[k].label + ' (£' + price + ')';
+      addonData[k] = { selected: true, plan: a.plan, price };
+      addonLabels.push(STANDALONE[k].label + ' (£' + price + ')');
     });
-    if (addons.length) { payload.addons = addons.join(', '); payload.addonTotal = getAddonTotal(); }
-    payload.total = payload.pricePerClean + (payload.addonTotal || 0);
+    if (addonLabels.length) {
+      payload.addons = addonData;
+      payload.addons_display = addonLabels.join(', ');
+      payload.addons_total = getAddonTotal();
+    }
+    payload.total = payload.price_per_clean + (payload.addons_total || 0);
+    /* Legacy field names for existing n8n workflow */
+    payload.property = Q.property;
+    payload.build = getBuild();
+    payload.beds = Q.beds;
+    payload.pricePerClean = payload.price_per_clean;
   } else {
     const services = Object.entries(Q.oneoffServices).filter(([,v])=>v).map(([k])=>STANDALONE[k].label+' (£'+getStandalonePrice(k)+')');
     payload.services = services.join(', ');
     payload.total = getOneoffTotal();
+    payload.property = Q.property;
+    payload.build = getBuild();
+    payload.beds = Q.beds;
   }
   return payload;
 }
@@ -456,8 +535,10 @@ function submitLead() {
       quote_type: payload.type
     });
   }
-  if (!N8N_WEBHOOK) { console.warn('[MAC] N8N_WEBHOOK not configured — lead not sent.'); return; }
-  fetch(N8N_WEBHOOK, {
+  /* Send to pipeline endpoint (or legacy webhook) */
+  const url = LEAD_COMPLETE_URL || N8N_WEBHOOK;
+  if (!url) { console.warn('[MAC] No webhook configured — lead not sent.'); return; }
+  fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload)
@@ -924,7 +1005,7 @@ function handleQuoteClick(e) {
   else if (a==='reveal') {
     const err=validateStep1();
     if(err){Q.feedback={t:'error',m:err.msg,field:err.field}; Q._scrollField=err.field;}
-    else{Q.leadCaptured=true; Q.feedback={t:'success',m: Q.mode==='oneoff' ? "Here are your prices! Review your selection below." : "Here's your price! Tap a frequency below to start booking."};}
+    else{Q.leadCaptured=true; capturePartialLead(); Q.feedback={t:'success',m: Q.mode==='oneoff' ? "Here are your prices! Review your selection below." : "Here's your price! Tap a frequency below to start booking."};}
   }
 
   /* Frequency selection — regular path (directly advances to step 2) */
