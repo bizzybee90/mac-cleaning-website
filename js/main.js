@@ -76,8 +76,8 @@ const LEAD_COMPLETE_URL = ''; // e.g. 'https://bizzybee.app.n8n.cloud/webhook/ma
    ──────────────────────────────────────────
    For photo uploads and future direct DB access.
    ────────────────────────────────────────── */
-const SUPABASE_URL = ''; // e.g. 'https://atukvssploxwyqpwjmrc.supabase.co'
-const SUPABASE_ANON_KEY = ''; // Your Supabase anon key
+const SUPABASE_URL = 'https://atukvssploxwyqpwjmrc.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF0dWt2c3NwbG94d3lxcHdqbXJjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg0NTAwNTAsImV4cCI6MjA3NDAyNjA1MH0.uCAMhIE_dxXdiWRfDqJAVoqYqcOUp5i8dxvRfsVHVMs';
 
 /* ──────────────────────────────────────────
    GOOGLE ANALYTICS CONFIGURATION
@@ -438,32 +438,57 @@ function getSourceData() {
 }
 
 /* ─── PARTIAL LEAD CAPTURE (soft gate) ── */
+/* ─── SUPABASE HELPER ───────────────────── */
+function saveToSupabase(table, data) {
+  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+    console.warn('[MAC] Supabase not configured — skipping DB write.');
+    return Promise.resolve(null);
+  }
+  return fetch(SUPABASE_URL + '/rest/v1/' + table, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'apikey': SUPABASE_ANON_KEY,
+      'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+      'Prefer': 'return=representation'
+    },
+    body: JSON.stringify(data)
+  }).then(r => {
+    if (!r.ok) return r.text().then(t => { console.error('[MAC] Supabase error:', r.status, t); return null; });
+    return r.json().then(rows => { console.log('[MAC] Saved to Supabase:', rows[0]?.id); return rows[0]; });
+  }).catch(err => { console.error('[MAC] Supabase failed:', err); return null; });
+}
+
 function capturePartialLead() {
-  const url = LEAD_PARTIAL_URL || N8N_WEBHOOK;
-  if (!url) { console.warn('[MAC] No webhook configured for partial lead.'); return; }
-  const payload = {
+  const supabaseData = {
     status: 'partial',
-    timestamp: new Date().toISOString(),
     email: Q.email,
     postcode: Q.postcode,
     property_type: Q.property,
     build_type: getBuild(),
     bedrooms: Q.beds,
-    extras: Q.extras,
+    extras: Q.extras || {},
     ...getSourceData()
   };
-  console.log('[MAC] Partial lead captured:', payload);
+  console.log('[MAC] Partial lead captured:', supabaseData);
   if (typeof gtag === 'function') {
     gtag('event', 'soft_gate_passed', { property: Q.property });
   }
+  /* Save to Supabase */
+  saveToSupabase('leads', supabaseData).then(row => {
+    if (row?.id) Q._supabaseLeadId = row.id;
+  });
+  /* Also send to n8n webhook */
+  const url = LEAD_PARTIAL_URL || N8N_WEBHOOK;
+  if (!url) return;
   fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload)
+    body: JSON.stringify({ ...supabaseData, timestamp: new Date().toISOString() })
   }).then(r => {
     if (!r.ok) console.error('[MAC] Partial lead webhook error:', r.status);
-    else console.log('[MAC] Partial lead sent');
-  }).catch(err => console.error('[MAC] Partial lead failed:', err));
+    else console.log('[MAC] Partial lead sent to n8n');
+  }).catch(err => console.error('[MAC] Partial lead webhook failed:', err));
 }
 
 /* ─── FULL LEAD PAYLOAD ─────────────────── */
@@ -535,16 +560,53 @@ function submitLead() {
       quote_type: payload.type
     });
   }
-  /* Send to pipeline endpoint (or legacy webhook) */
+  /* Build Supabase-compatible row */
+  const supabaseData = {
+    status: 'quoted',
+    quoted_at: new Date().toISOString(),
+    name: Q.name,
+    email: Q.email,
+    phone: Q.phone,
+    address: Q.address,
+    postcode: Q.postcode,
+    property_type: Q.property,
+    build_type: getBuild(),
+    bedrooms: Q.beds,
+    frequency: payload.frequency || null,
+    price_per_clean: payload.price_per_clean || null,
+    extras: payload.extras_detail || {},
+    addons: payload.addons || {},
+    addons_total: payload.addons_total || null,
+    ...getSourceData()
+  };
+  /* If we already captured a partial lead, update it; otherwise insert */
+  if (Q._supabaseLeadId && SUPABASE_URL && SUPABASE_ANON_KEY) {
+    fetch(SUPABASE_URL + '/rest/v1/leads?id=eq.' + Q._supabaseLeadId, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+        'Prefer': 'return=representation'
+      },
+      body: JSON.stringify(supabaseData)
+    }).then(r => {
+      if (!r.ok) r.text().then(t => console.error('[MAC] Supabase update error:', r.status, t));
+      else console.log('[MAC] Supabase lead updated:', Q._supabaseLeadId);
+    }).catch(err => console.error('[MAC] Supabase update failed:', err));
+  } else {
+    saveToSupabase('leads', supabaseData);
+  }
+  /* Also send to n8n webhook */
   const url = LEAD_COMPLETE_URL || N8N_WEBHOOK;
-  if (!url) { console.warn('[MAC] No webhook configured — lead not sent.'); return; }
+  if (!url) return;
   fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload)
   }).then(r => {
     if (!r.ok) console.error('[MAC] Webhook error:', r.status);
-    else console.log('[MAC] Lead sent successfully');
+    else console.log('[MAC] Lead sent to n8n');
   }).catch(err => console.error('[MAC] Webhook failed:', err));
 }
 
