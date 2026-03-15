@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://maccleaning.uk/sitemap.xml
+
+# Block admin dashboard from search engines
+Disallow: /admin/
+Disallow: /og-image-generator.html
