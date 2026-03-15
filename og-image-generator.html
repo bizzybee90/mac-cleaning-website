@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>OG Image Generator — MAC Cleaning</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #333;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  /* ── OG Image Canvas ── */
+  .og {
+    width: 1200px;
+    height: 630px;
+    background: #1C2434;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+  }
+
+  /* Subtle background texture */
+  .og::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 30% 50%, rgba(184,134,11,0.05) 0%, transparent 70%),
+      radial-gradient(ellipse 50% 80% at 85% 20%, rgba(255,255,255,0.02) 0%, transparent 60%);
+  }
+
+  /* Gold accent strip on left edge */
+  .og::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 6px;
+    background: linear-gradient(180deg, #b8860b 0%, #d3a134 50%, #b8860b 100%);
+  }
+
+  /* ── Layout ── */
+  .og-inner {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 0 70px 0 60px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ── Left: Actual Logo ── */
+  .og-logo {
+    flex-shrink: 0;
+    margin-right: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .og-logo img {
+    height: 320px;
+    width: auto;
+    /* The logo is dark blue on transparent — invert to white for dark bg */
+    filter: brightness(0) invert(1);
+  }
+
+  /* ── Divider ── */
+  .og-divider {
+    width: 1px;
+    height: 300px;
+    background: linear-gradient(180deg, transparent 0%, rgba(255,255,255,0.12) 20%, rgba(255,255,255,0.12) 80%, transparent 100%);
+    flex-shrink: 0;
+    margin-right: 50px;
+  }
+
+  /* ── Right: Content ── */
+  .og-content {
+    flex: 1;
+  }
+  .og-headline {
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+    font-size: 40px;
+    color: #ffffff;
+    line-height: 1.2;
+    margin-bottom: 18px;
+  }
+  .og-headline em {
+    font-style: normal;
+    color: #d3a134;
+  }
+  .og-sub {
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 500;
+    font-size: 20px;
+    color: rgba(255,255,255,0.55);
+    line-height: 1.5;
+    margin-bottom: 28px;
+  }
+  .og-stats {
+    display: flex;
+    gap: 36px;
+  }
+  .og-stat-value {
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 700;
+    font-size: 26px;
+    color: #d3a134;
+    line-height: 1;
+  }
+  .og-stat-label {
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 500;
+    font-size: 12px;
+    color: rgba(255,255,255,0.35);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin-top: 6px;
+  }
+
+  /* ── URL bar at bottom ── */
+  .og-url {
+    position: absolute;
+    bottom: 24px;
+    right: 70px;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 500;
+    font-size: 14px;
+    color: rgba(255,255,255,0.2);
+    letter-spacing: 0.05em;
+  }
+</style>
+</head>
+<body>
+
+<!-- ══ OG IMAGE START ══ -->
+<div class="og" id="og">
+  <div class="og-inner">
+
+    <!-- Actual MAC Cleaning Logo -->
+    <div class="og-logo">
+      <img src="assets/mac-logo-compact.png" alt="MAC Cleaning">
+    </div>
+
+    <!-- Divider -->
+    <div class="og-divider"></div>
+
+    <!-- Content -->
+    <div class="og-content">
+      <div class="og-headline">
+        Window Cleaning<br>
+        <em>Luton & Bedfordshire</em>
+      </div>
+      <div class="og-sub">
+        Professional window cleaning from £19/clean.<br>
+        Get your exact price online in 60 seconds.
+      </div>
+      <div class="og-stats">
+        <div class="og-stat">
+          <div class="og-stat-value">840+</div>
+          <div class="og-stat-label">Happy homes</div>
+        </div>
+        <div class="og-stat">
+          <div class="og-stat-value">4.7★</div>
+          <div class="og-stat-label">Google rating</div>
+        </div>
+        <div class="og-stat">
+          <div class="og-stat-value">From £19</div>
+          <div class="og-stat-label">Per clean</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  <div class="og-url">maccleaning.uk</div>
+</div>
+<!-- ══ OG IMAGE END ══ -->
+
+</body>
+</html>
