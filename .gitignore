@@ -4,3 +4,10 @@ files/
 files.zip
 CLAUDE-CODE-PROMPT.md
 MAC-CLEANING-COPY-REWRITE-PROMPT.md
+
+# wrangler files
+.wrangler
+.dev.vars*
+!.dev.vars.example
+.env*
+!.env.example
