@@ -450,11 +450,13 @@ section { padding: var(--section-py) 0; }
   border-radius: var(--radius-sm);
   background: var(--cream-2);
   margin-bottom: 1rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--ink-faint);
-  font-size: 0.82rem;
+  overflow: hidden;
+}
+.service-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
 @media (max-width: 600px) {
@@ -634,11 +636,13 @@ section { padding: var(--section-py) 0; }
   width: 100%;
   aspect-ratio: 16/9;
   background: var(--cream-2);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--ink-faint);
-  font-size: 0.82rem;
+  overflow: hidden;
+}
+.blog-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 .blog-body { padding: 1.2rem; }
 .blog-date { font-size: 0.78rem; color: var(--ink-faint); font-weight: 500; }
@@ -1878,7 +1882,7 @@ section { padding: var(--section-py) 0; }
   /* -- Services -- */
   .services-grid { grid-template-columns: 1fr; gap: 0.6rem; }
   .service-card { padding: 1rem; }
-  .service-img { display: none; } /* hide empty placeholders — saves ~600px scroll */
+  .service-img { aspect-ratio: 3/2; }
 
   /* -- Pricing -- */
   .pricing-grid { grid-template-columns: 1fr 1fr; gap: 0.6rem; }
@@ -2043,7 +2047,7 @@ section { padding: var(--section-py) 0; }
 
   /* -- Blog -- */
   .blog-grid { grid-template-columns: 1fr; gap: 0.6rem; }
-  .blog-img { display: none; } /* hide empty placeholders — saves ~300px scroll */
+  .blog-img { aspect-ratio: 16/9; }
   .blog-body { padding: 0.8rem; }
   .blog-body h3 { font-size: 1rem; }
   .blog-body p { font-size: 0.85rem; }
