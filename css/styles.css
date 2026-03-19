@@ -1838,7 +1838,7 @@ section { padding: var(--section-py) 0; }
   /* The spacer provides the scroll runway for the sticky cards.
      3 cards × ~90vh each = 270vh gives enough scroll distance
      for each card to fully enter and the next to overtake it. */
-  .hiw-spacer { height: 270vh !important; position: relative; overflow: visible; }
+  .hiw-spacer { height: auto !important; position: relative; overflow: visible; }
 
   /* The pinned container holds the cards but doesn't pin itself —
      the individual cards handle their own sticking. */
@@ -1852,7 +1852,21 @@ section { padding: var(--section-py) 0; }
 
   /* Section padding: tight top (heading already has padding), generous bottom
      so the last card has space before the next section */
-  #hiw.bg-dark { padding-bottom: 2rem; }
+  /* On mobile, remove the dark section background — each card has its own.
+     This eliminates the dark gap below the last card. */
+  #hiw.bg-dark {
+    background: none !important;
+    background-image: none !important;
+    background-color: transparent !important;
+    margin: 0;
+    border-radius: 0;
+    padding-bottom: 0;
+  }
+  /* Re-theme the heading for light background */
+  #hiw .section-intro { color: var(--charcoal); }
+  #hiw .section-intro h2 { color: var(--charcoal); }
+  #hiw .section-intro p { color: var(--ink); }
+  #hiw .section-intro .tag { background: var(--gold-bg); color: var(--gold); }
 
   /* Hide the desktop display panel — cards have inline visuals */
   .hiw-display { display: none !important; }
