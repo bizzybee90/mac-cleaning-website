@@ -210,7 +210,34 @@ document.addEventListener('DOMContentLoaded', () => {
   loadGA();
   handleStripeReturn();
   renderQuote();
+  initQuoteDeepLinks();
 });
+
+/* ── CTA DEEP LINKS ──────────────────────
+   All #quote links skip the service chooser and go
+   straight into the window cleaning quote (step 1).
+   ────────────────────────────────────────── */
+function initQuoteDeepLinks() {
+  document.addEventListener('click', (e) => {
+    const link = e.target.closest('a[href="#quote"]');
+    if (!link) return;
+    /* Don't interfere if the user has already started a quote or submitted */
+    if (Q.submitted) return;
+    /* Auto-select regular window cleaning and go to step 1 */
+    if (!Q.mode) {
+      Q.mode = 'regular';
+      Q.step = 1;
+      Q.feedback = null;
+      renderQuote();
+    }
+    /* Scroll to the quote widget smoothly */
+    e.preventDefault();
+    const target = document.getElementById('quoteWidget');
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  });
+}
 
 /* ─── GOOGLE PLACES AUTOCOMPLETE ────────── */
 let _placesReady = false;
@@ -755,7 +782,7 @@ function initHiw() {
   const stepsEl = document.getElementById('hiwSteps');
   if (!display || !stepsEl) return;
 
-  const isMobile = window.innerWidth <= 768;
+  const isMobile = window.innerWidth <= 1024;
 
   stepsEl.innerHTML = HIW_STEPS.map((s,i) => `
     <div class="hiw-step ${(i===0||isMobile)?'active':''}" data-hiw="${i}">

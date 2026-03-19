@@ -1702,7 +1702,62 @@ section { padding: var(--section-py) 0; }
 @media (max-width: 1024px) {
   .quote-layout { grid-template-columns: 1fr; }
   .quote-sidebar { position: relative; top: 0; }
-  .hiw-spacer { height: 280vh; }
+
+  /* HiW: Apptics-style sticky stacked cards for tablet */
+  .hiw-spacer { height: auto !important; position: relative; overflow: visible; }
+  .hiw-pinned {
+    position: static !important;
+    top: auto !important;
+    height: auto !important;
+    display: block !important;
+    padding: 0.5rem 0 0;
+  }
+  #hiw.bg-dark {
+    background: none !important;
+    background-image: none !important;
+    background-color: transparent !important;
+    margin: 0;
+    border-radius: 0;
+    padding-bottom: 0;
+  }
+  #hiw .section-intro { color: var(--charcoal); }
+  #hiw .section-intro h2 { color: var(--charcoal); }
+  #hiw .section-intro p { color: var(--ink); }
+  #hiw .section-intro .tag { background: var(--gold-bg); color: var(--gold); }
+  .hiw-display { display: none !important; }
+  .hiw-steps { display: block; }
+  .hiw-dots { display: none; }
+  .hiw-step {
+    position: sticky !important;
+    opacity: 1 !important;
+    transform: none !important;
+    pointer-events: auto !important;
+    color: var(--white);
+    background: #1a2233;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 1.2rem;
+    padding: 1.5rem 1.2rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 -8px 32px rgba(0,0,0,0.4), 0 2px 8px rgba(0,0,0,0.2);
+    transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+                opacity 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+                border-color 0.3s ease;
+    will-change: transform;
+  }
+  .hiw-step:nth-child(1) { top: 72px;  z-index: 1; }
+  .hiw-step:nth-child(2) { top: 84px;  z-index: 2; }
+  .hiw-step:nth-child(3) { top: 96px;  z-index: 3; }
+  .hiw-step:nth-child(4) { top: 108px; z-index: 4; }
+  .hiw-step.active {
+    border-color: rgba(184,134,11,0.5);
+    background: #1e2a3d;
+    box-shadow: 0 -8px 32px rgba(0,0,0,0.4), 0 2px 8px rgba(0,0,0,0.2), 0 0 0 1px rgba(184,134,11,0.15);
+  }
+  .hiw-step.hiw-past { transform: scale(0.96) !important; opacity: 0.6 !important; }
+  .hiw-step-num { background: rgba(255,255,255,0.08); transition: background 0.3s ease; }
+  .hiw-step.active .hiw-step-num { background: var(--gold); }
+  .hiw-step h3 { color: var(--white); }
+  .hiw-step p { color: rgba(255,255,255,0.65); display: block !important; }
 }
 @media (max-width: 768px) {
   .quote-shell { grid-template-columns: 1fr; }
