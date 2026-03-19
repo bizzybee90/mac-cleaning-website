@@ -10,8 +10,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js" integrity="sha384-odJMGkKBMEuhGROIBrJhergqgOOv1yL3aIPQmTOLqvwNKl9XsFNMpU+sHCbG7VGe" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js" crossorigin="anonymous"></script>
 <style>
 /* ══════════════════════════════════════════
    DESIGN TOKENS
@@ -1292,17 +1292,21 @@ function renderTable() {
   if (page.length === 0) {
     tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><p>No leads match your filters</p></div></td></tr>`;
   } else {
-    tbody.innerHTML = page.map(l => `
-      <tr data-id="${l.id}" onclick="openPanel('${l.id}')">
+    const VALID_STATUSES = Object.keys(STATUS_CONFIG);
+    tbody.innerHTML = page.map(l => {
+      const safeStatus = VALID_STATUSES.includes(l.status) ? l.status : 'partial';
+      const safeId = /^[a-f0-9-]+$/.test(l.id) ? l.id : '';
+      return `
+      <tr data-id="${safeId}" onclick="openPanel('${safeId}')">
         <td><span class="lead-name">${esc(l.name || '—')}</span><br><span style="font-size:12px;color:var(--ink-faint)">${esc(l.email || '')}</span></td>
         <td class="lead-property">${esc(formatProperty(l))}</td>
         <td class="lead-price">${l.price_per_clean ? '£' + l.price_per_clean : '—'}${l.frequency ? '<br><span style="font-size:11px;color:var(--ink-faint)">' + esc(l.frequency) + '</span>' : ''}</td>
-        <td><span class="status-badge status-${l.status}">${(STATUS_CONFIG[l.status]?.icon || '') + ' ' + (STATUS_CONFIG[l.status]?.label || l.status)}</span></td>
+        <td><span class="status-badge status-${safeStatus}">${(STATUS_CONFIG[l.status]?.icon || '') + ' ' + (STATUS_CONFIG[l.status]?.label || esc(l.status))}</span></td>
         <td class="lead-postcode">${esc(l.postcode || '—')}</td>
         <td style="font-size:13px;color:var(--ink-faint)">${esc((l.source_page || 'direct').replace(/^\//, ''))}</td>
         <td class="lead-time">${timeAgo(l.created_at)}</td>
       </tr>
-    `).join('');
+    `}).join('');
   }
 
   // Pagination
@@ -1353,8 +1357,8 @@ async function openPanel(id) {
     <!-- Status -->
     <div class="panel-section">
       <div class="panel-section-title">Status</div>
-      <span class="status-badge status-${lead.status}" style="font-size:14px;padding:6px 14px">
-        ${STATUS_CONFIG[lead.status]?.icon || ''} ${STATUS_CONFIG[lead.status]?.label || lead.status}
+      <span class="status-badge status-${Object.keys(STATUS_CONFIG).includes(lead.status) ? lead.status : 'partial'}" style="font-size:14px;padding:6px 14px">
+        ${STATUS_CONFIG[lead.status]?.icon || ''} ${STATUS_CONFIG[lead.status]?.label || esc(lead.status)}
       </span>
     </div>
 
@@ -1464,11 +1468,12 @@ async function updateStatus(id, newStatus) {
   }
 
   // Log event
+  const currentUser = (await sb.auth.getUser()).data?.user?.email || 'unknown';
   await sb.from('lead_events').insert({
     lead_id: id,
     event_type: newStatus,
     channel: 'manual',
-    created_by: 'michael'
+    created_by: currentUser
   });
 
   toast('Status updated to ' + (STATUS_CONFIG[newStatus]?.label || newStatus));
@@ -1486,12 +1491,13 @@ async function addNote() {
   const newNotes = lead.notes ? lead.notes + '\n' + text : text;
 
   await sb.from('leads').update({ notes: newNotes }).eq('id', selectedLeadId);
+  const noteUser = (await sb.auth.getUser()).data?.user?.email || 'unknown';
   await sb.from('lead_events').insert({
     lead_id: selectedLeadId,
     event_type: 'note_added',
     channel: 'manual',
     details: { text },
-    created_by: 'michael'
+    created_by: noteUser
   });
 
   input.value = '';
@@ -1673,7 +1679,12 @@ function exportCSV() {
     l.frequency, l.price_per_clean, l.status, l.source_page, l.created_at
   ]);
 
-  const csv = [headers, ...rows].map(r => r.map(c => `"${(c || '').toString().replace(/"/g, '""')}"`).join(',')).join('\n');
+  const sanitizeCell = (c) => {
+    let val = (c || '').toString();
+    if (/^[=+\-@\t\r]/.test(val)) val = "'" + val;
+    return `"${val.replace(/"/g, '""')}"`;
+  };
+  const csv = [headers, ...rows].map(r => r.map(sanitizeCell).join(',')).join('\n');
   const blob = new Blob([csv], { type: 'text/csv' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -1776,10 +1787,11 @@ function formatProperty(l) {
 
 function formatExtras(extras) {
   if (!extras || typeof extras !== 'object') return '—';
-  return Object.entries(extras)
+  const result = Object.entries(extras)
     .filter(([, v]) => v === true || v > 0)
     .map(([k]) => capitalize(k.replace(/([A-Z])/g, ' $1')))
     .join(', ') || '—';
+  return esc(result);
 }
 
 function formatEventType(type) {

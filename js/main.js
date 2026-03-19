@@ -452,7 +452,7 @@ function capturePartialLead() {
     extras: Q.extras || {},
     ...getSourceData()
   };
-  console.log('[MAC] Partial lead captured:', payload);
+  console.log('[MAC] Partial lead captured');
   if (typeof gtag === 'function') {
     gtag('event', 'soft_gate_passed', { property: Q.property });
   }
@@ -529,7 +529,7 @@ function buildLeadPayload() {
 
 function submitLead() {
   const payload = buildLeadPayload();
-  console.log('[MAC] Lead captured:', payload);
+  console.log('[MAC] Lead captured');
   /* Track in GA if available */
   if (typeof gtag === 'function') {
     gtag('event', 'quote_accepted', {
@@ -912,14 +912,7 @@ function renderQuote() {
     Q.termsAccepted = e.target.checked;
     renderQuote();
   }));
-  /* Card input formatting */
-  w.querySelectorAll('[data-card]').forEach(el => el.addEventListener('input', e => {
-    const t = e.target.dataset.card;
-    let v = e.target.value.replace(/\D/g, '');
-    if (t === 'number') { v = v.substring(0,16); e.target.value = v.replace(/(.{4})/g,'$1 ').trim(); }
-    else if (t === 'expiry') { v = v.substring(0,4); e.target.value = v.length >= 2 ? v.substring(0,2)+' / '+v.substring(2) : v; }
-    else if (t === 'cvc') { e.target.value = v.substring(0,4); }
-  }));
+  /* Card input formatting removed — Stripe Elements handles card input in a secure iframe */
   /* Google Places autocomplete on address field */
   attachAddressAutocomplete();
   /* Mount Stripe Elements if on confirmation screen */
@@ -1086,7 +1079,16 @@ function handleQuoteClick(e) {
 
     createGoCardlessSetup().then(result => {
       if (result && result.redirectUrl) {
-        window.location.href = result.redirectUrl;
+        if (/^https:\/\/(pay\.gocardless\.com|gocardless\.com)\//.test(result.redirectUrl)) {
+          window.location.href = result.redirectUrl;
+        } else {
+          console.error('[MAC] Invalid GoCardless redirect URL blocked:', result.redirectUrl);
+          btn.classList.remove('is-loading');
+          btn.innerHTML = 'Set Up Direct Debit →';
+          btn.style.pointerEvents = '';
+          Q.feedback = { t: 'error', m: 'Unable to set up Direct Debit. Please try card payment instead.' };
+          renderQuote();
+        }
       } else {
         btn.classList.remove('is-loading');
         btn.innerHTML = 'Set Up Direct Debit →';
