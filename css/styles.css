@@ -1830,49 +1830,118 @@ section { padding: var(--section-py) 0; }
   .pricing-card { padding: 1rem; }
   .pricing-card strong { font-size: 1.6rem; }
 
-  /* -- How It Works: simple stacked cards on mobile, no scroll animation -- */
-  .hiw-spacer { height: fit-content !important; overflow: visible; }
+  /* ── How It Works: Apptics-style sticky stacked cards on mobile ──
+     Each card is full-width, sticks at a staggered top offset, and
+     the next card slides up over the previous one as you scroll —
+     creating a "deck of cards" / separate-pages feel. */
+
+  /* The spacer provides the scroll runway for the sticky cards.
+     3 cards × ~90vh each = 270vh gives enough scroll distance
+     for each card to fully enter and the next to overtake it. */
+  .hiw-spacer { height: 270vh !important; position: relative; overflow: visible; }
+
+  /* The pinned container holds the cards but doesn't pin itself —
+     the individual cards handle their own sticking. */
   .hiw-pinned {
     position: static !important;
     top: auto !important;
     height: auto !important;
     display: block !important;
-    padding: 1rem 0 0;
+    padding: 0.5rem 0 0;
   }
-  #hiw.bg-dark { padding-bottom: 1rem; }
+
+  /* Section padding: tight top (heading already has padding), generous bottom
+     so the last card has space before the next section */
+  #hiw.bg-dark { padding-bottom: 2rem; }
+
+  /* Hide the desktop display panel — cards have inline visuals */
   .hiw-display { display: none !important; }
+
+  /* Steps container: block layout, no flex/grid */
   .hiw-steps { display: block; }
+
+  /* Each step card: sticky, full-width, staggered top, with transitions */
   .hiw-step {
-    position: relative !important;
-    top: auto !important;
+    position: sticky !important;
     opacity: 1 !important;
     transform: none !important;
     pointer-events: auto !important;
     color: var(--white);
-    background: #1e2738;
-    border: 1px solid rgba(255,255,255,0.1);
-    border-radius: var(--radius-md);
-    padding: 1rem 1.1rem;
-    margin-bottom: 0.6rem;
-    box-shadow: 0 -4px 24px rgba(0,0,0,0.35);
-    transition: border-color 0.3s var(--ease);
+    background: #1a2233;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 1.2rem;
+    padding: 1.5rem 1.2rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 -8px 32px rgba(0,0,0,0.4), 0 2px 8px rgba(0,0,0,0.2);
+    transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+                opacity 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+                border-color 0.3s ease;
+    will-change: transform;
   }
-  .hiw-step:nth-child(1) { z-index: 1; }
-  .hiw-step:nth-child(2) { z-index: 2; }
-  .hiw-step:nth-child(3) { z-index: 3; }
-  .hiw-step:nth-child(4) { z-index: 4; }
-  .hiw-step.active { border-color: var(--gold); background: #222c3f; }
-  .hiw-step h3 { font-size: 1.05rem; margin-bottom: 0.3rem; color: var(--white); }
-  .hiw-step p { font-size: 0.85rem; line-height: 1.5; color: rgba(255,255,255,0.7); display: block !important; }
-  .hiw-step-num { width: 2rem; height: 2rem; font-size: 0.75rem; margin-bottom: 0.5rem; background: var(--gold); }
+
+  /* Staggered sticky positions — each card pins slightly lower,
+     so you can see the edge of the previous card peeking above */
+  .hiw-step:nth-child(1) { top: 72px;  z-index: 1; }
+  .hiw-step:nth-child(2) { top: 84px;  z-index: 2; }
+  .hiw-step:nth-child(3) { top: 96px;  z-index: 3; }
+  .hiw-step:nth-child(4) { top: 108px; z-index: 4; }
+
+  /* Active card: gold border glow, slightly lifted background */
+  .hiw-step.active {
+    border-color: rgba(184,134,11,0.5);
+    background: #1e2a3d;
+    box-shadow: 0 -8px 32px rgba(0,0,0,0.4),
+                0 2px 8px rgba(0,0,0,0.2),
+                0 0 0 1px rgba(184,134,11,0.15);
+  }
+
+  /* Inactive cards that have been scrolled past: slightly shrunk,
+     creating a receding deck effect */
+  .hiw-step.hiw-past {
+    transform: scale(0.96) !important;
+    opacity: 0.6 !important;
+  }
+
+  /* Step number badge */
+  .hiw-step-num {
+    width: 2.4rem;
+    height: 2.4rem;
+    font-size: 0.8rem;
+    margin-bottom: 0.8rem;
+    background: rgba(255,255,255,0.08);
+    transition: background 0.3s ease;
+  }
+  .hiw-step.active .hiw-step-num { background: var(--gold); }
+
+  /* Typography */
+  .hiw-step h3 {
+    font-size: 1.15rem;
+    margin-bottom: 0.4rem;
+    color: var(--white);
+    font-weight: 700;
+  }
+  .hiw-step p {
+    font-size: 0.88rem;
+    line-height: 1.6;
+    color: rgba(255,255,255,0.65);
+    display: block !important;
+  }
+
+  /* Progress dots hidden — the stacking IS the progress indicator */
   .hiw-dots { display: none; }
-  /* Inline HiW visuals on mobile */
-  .hiw-step .hiw-visual { margin-top: 0.6rem; min-height: 0; }
-  .hiw-step .hiw-visual .hiw-pill { font-size: 0.75rem; padding: 0.35rem 0.6rem; }
-  .hiw-step .hiw-visual .hiw-vval { font-size: 1.1rem; }
-  .hiw-step .hiw-visual .hiw-vcard { padding: 0.5rem 0.6rem; }
-  .hiw-step .hiw-visual .hiw-vlabel { font-size: 0.65rem; }
-  .hiw-step .hiw-visual .hiw-vdesc { font-size: 0.7rem; }
+
+  /* Inline visuals inside each card */
+  .hiw-step .hiw-visual {
+    margin-top: 1rem;
+    min-height: 0;
+    border-radius: 0.8rem;
+    padding: 1rem;
+  }
+  .hiw-step .hiw-visual .hiw-pill { font-size: 0.78rem; padding: 0.4rem 0.7rem; }
+  .hiw-step .hiw-visual .hiw-vval { font-size: 1.15rem; }
+  .hiw-step .hiw-visual .hiw-vcard { padding: 0.6rem 0.7rem; }
+  .hiw-step .hiw-visual .hiw-vlabel { font-size: 0.68rem; }
+  .hiw-step .hiw-visual .hiw-vdesc { font-size: 0.72rem; }
 
   /* -- Quote section -- */
   .quote-layout { grid-template-columns: 1fr; }

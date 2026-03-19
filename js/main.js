@@ -769,17 +769,30 @@ function initHiw() {
   renderHiwDisplay(0);
 
   if (isMobile) {
-    // Mobile: IntersectionObserver to highlight whichever card is in sticky position
+    // Mobile: Apptics-style sticky card stack with "past" deck effect
     const steps = stepsEl.querySelectorAll('.hiw-step');
+    let activeIdx = 0;
+
+    // Use IntersectionObserver to detect which card is currently in view
     const obs = new IntersectionObserver((entries) => {
       entries.forEach(e => {
-        if (e.isIntersecting && e.intersectionRatio > 0.6) {
-          steps.forEach(s => s.classList.remove('active'));
-          e.target.classList.add('active');
+        if (e.isIntersecting && e.intersectionRatio > 0.5) {
+          const idx = [...steps].indexOf(e.target);
+          if (idx >= 0 && idx !== activeIdx) {
+            activeIdx = idx;
+            steps.forEach((s, i) => {
+              s.classList.toggle('active', i === idx);
+              // Cards before the active one get the "past" class (shrunk, faded)
+              s.classList.toggle('hiw-past', i < idx);
+            });
+          }
         }
       });
-    }, { threshold: [0.6], rootMargin: '-80px 0px -40% 0px' });
+    }, { threshold: [0.5], rootMargin: '-80px 0px -30% 0px' });
     steps.forEach(s => obs.observe(s));
+
+    // Also mark the first card as active on load
+    if (steps.length) { steps[0].classList.add('active'); }
   } else {
     // Desktop: scroll-driven
     const spacer = document.querySelector('.hiw-spacer');
