@@ -209,6 +209,18 @@ document.addEventListener('DOMContentLoaded', () => {
   loadStripe();
   loadGA();
   handleStripeReturn();
+  /* Auto-init quote mode from data attributes (for embedded service pages) */
+  const _autoWidget = document.getElementById('quoteWidget');
+  if (_autoWidget && _autoWidget.dataset.quoteMode) {
+    Q.mode = _autoWidget.dataset.quoteMode;
+    Q.step = 1;
+    if (_autoWidget.dataset.quoteService) {
+      _autoWidget.dataset.quoteService.split(',').forEach(s => {
+        if (Q.oneoffServices.hasOwnProperty(s)) Q.oneoffServices[s] = true;
+      });
+    }
+    Q._embedded = true;
+  }
   renderQuote();
   initQuoteDeepLinks();
 });
@@ -1243,7 +1255,7 @@ function renderStep1() {
   const beds = getBeds();
   let h = `
     <div class="widget-header">
-      <button class="btn-back-entry" data-act="backToEntry">← Change service type</button>
+      ${Q._embedded ? '' : '<button class="btn-back-entry" data-act="backToEntry">← Change service type</button>'}
       <div class="tag">Step 1 of 4</div>
       <h3 class="widget-title">Your property</h3>
       <p class="widget-copy">Tell us about your home and we'll calculate your exact price.</p>
@@ -1345,7 +1357,7 @@ function renderStep1Oneoff() {
   const beds = getBeds();
   let h = `
     <div class="widget-header">
-      <button class="btn-back-entry" data-act="backToEntry">← Change service type</button>
+      ${Q._embedded ? '' : '<button class="btn-back-entry" data-act="backToEntry">← Change service type</button>'}
       <div class="tag">Step 1 of 3</div>
       <h3 class="widget-title">Your property &amp; services</h3>
       <p class="widget-copy">Tell us about your property and select the services you need.</p>
