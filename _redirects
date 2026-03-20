@@ -11,5 +11,3 @@
 /barton-le-clay    /#quote  301
 /milton-keynes     /#quote  301
 
-# Old blog pages → homepage blog section
-/blog/*            /#blog   301
