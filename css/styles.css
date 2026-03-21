@@ -1804,15 +1804,18 @@ section { padding: var(--section-py) 0; }
    ══════════════════════════════════════════ */
 @media (max-width: 768px) {
   /* -- Spacing -- */
-  section { padding: 1.8rem 0; }
+  section { padding: 1.2rem 0; }
   h2 { font-size: 1.7rem; }
   h3 { font-size: 1.1rem; }
   body { font-size: 15px; line-height: 1.55; }
   .section-intro p, .section-intro-center p { font-size: 0.88rem; margin-top: 0.4rem; line-height: 1.5; }
-  .section-intro, .section-intro-center { margin-bottom: 1rem; }
+  .section-intro, .section-intro-center { margin-bottom: 0.6rem; }
 
-  /* -- Rounded sections: tighter margin on mobile -- */
-  .bg-alt, .bg-dark { margin: 0 0.3rem; border-radius: 1.5rem; }
+  /* -- Reveal fallback: ensure nothing stays invisible on mobile -- */
+  .reveal { opacity: 1 !important; transform: none !important; }
+
+  /* -- Full-bleed sections on mobile -- */
+  .bg-alt, .bg-dark { margin: 0; border-radius: 0; }
 
   /* -- Nav -- */
   .nav { padding: 0.4rem 0.5rem; }
@@ -1826,58 +1829,56 @@ section { padding: var(--section-py) 0; }
   .nav-links, .nav-phone { display: none; }
   .nav-toggle { display: flex; }
   .nav-spacer { height: 64px; }
-  /* Nav CTA hidden on mobile — hero & mobile menu have CTAs */
+  /* Hide nav CTA on mobile — hero has it */
+  .nav-right { display: none !important; }
+  /* Nav hides on scroll down, shows on scroll up */
+  .nav.hidden { transform: translateY(-100%); }
 
-  /* -- Hero -- */
-  .hero { padding: 0.5rem 0 0.8rem; }
-  .hero .tag { font-size: 0.65rem; padding: 0.25rem 0.6rem; }
+  /* -- Hero: stripped back, Apple-clean -- */
+  .hero { padding: 2.5rem 0 1.5rem; }
+  .hero .tag { display: none; }
   .hero-grid { grid-template-columns: 1fr !important; gap: 0 !important; }
-  .hero-headline { font-size: clamp(1.6rem, 6vw, 2rem) !important; line-height: 1.02; margin-top: 0.4rem !important; }
-  .hero-sub { font-size: 0.88rem; margin: 0.4rem 0 0; line-height: 1.5; }
-  .hero-actions { flex-direction: column; gap: 0.5rem; margin: 0.8rem 0 0.6rem; }
-  .hero-actions .btn { width: 100%; text-align: center; justify-content: center; padding: 0.75rem 1.2rem; }
-  /* Show all 4 proof bullets in 2-col grid */
-  .hero-proof { display: grid; grid-template-columns: 1fr 1fr; gap: 0.1rem 0.6rem; }
-  .hero-proof li { font-size: 0.78rem; line-height: 1.3; }
-  .hero-proof li:nth-child(n+3) { display: list-item; }
-  .hero .hero-grid > .reveal > p[style*="font-display"] { font-size: 0.88rem !important; margin: 0.2rem 0 0 !important; }
-  /* Hero stage: show compact pricing panel, hide the other 2 */
-  .hero-stage { display: block !important; margin-top: 0.6rem; }
-  .hero-panel-main.glass {
-    padding: 0.8rem 1rem;
-    border-radius: var(--radius-md);
-  }
-  .hero-panel-main .stage-label { font-size: 0.75rem; margin-bottom: 0.4rem; }
-  .hero-panel-main .price-cols { gap: 0.6rem; }
-  .hero-panel-main .price-val { font-size: 1.6rem; }
-  .hero-panel-main .price-freq { font-size: 0.72rem; }
-  .hero-panel-main .price-note { font-size: 0.7rem; }
-  .hero-panel-main p { font-size: 0.72rem !important; }
-  .hero-panel-side, .hero-panel-review { display: none; }
+  .hero-headline { font-size: clamp(2.2rem, 8vw, 2.8rem) !important; line-height: 1.02; margin-top: 0 !important; letter-spacing: -0.04em; }
+  .hero-sub { display: none; }
+  .hero-sub-mobile { display: block !important; font-size: 1rem; margin: 0.5rem 0 0; line-height: 1.5; color: var(--ink); }
+  .hero-actions { flex-direction: column; gap: 0.5rem; margin: 1.5rem 0 0; }
+  .hero-actions .btn { width: 100%; text-align: center; justify-content: center; padding: 1rem 1.2rem; font-size: 1rem; }
+  .hero-actions .btn-secondary { display: none; }
+  /* Hide proof bullets + pricing panel — trust strip does this job */
+  .hero-proof { display: none !important; }
+  .hero .hero-grid > .reveal > p[style*="font-display"] { display: none !important; }
+  .hero-stage { display: none !important; }
 
-  /* -- Trust strip -- */
-  .trust-strip { padding: 0.3rem 0; }
+  /* -- Trust strip: simplified — just reviews + price -- */
+  .trust-strip { padding: 0.2rem 0; }
   .trust-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.4rem;
-    padding: 0.8rem;
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+    padding: 0.6rem 0.8rem;
     border-radius: var(--radius-lg);
   }
   .trust-item {
     border-right: none;
-    padding: 0.4rem 0.6rem;
-    justify-content: center;
+    padding: 0;
     text-align: center;
-    flex-direction: column;
-    gap: 0.1rem;
+    flex-direction: row;
+    gap: 0.3rem;
   }
-  .trust-item strong { font-size: 1rem; }
-  .trust-item span { font-size: 0.75rem; }
+  .trust-item strong { font-size: 0.88rem; }
+  .trust-item span { font-size: 0.82rem; }
+  /* Hide 840+ customers and 6 days items */
+  .trust-item:nth-child(1) { display: none; }
+  .trust-item:nth-child(3) { display: none; }
 
-  /* -- Difference carousel -- */
-  .diff-card { padding: 1.2rem; gap: 0.8rem; }
+  /* -- Difference: stacked cards, no carousel -- */
+  .diff-track { display: flex; flex-direction: column; gap: 0; transform: none !important; }
+  .diff-card { flex: none; width: 100% !important; padding: 1.2rem; gap: 0.8rem; border-bottom: 1px solid var(--line); border-radius: 0; }
+  .diff-card:last-child { border-bottom: none; }
   .diff-icon { width: 2.5rem; height: 2.5rem; }
+  #diffPrev, #diffNext { display: none; }
+  #diffPips { display: none; }
+  .diff-nav { display: none; }
 
   /* -- Services -- */
   .services-grid { grid-template-columns: 1fr; gap: 0.6rem; }
@@ -1885,7 +1886,7 @@ section { padding: var(--section-py) 0; }
   .service-img { aspect-ratio: 3/2; }
 
   /* -- Pricing -- */
-  .pricing-grid { grid-template-columns: 1fr 1fr; gap: 0.6rem; }
+  .pricing-grid { grid-template-columns: 1fr; gap: 0.6rem; }
   .pricing-card { padding: 1rem; }
   .pricing-card strong { font-size: 1.6rem; }
 
@@ -1933,58 +1934,59 @@ section { padding: var(--section-py) 0; }
   /* Steps container: block layout, no flex/grid */
   .hiw-steps { display: block; }
 
-  /* Each step card: sticky, full-width, staggered top, with transitions */
+  /* ── HiW: Apptics-style overlapping sticky cards ── */
+  /* Hide display panel — each card has its own visual inline */
+  .hiw-display { display: none !important; }
+
+  /* Each card: sticky, overlaps previous as you scroll */
   .hiw-step {
     position: sticky !important;
     opacity: 1 !important;
     transform: none !important;
     pointer-events: auto !important;
-    color: var(--white);
-    background: #1a2233;
-    border: 1px solid rgba(255,255,255,0.08);
+    background: var(--cream-2);
+    color: var(--charcoal);
+    border: 1px solid var(--line);
     border-radius: 1.2rem;
     padding: 1.5rem 1.2rem;
-    margin-bottom: 1.5rem;
-    box-shadow: 0 -8px 32px rgba(0,0,0,0.4), 0 2px 8px rgba(0,0,0,0.2);
-    transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1),
-                opacity 0.4s cubic-bezier(0.22, 1, 0.36, 1),
-                border-color 0.3s ease;
-    will-change: transform;
+    margin-bottom: 0;
+    box-shadow: 0 -4px 20px rgba(28,36,52,0.08);
   }
 
-  /* Staggered sticky positions — each card pins slightly lower,
-     so you can see the edge of the previous card peeking above */
-  .hiw-step:nth-child(1) { top: 72px;  z-index: 1; }
-  .hiw-step:nth-child(2) { top: 84px;  z-index: 2; }
-  .hiw-step:nth-child(3) { top: 96px;  z-index: 3; }
-  .hiw-step:nth-child(4) { top: 108px; z-index: 4; }
+  /* Staggered sticky tops — each card catches slightly lower */
+  .hiw-step:nth-child(1) { top: 56px;  z-index: 1; }
+  .hiw-step:nth-child(2) { top: 68px;  z-index: 2; }
+  .hiw-step:nth-child(3) { top: 80px;  z-index: 3; }
+  .hiw-step:nth-child(4) { top: 92px;  z-index: 4; }
 
-  /* Active card: gold border glow, slightly lifted background */
-  .hiw-step.active {
-    border-color: rgba(184,134,11,0.5);
-    background: #1e2a3d;
-    box-shadow: 0 -8px 32px rgba(0,0,0,0.4),
-                0 2px 8px rgba(0,0,0,0.2),
-                0 0 0 1px rgba(184,134,11,0.15);
-  }
-
-  /* Inactive cards that have been scrolled past: slightly shrunk,
-     creating a receding deck effect */
-  .hiw-step.hiw-past {
-    transform: scale(0.96) !important;
-    opacity: 0.6 !important;
-  }
+  /* No active/past visual changes — all cards equal */
+  .hiw-step.active { background: var(--cream-2); }
+  .hiw-step.hiw-past { transform: none !important; opacity: 1 !important; }
 
   /* Step number badge */
   .hiw-step-num {
-    width: 2.4rem;
-    height: 2.4rem;
-    font-size: 0.8rem;
-    margin-bottom: 0.8rem;
-    background: rgba(255,255,255,0.08);
-    transition: background 0.3s ease;
+    width: 2.2rem;
+    height: 2.2rem;
+    font-size: 0.78rem;
+    margin-bottom: 0.6rem;
+    background: var(--gold);
   }
-  .hiw-step.active .hiw-step-num { background: var(--gold); }
+
+  /* Typography — must override 1024px media query */
+  .hiw-step h3 { color: var(--charcoal) !important; font-size: 1.15rem; margin-bottom: 0.3rem; }
+  .hiw-step p { color: var(--ink) !important; font-size: 0.9rem; line-height: 1.6; display: block !important; }
+
+  /* Show inline visuals in each card */
+  .hiw-step .hiw-visual {
+    display: block;
+    margin-top: 1rem;
+    min-height: 0;
+    border-radius: 0.8rem;
+    padding: 1rem;
+    background: rgba(28,36,52,0.06);
+  }
+
+  .hiw-dots { display: none; }
 
   /* Typography */
   .hiw-step h3 {
@@ -2040,7 +2042,7 @@ section { padding: var(--section-py) 0; }
 
   /* -- Reviews carousel -- */
   .reviews-carousel { padding: 0.5rem 0 1rem; }
-  .reviews-track { height: 14rem; }
+  .reviews-track { min-height: 14rem; height: auto; }
   .review-card { width: 85vw; padding: 1rem 1.2rem; }
   .review-card blockquote { font-size: 0.85rem; line-height: 1.45; }
   .review-card cite { font-size: 0.8rem; }
@@ -2084,6 +2086,59 @@ section { padding: var(--section-py) 0; }
   .review-card { width: 88vw; }
   .faq-item { transition: background 0.25s var(--ease); }
   h2 { font-size: clamp(1.4rem, 4vw, 1.7rem); }
+
+  /* -- Quote Modal: full-screen slide-up sheet -- */
+  .quote-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    background: var(--cream);
+    transform: translateY(100%);
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    display: flex;
+    flex-direction: column;
+  }
+  .quote-modal.open { transform: translateY(0); }
+  .quote-modal-header {
+    position: sticky;
+    top: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.8rem 1.2rem;
+    background: var(--cream);
+    border-bottom: 1px solid var(--line);
+    z-index: 1;
+    flex-shrink: 0;
+  }
+  .quote-modal-header span {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--charcoal);
+  }
+  .quote-modal-close {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--cream-2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    color: var(--ink);
+    cursor: pointer;
+    border: none;
+  }
+  .quote-modal-body {
+    flex: 1;
+    padding: 1rem;
+  }
+
+  /* Hide inline quote section on mobile when modal exists */
+  .quote-inline-hide { display: none !important; }
 }
 
 /* Extra small screens (< 350px) */
@@ -2093,6 +2148,14 @@ section { padding: var(--section-py) 0; }
   .nav-right .btn { padding: 0.4rem 0.7rem; font-size: 0.78rem; }
   .pricing-grid { grid-template-columns: 1fr; }
   .trust-grid { grid-template-columns: 1fr; }
+}
+
+/* ══════════════════════════════════════════
+   QUOTE MODAL — hidden on desktop
+   ══════════════════════════════════════════ */
+.quote-modal { display: none; }
+@media (max-width: 768px) {
+  .quote-modal { display: flex; }
 }
 
 /* ══════════════════════════════════════════

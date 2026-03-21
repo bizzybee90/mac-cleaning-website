@@ -223,6 +223,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   renderQuote();
   initQuoteDeepLinks();
+  initQuoteModal();
 });
 
 /* ── CTA DEEP LINKS ──────────────────────
@@ -247,6 +248,69 @@ function initQuoteDeepLinks() {
     const target = document.getElementById('quoteWidget');
     if (target) {
       target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  });
+}
+
+/* ─── QUOTE MODAL (MOBILE FULL-SCREEN SHEET) ────────── */
+function initQuoteModal() {
+  const modal = document.getElementById('quoteModal');
+  if (!modal) return;
+  const closeBtn = document.getElementById('quoteModalClose');
+  const modalBody = modal.querySelector('.quote-modal-body');
+  const widget = document.getElementById('quoteWidget');
+  const widgetParent = widget ? widget.parentElement : null;
+  const mq = window.matchMedia('(max-width: 768px)');
+  let movedToModal = false;
+
+  function moveToModal() {
+    if (!widget || movedToModal) return;
+    modalBody.appendChild(widget);
+    movedToModal = true;
+  }
+
+  function moveBack() {
+    if (!widget || !movedToModal || !widgetParent) return;
+    widgetParent.appendChild(widget);
+    movedToModal = false;
+  }
+
+  function openModal() {
+    if (!mq.matches) return;
+    moveToModal();
+    modal.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    // Auto-select regular window cleaning if not started
+    if (!Q.mode) {
+      Q.mode = 'regular';
+      Q.step = 1;
+      Q.feedback = null;
+      renderQuote();
+    }
+  }
+
+  function closeModal() {
+    modal.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  // Close button
+  if (closeBtn) closeBtn.addEventListener('click', closeModal);
+
+  // Intercept #quote links on mobile to open modal instead of scrolling
+  document.addEventListener('click', (e) => {
+    const link = e.target.closest('a[href="#quote"], a[href="/#quote"]');
+    if (!link || !mq.matches) return;
+    e.preventDefault();
+    e.stopPropagation();
+    openModal();
+  }, true); // capture phase to beat initQuoteDeepLinks
+
+  // On resize back to desktop, move widget back and close modal
+  mq.addEventListener('change', (e) => {
+    if (!e.matches) {
+      closeModal();
+      moveBack();
     }
   });
 }
@@ -808,11 +872,10 @@ function initHiw() {
   renderHiwDisplay(0);
 
   if (isMobile) {
-    // Mobile: Apptics-style sticky card stack with "past" deck effect
+    // Mobile: Apptics-style overlapping sticky cards
     const steps = stepsEl.querySelectorAll('.hiw-step');
     let activeIdx = 0;
 
-    // Use IntersectionObserver to detect which card is currently in view
     const obs = new IntersectionObserver((entries) => {
       entries.forEach(e => {
         if (e.isIntersecting && e.intersectionRatio > 0.5) {
@@ -821,7 +884,6 @@ function initHiw() {
             activeIdx = idx;
             steps.forEach((s, i) => {
               s.classList.toggle('active', i === idx);
-              // Cards before the active one get the "past" class (shrunk, faded)
               s.classList.toggle('hiw-past', i < idx);
             });
           }
@@ -830,7 +892,6 @@ function initHiw() {
     }, { threshold: [0.5], rootMargin: '-80px 0px -30% 0px' });
     steps.forEach(s => obs.observe(s));
 
-    // Also mark the first card as active on load
     if (steps.length) { steps[0].classList.add('active'); }
   } else {
     // Desktop: scroll-driven
