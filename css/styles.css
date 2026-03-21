@@ -1890,18 +1890,13 @@ section { padding: var(--section-py) 0; }
   .pricing-card { padding: 1rem; }
   .pricing-card strong { font-size: 1.6rem; }
 
-  /* ── How It Works: Apptics-style sticky stacked cards on mobile ──
-     Each card is full-width, sticks at a staggered top offset, and
-     the next card slides up over the previous one as you scroll —
-     creating a "deck of cards" / separate-pages feel. */
+  /* ── How It Works: Apptics-style sticky stacked cards ──
+     Each card sticks at a staggered top offset. As you scroll,
+     the next card slides up and overlaps the previous one.
+     margin-bottom on each card provides the scroll runway. */
 
-  /* The spacer provides the scroll runway for the sticky cards.
-     3 cards × ~90vh each = 270vh gives enough scroll distance
-     for each card to fully enter and the next to overtake it. */
   .hiw-spacer { height: auto !important; position: relative; overflow: visible; }
 
-  /* The pinned container holds the cards but doesn't pin itself —
-     the individual cards handle their own sticking. */
   .hiw-pinned {
     position: static !important;
     top: auto !important;
@@ -1910,10 +1905,7 @@ section { padding: var(--section-py) 0; }
     padding: 0.5rem 0 0;
   }
 
-  /* Section padding: tight top (heading already has padding), generous bottom
-     so the last card has space before the next section */
-  /* On mobile, remove the dark section background — each card has its own.
-     This eliminates the dark gap below the last card. */
+  /* Remove dark section bg — each card has its own */
   #hiw.bg-dark {
     background: none !important;
     background-image: none !important;
@@ -1922,23 +1914,19 @@ section { padding: var(--section-py) 0; }
     border-radius: 0;
     padding-bottom: 0;
   }
-  /* Re-theme the heading for light background */
+
+  /* Re-theme heading for light background */
   #hiw .section-intro { color: var(--charcoal); }
   #hiw .section-intro h2 { color: var(--charcoal); }
   #hiw .section-intro p { color: var(--ink); }
   #hiw .section-intro .tag { background: var(--gold-bg); color: var(--gold); }
 
-  /* Hide the desktop display panel — cards have inline visuals */
+  /* Hide desktop display panel + dots */
   .hiw-display { display: none !important; }
-
-  /* Steps container: block layout, no flex/grid */
+  .hiw-dots { display: none; }
   .hiw-steps { display: block; }
 
-  /* ── HiW: Apptics-style overlapping sticky cards ── */
-  /* Hide display panel — each card has its own visual inline */
-  .hiw-display { display: none !important; }
-
-  /* Each card: sticky, overlaps previous as you scroll */
+  /* Each card: sticky with scroll space for overlap effect */
   .hiw-step {
     position: sticky !important;
     opacity: 1 !important;
@@ -1949,9 +1937,10 @@ section { padding: var(--section-py) 0; }
     border: 1px solid var(--line);
     border-radius: 1.2rem;
     padding: 1.5rem 1.2rem;
-    margin-bottom: 0;
-    box-shadow: 0 -4px 20px rgba(28,36,52,0.08);
+    margin-bottom: 28vh;
+    box-shadow: 0 -4px 24px rgba(28,36,52,0.10), 0 1px 4px rgba(28,36,52,0.06);
   }
+  .hiw-step:last-child { margin-bottom: 1rem; }
 
   /* Staggered sticky tops — each card catches slightly lower */
   .hiw-step:nth-child(1) { top: 56px;  z-index: 1; }
@@ -1959,7 +1948,7 @@ section { padding: var(--section-py) 0; }
   .hiw-step:nth-child(3) { top: 80px;  z-index: 3; }
   .hiw-step:nth-child(4) { top: 92px;  z-index: 4; }
 
-  /* No active/past visual changes — all cards equal */
+  /* All cards equal — no active/past visual distinction */
   .hiw-step.active { background: var(--cream-2); }
   .hiw-step.hiw-past { transform: none !important; opacity: 1 !important; }
 
@@ -1972,51 +1961,35 @@ section { padding: var(--section-py) 0; }
     background: var(--gold);
   }
 
-  /* Typography — must override 1024px media query */
-  .hiw-step h3 { color: var(--charcoal) !important; font-size: 1.15rem; margin-bottom: 0.3rem; }
+  /* Typography — light theme, overrides 1024px dark theme */
+  .hiw-step h3 { color: var(--charcoal) !important; font-size: 1.15rem; margin-bottom: 0.3rem; font-weight: 700; }
   .hiw-step p { color: var(--ink) !important; font-size: 0.9rem; line-height: 1.6; display: block !important; }
 
-  /* Show inline visuals in each card */
+  /* Inline visuals in each card — re-themed for light background */
   .hiw-step .hiw-visual {
     display: block;
     margin-top: 1rem;
     min-height: 0;
     border-radius: 0.8rem;
     padding: 1rem;
-    background: rgba(28,36,52,0.06);
+    background: rgba(28,36,52,0.05);
   }
-
-  .hiw-dots { display: none; }
-
-  /* Typography */
-  .hiw-step h3 {
-    font-size: 1.15rem;
-    margin-bottom: 0.4rem;
-    color: var(--white);
-    font-weight: 700;
+  .hiw-step .hiw-visual .hiw-pill {
+    font-size: 0.78rem; padding: 0.4rem 0.7rem;
+    background: rgba(28,36,52,0.07); border-color: rgba(28,36,52,0.12);
+    color: var(--charcoal);
   }
-  .hiw-step p {
-    font-size: 0.88rem;
-    line-height: 1.6;
-    color: rgba(255,255,255,0.65);
-    display: block !important;
+  .hiw-step .hiw-visual .hiw-vcard {
+    padding: 0.6rem 0.7rem;
+    background: rgba(28,36,52,0.05); border-color: rgba(28,36,52,0.10);
   }
-
-  /* Progress dots hidden — the stacking IS the progress indicator */
-  .hiw-dots { display: none; }
-
-  /* Inline visuals inside each card */
-  .hiw-step .hiw-visual {
-    margin-top: 1rem;
-    min-height: 0;
-    border-radius: 0.8rem;
-    padding: 1rem;
+  .hiw-step .hiw-visual .hiw-vcard.featured {
+    background: rgba(184,134,11,0.10);
   }
-  .hiw-step .hiw-visual .hiw-pill { font-size: 0.78rem; padding: 0.4rem 0.7rem; }
-  .hiw-step .hiw-visual .hiw-vval { font-size: 1.15rem; }
-  .hiw-step .hiw-visual .hiw-vcard { padding: 0.6rem 0.7rem; }
-  .hiw-step .hiw-visual .hiw-vlabel { font-size: 0.68rem; }
-  .hiw-step .hiw-visual .hiw-vdesc { font-size: 0.72rem; }
+  .hiw-step .hiw-visual .hiw-vlabel { font-size: 0.68rem; color: var(--ink-faint); }
+  .hiw-step .hiw-visual .hiw-vval { font-size: 1.15rem; color: var(--charcoal); }
+  .hiw-step .hiw-visual .hiw-vdesc { font-size: 0.72rem; color: var(--ink); }
+  .hiw-step .hiw-visual .hiw-mock-card { color: var(--charcoal); }
 
   /* -- Quote section -- */
   .quote-layout { grid-template-columns: 1fr; }
