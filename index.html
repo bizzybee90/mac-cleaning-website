@@ -195,6 +195,10 @@
       <div class="diff-pips" id="diffPips"></div>
       <button class="diff-btn" id="diffNext" aria-label="Next">→</button>
     </div>
+    <!-- Mobile CTA after Difference section -->
+    <div class="mobile-section-cta" style="display:none;text-align:center;margin-top:1.5rem;">
+      <a href="#quote" class="btn btn-primary">Get Your Price →</a>
+    </div>
   </div>
 </section>
 
@@ -241,6 +245,10 @@
         <span class="service-link">View full details →</span>
       </a>
     </div>
+    <!-- Mobile CTA after Services section -->
+    <div class="mobile-section-cta" style="display:none;text-align:center;margin-top:1.5rem;">
+      <a href="#quote" class="btn btn-primary">Get Your Price →</a>
+    </div>
   </div>
 </section>
 
@@ -260,6 +268,11 @@
     </div>
     <div style="text-align:center;margin-top:2rem;" class="reveal">
       <a href="#quote" class="btn btn-primary">Get Your Exact Price</a>
+    </div>
+    <!-- Mobile pricing one-liner (replaces grid on mobile) -->
+    <div class="pricing-mobile-cta" style="display:none;">
+      <p>Regular window cleaning <strong>from £19/clean</strong>. All-inclusive.</p>
+      <a href="#quote" class="btn btn-primary">Get Your Exact Price →</a>
     </div>
   </div>
 </section>
@@ -508,11 +521,8 @@
 <footer class="footer">
   <div class="wrap footer-grid">
     <div>
-      <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.8rem;">
-        <div style="width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,rgba(255,255,255,0.2),rgba(255,255,255,0.08));display:flex;align-items:center;justify-content:center;">
-          <svg viewBox="0 0 24 24" fill="none" style="width:18px;height:18px;"><path d="M12 3L2 10h3v9h5v-6h4v6h5v-9h3L12 3z" fill="rgba(255,255,255,0.8)"/></svg>
-        </div>
-        <div><span style="font-family:var(--font-display);font-weight:800;font-size:1.25rem;color:var(--white);">MAC</span><span style="display:block;font-size:0.55rem;font-weight:600;letter-spacing:0.22em;text-transform:uppercase;color:rgba(255,255,255,0.4);margin-top:1px;">Cleaning</span></div>
+      <div style="margin-bottom:0.8rem;">
+        <img src="/assets/mac-logo-full.png" alt="MAC Cleaning" style="height:44px;width:auto;filter:brightness(0) invert(1);opacity:0.9;" loading="lazy">
       </div>
       <p>Making things immaculate. Professional window cleaning across Luton, Bedfordshire &amp; Hertfordshire. Serving 840+ regular customers. Mon–Sat, 8am–5pm.</p>
     </div>
@@ -572,7 +582,13 @@
   <svg viewBox="0 0 32 32"><path fill="currentColor" d="M19.11 17.18c-.27-.13-1.59-.78-1.84-.87-.25-.09-.43-.13-.61.13-.18.27-.7.87-.86 1.05-.16.18-.31.2-.58.07-.27-.13-1.12-.41-2.13-1.31-.79-.7-1.32-1.56-1.47-1.83-.16-.27-.02-.41.11-.54.12-.12.27-.31.4-.47.13-.16.18-.27.27-.45.09-.18.04-.34-.02-.47-.07-.13-.61-1.46-.84-2-.22-.53-.44-.46-.61-.47l-.52-.01c-.18 0-.47.07-.72.34-.25.27-.95.93-.95 2.27 0 1.34.98 2.64 1.11 2.82.13.18 1.92 2.94 4.75 4.12.65.28 1.16.45 1.56.58.66.21 1.26.18 1.74.11.53-.08 1.59-.65 1.81-1.28.22-.63.22-1.17.16-1.28-.07-.11-.25-.18-.52-.31Z"/><path fill="currentColor" d="M16.02 3.2c-7.06 0-12.79 5.72-12.79 12.79 0 2.26.59 4.47 1.72 6.41L3 29l6.79-1.78a12.76 12.76 0 006.23 1.6h.01c7.05 0 12.79-5.73 12.79-12.79A12.8 12.8 0 0016.02 3.2Zm0 23.45h-.01c-1.91 0-3.78-.51-5.42-1.48l-.39-.23-4.03 1.06 1.08-3.93-.25-.4a10.6 10.6 0 01-1.63-5.65c0-5.9 4.8-10.7 10.7-10.7 2.86 0 5.56 1.11 7.58 3.13a10.63 10.63 0 013.12 7.58c0 5.9-4.8 10.7-10.7 10.7Z"/></svg>
 </a>
 
-<!-- Nav CTA replaces sticky bar -->
+<!-- Mobile Bottom Tab Bar -->
+<nav class="mobile-tab-bar" id="mobileTabBar">
+  <a href="#" class="tab-item tab-home" aria-label="Home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="22" height="22"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>Home</span></a>
+  <a href="#services" class="tab-item tab-services" aria-label="Services"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="22" height="22"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg><span>Services</span></a>
+  <a href="#quote" class="tab-item tab-quote" aria-label="Get a quote"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="22" height="22"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg><span>Quote</span></a>
+  <a href="tel:01582858588" class="tab-item tab-call" aria-label="Call us"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="22" height="22"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/></svg><span>Call</span></a>
+</nav>
 
 <!-- Quote Modal (mobile full-screen sheet) -->
 <div class="quote-modal" id="quoteModal">

@@ -205,6 +205,9 @@ document.addEventListener('DOMContentLoaded', () => {
   initHiw();
   initDiffStrip();
   initReviewCards();
+  initFooterAccordion();
+  initTabBar();
+  initFaqShowAll();
   loadGooglePlaces();
   loadStripe();
   loadGA();
@@ -280,12 +283,9 @@ function initQuoteModal() {
     moveToModal();
     modal.classList.add('open');
     document.body.style.overflow = 'hidden';
-    // Auto-select regular window cleaning if not started
+    // Always show service selector first — never skip to regular mode
     if (!Q.mode) {
-      Q.mode = 'regular';
-      Q.step = 1;
-      Q.feedback = null;
-      renderQuote();
+      renderQuote(); // Shows entry screen with service type selector
     }
   }
 
@@ -721,11 +721,17 @@ function initFaq() {
 function initCounters() {
   const strip = document.getElementById('trust');
   if (!strip) return;
+  const isMobile = window.innerWidth <= 768;
   const obs = new IntersectionObserver(entries => {
     if (entries[0].isIntersecting) {
       strip.querySelectorAll('[data-count]').forEach(el => {
         const target = parseFloat(el.dataset.count);
         const dec = el.hasAttribute('data-decimal');
+        /* On mobile, show final value immediately — no animation to prevent "0.2" flash */
+        if (isMobile) {
+          el.textContent = dec ? target.toFixed(1) : target.toLocaleString('en-GB');
+          return;
+        }
         const dur = 2000;
         const start = performance.now();
         (function tick(now) {
@@ -1015,11 +1021,13 @@ function renderQuote() {
   }));
   w.querySelectorAll('[data-field]').forEach(el => el.addEventListener('blur', () => {
     /* Skip blur re-render for address field when Google Places dropdown is open */
-    if (el.dataset.field === 'address' && el._gac) {
-      _blurTimer = setTimeout(() => renderQuote(), 400);
-    } else {
-      _blurTimer = setTimeout(() => renderQuote(), 150);
-    }
+    const delay = (el.dataset.field === 'address' && el._gac) ? 400 : 150;
+    _blurTimer = setTimeout(() => {
+      /* Guard: skip re-render if focus moved to another field inside the widget (prevents mobile keyboard scroll hijack) */
+      const ww = document.getElementById('quoteWidget');
+      if (ww && ww.contains(document.activeElement)) return;
+      renderQuote();
+    }, delay);
   }));
   w.querySelectorAll('[data-check="terms"]').forEach(el => el.addEventListener('change', e => {
     Q.termsAccepted = e.target.checked;
@@ -1096,6 +1104,8 @@ function renderEntry() {
 function handleQuoteClick(e) {
   const a = e.currentTarget.dataset.act;
   if (a==='sky+' || a==='sky-') e.stopPropagation();
+  /* Dismiss Google Places dropdown on any action (prevents bleed-through between steps) */
+  document.querySelectorAll('.pac-container').forEach(el => el.style.display = 'none');
 
   /* Mode selection */
   if (a==='mode:regular') { Q.mode='regular'; Q.step=1; Q.feedback=null; Q._scroll=true; }
@@ -1713,4 +1723,71 @@ function renderSummary() {
     html += `<div style="margin-top:0.8rem;padding-top:0.8rem;border-top:2px solid var(--charcoal);display:flex;justify-content:space-between;font-weight:700;font-size:1.05rem"><span>Total</span><span>${fmt(grandTotal)}</span></div>`;
   }
   return html;
+}
+
+/* ──────────────────────────────────────────
+   FOOTER ACCORDION (mobile)
+   ────────────────────────────────────────── */
+function initFooterAccordion() {
+  if (window.innerWidth > 768) return;
+  document.querySelectorAll('.footer-grid > div:not(:first-child) h4').forEach(h4 => {
+    h4.addEventListener('click', () => {
+      h4.parentElement.classList.toggle('open');
+    });
+  });
+}
+
+/* ──────────────────────────────────────────
+   MOBILE TAB BAR — scroll show/hide
+   ────────────────────────────────────────── */
+function initTabBar() {
+  const bar = document.getElementById('mobileTabBar');
+  if (!bar || window.innerWidth > 768) return;
+  let lastY = 0;
+  let ticking = false;
+  window.addEventListener('scroll', () => {
+    if (!ticking) {
+      requestAnimationFrame(() => {
+        const y = window.scrollY;
+        if (y > lastY + 10 && y > 200) bar.classList.add('hidden');
+        else if (y < lastY - 5) bar.classList.remove('hidden');
+        lastY = y;
+        ticking = false;
+      });
+      ticking = true;
+    }
+  }, { passive: true });
+  /* Quote tab opens modal */
+  bar.querySelector('.tab-quote')?.addEventListener('click', e => {
+    e.preventDefault();
+    document.getElementById('quoteModal')?.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    const w = document.getElementById('quoteWidget');
+    const modal = document.getElementById('quoteModal');
+    const body = modal?.querySelector('.quote-modal-body');
+    if (w && body && !body.contains(w)) body.appendChild(w);
+    if (!Q.mode) renderQuote();
+  });
+  /* Home tab scrolls to top */
+  bar.querySelector('.tab-home')?.addEventListener('click', e => {
+    e.preventDefault();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+}
+
+/* ──────────────────────────────────────────
+   FAQ SHOW ALL (mobile)
+   ────────────────────────────────────────── */
+function initFaqShowAll() {
+  if (window.innerWidth > 768) return;
+  const list = document.querySelector('.faq-list');
+  if (!list) return;
+  const btn = document.createElement('button');
+  btn.className = 'faq-show-all';
+  btn.textContent = 'Show all questions ▾';
+  btn.addEventListener('click', () => {
+    list.classList.add('expanded');
+    btn.remove();
+  });
+  list.parentElement.appendChild(btn);
 }

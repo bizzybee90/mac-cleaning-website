@@ -1717,17 +1717,11 @@ section { padding: var(--section-py) 0; }
     padding: 0.5rem 0 0;
   }
   #hiw.bg-dark {
-    background: none !important;
-    background-image: none !important;
-    background-color: transparent !important;
     margin: 0;
     border-radius: 0;
     padding-bottom: 0;
   }
-  #hiw .section-intro { color: var(--charcoal); }
-  #hiw .section-intro h2 { color: var(--charcoal); }
-  #hiw .section-intro p { color: var(--ink); }
-  #hiw .section-intro .tag { background: var(--gold-bg); color: var(--gold); }
+  /* Keep dark theme headings — bg-dark provides white text */
   .hiw-display { display: none !important; }
   .hiw-steps { display: block; }
   .hiw-dots { display: none; }
@@ -1817,6 +1811,15 @@ section { padding: var(--section-py) 0; }
   /* -- Full-bleed sections on mobile -- */
   .bg-alt, .bg-dark { margin: 0; border-radius: 0; }
 
+  /* -- Show mobile-only CTAs and one-liners -- */
+  .mobile-section-cta { display: block !important; }
+
+  /* -- Centre all section headings on mobile -- */
+  .section-intro, .section-intro-center { text-align: center; }
+  .section-intro .tag { margin-left: auto; margin-right: auto; }
+  #areas .wrap { text-align: center; }
+  .area-tags { justify-content: center; }
+
   /* -- Nav -- */
   .nav { padding: 0.4rem 0.5rem; }
   .nav-inner {
@@ -1871,24 +1874,61 @@ section { padding: var(--section-py) 0; }
   .trust-item:nth-child(1) { display: none; }
   .trust-item:nth-child(3) { display: none; }
 
-  /* -- Difference: stacked cards, no carousel -- */
-  .diff-track { display: flex; flex-direction: column; gap: 0; transform: none !important; }
-  .diff-card { flex: none; width: 100% !important; padding: 1.2rem; gap: 0.8rem; border-bottom: 1px solid var(--line); border-radius: 0; }
-  .diff-card:last-child { border-bottom: none; }
+  /* -- Difference: horizontal swipe carousel (Reviews-style) -- */
+  .diff-carousel { overflow: visible; }
+  .diff-track {
+    display: flex !important; flex-direction: row !important;
+    overflow-x: auto; scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    gap: 0.8rem; transform: none !important;
+    padding: 0.5rem 0 1rem;
+    scrollbar-width: none;
+  }
+  .diff-track::-webkit-scrollbar { display: none; }
+  .diff-card {
+    flex: 0 0 82vw !important; width: 82vw !important;
+    scroll-snap-align: start;
+    border-radius: var(--radius-md); border-bottom: none;
+    padding: 1.2rem;
+  }
+  .diff-card:nth-child(n+5) { display: none; } /* Keep 4 strongest, hide rest */
   .diff-icon { width: 2.5rem; height: 2.5rem; }
   #diffPrev, #diffNext { display: none; }
   #diffPips { display: none; }
   .diff-nav { display: none; }
 
-  /* -- Services -- */
-  .services-grid { grid-template-columns: 1fr; gap: 0.6rem; }
-  .service-card { padding: 1rem; }
-  .service-img { aspect-ratio: 3/2; }
+  /* -- Services: compact 2-column photo grid -- */
+  .services-grid { grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+  .service-card {
+    padding: 0; position: relative; overflow: hidden;
+    border-radius: var(--radius-md);
+  }
+  .service-img { aspect-ratio: 1/1; }
+  .service-card .service-body {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    background: linear-gradient(transparent, rgba(0,0,0,0.7));
+    padding: 0.6rem 0.8rem;
+    color: var(--white);
+  }
+  .service-card .service-body h3 { font-size: 0.85rem; color: var(--white); margin: 0; }
+  .service-card .service-body p { display: none; } /* Hide descriptions on mobile */
+  .service-card .service-body .service-price {
+    font-size: 0.72rem; background: var(--gold); color: var(--white);
+    padding: 0.2rem 0.5rem; border-radius: 999px; display: inline-block; margin-top: 0.3rem;
+  }
+  /* Centre the 5th card if it's alone in last row */
+  .services-grid .service-card:last-child:nth-child(odd) {
+    grid-column: 1 / -1; max-width: 50%; justify-self: center;
+  }
 
-  /* -- Pricing -- */
-  .pricing-grid { grid-template-columns: 1fr; gap: 0.6rem; }
-  .pricing-card { padding: 1rem; }
-  .pricing-card strong { font-size: 1.6rem; }
+  /* -- Pricing: hide grid on mobile, one-liner replaces it -- */
+  .pricing-grid { display: none !important; }
+  .pricing-mobile-cta { display: block !important; text-align: center; padding: 1rem 0; }
+  .pricing-mobile-cta p { font-size: 0.95rem; color: var(--ink); margin-bottom: 0.8rem; }
+
+  /* -- Hide standalone "Instant Quote" section on mobile -- */
+  #quote .quote-sidebar { display: none; }
+  #quote .quote-shell { display: none; }
 
   /* ── How It Works: Apptics-style sticky stacked cards ──
      Each card sticks at a staggered top offset. As you scroll,
@@ -1905,21 +1945,12 @@ section { padding: var(--section-py) 0; }
     padding: 0.5rem 0 0;
   }
 
-  /* Remove dark section bg — each card has its own */
+  /* HiW: keep dark bg on mobile, full-bleed */
   #hiw.bg-dark {
-    background: none !important;
-    background-image: none !important;
-    background-color: transparent !important;
     margin: 0;
     border-radius: 0;
-    padding-bottom: 0;
+    padding-bottom: 2rem;
   }
-
-  /* Re-theme heading for light background */
-  #hiw .section-intro { color: var(--charcoal); }
-  #hiw .section-intro h2 { color: var(--charcoal); }
-  #hiw .section-intro p { color: var(--ink); }
-  #hiw .section-intro .tag { background: var(--gold-bg); color: var(--gold); }
 
   /* Hide desktop display panel + dots */
   .hiw-display { display: none !important; }
@@ -1932,13 +1963,13 @@ section { padding: var(--section-py) 0; }
     opacity: 1 !important;
     transform: none !important;
     pointer-events: auto !important;
-    background: var(--cream-2);
-    color: var(--charcoal);
-    border: 1px solid var(--line);
+    background: rgba(255,255,255,0.06);
+    color: rgba(255,255,255,0.95);
+    border: 1px solid rgba(255,255,255,0.10);
     border-radius: 1.2rem;
     padding: 1.5rem 1.2rem;
-    margin-bottom: 28vh;
-    box-shadow: 0 -4px 24px rgba(28,36,52,0.10), 0 1px 4px rgba(28,36,52,0.06);
+    margin-bottom: 40vh;
+    box-shadow: 0 -4px 24px rgba(0,0,0,0.3), 0 1px 4px rgba(0,0,0,0.15);
   }
   .hiw-step:last-child { margin-bottom: 1rem; }
 
@@ -1948,9 +1979,9 @@ section { padding: var(--section-py) 0; }
   .hiw-step:nth-child(3) { top: 80px;  z-index: 3; }
   .hiw-step:nth-child(4) { top: 92px;  z-index: 4; }
 
-  /* All cards equal — no active/past visual distinction */
-  .hiw-step.active { background: var(--cream-2); }
-  .hiw-step.hiw-past { transform: none !important; opacity: 1 !important; }
+  /* Active card slightly brighter, past cards scale down + fade */
+  .hiw-step.active { background: rgba(255,255,255,0.09); border-color: rgba(184,134,11,0.4); }
+  .hiw-step.hiw-past { transform: scale(0.97) !important; opacity: 0.5 !important; }
 
   /* Step number badge */
   .hiw-step-num {
@@ -1961,35 +1992,24 @@ section { padding: var(--section-py) 0; }
     background: var(--gold);
   }
 
-  /* Typography — light theme, overrides 1024px dark theme */
-  .hiw-step h3 { color: var(--charcoal) !important; font-size: 1.15rem; margin-bottom: 0.3rem; font-weight: 700; }
-  .hiw-step p { color: var(--ink) !important; font-size: 0.9rem; line-height: 1.6; display: block !important; }
+  /* Typography — dark theme */
+  .hiw-step h3 { color: var(--white) !important; font-size: 1.15rem; margin-bottom: 0.3rem; font-weight: 700; }
+  .hiw-step p { color: rgba(255,255,255,0.7) !important; font-size: 0.9rem; line-height: 1.6; display: block !important; }
 
-  /* Inline visuals in each card — re-themed for light background */
+  /* Inline visuals in each card — dark theme */
   .hiw-step .hiw-visual {
     display: block;
     margin-top: 1rem;
     min-height: 0;
     border-radius: 0.8rem;
     padding: 1rem;
-    background: rgba(28,36,52,0.05);
+    background: rgba(255,255,255,0.05);
   }
-  .hiw-step .hiw-visual .hiw-pill {
-    font-size: 0.78rem; padding: 0.4rem 0.7rem;
-    background: rgba(28,36,52,0.07); border-color: rgba(28,36,52,0.12);
-    color: var(--charcoal);
-  }
-  .hiw-step .hiw-visual .hiw-vcard {
-    padding: 0.6rem 0.7rem;
-    background: rgba(28,36,52,0.05); border-color: rgba(28,36,52,0.10);
-  }
-  .hiw-step .hiw-visual .hiw-vcard.featured {
-    background: rgba(184,134,11,0.10);
-  }
-  .hiw-step .hiw-visual .hiw-vlabel { font-size: 0.68rem; color: var(--ink-faint); }
-  .hiw-step .hiw-visual .hiw-vval { font-size: 1.15rem; color: var(--charcoal); }
-  .hiw-step .hiw-visual .hiw-vdesc { font-size: 0.72rem; color: var(--ink); }
-  .hiw-step .hiw-visual .hiw-mock-card { color: var(--charcoal); }
+  .hiw-step .hiw-visual .hiw-pill { font-size: 0.78rem; padding: 0.4rem 0.7rem; }
+  .hiw-step .hiw-visual .hiw-vval { font-size: 1.15rem; }
+  .hiw-step .hiw-visual .hiw-vcard { padding: 0.6rem 0.7rem; }
+  .hiw-step .hiw-visual .hiw-vlabel { font-size: 0.68rem; }
+  .hiw-step .hiw-visual .hiw-vdesc { font-size: 0.72rem; }
 
   /* -- Quote section -- */
   .quote-layout { grid-template-columns: 1fr; }
@@ -2021,7 +2041,17 @@ section { padding: var(--section-py) 0; }
   .review-card cite { font-size: 0.8rem; }
 
   /* -- Blog -- */
-  .blog-grid { grid-template-columns: 1fr; gap: 0.6rem; }
+  /* -- Blog: horizontal scroll (Reviews-style) -- */
+  .blog-grid {
+    display: flex !important; overflow-x: auto;
+    scroll-snap-type: x mandatory; gap: 0.8rem;
+    padding-bottom: 0.5rem;
+    scrollbar-width: none;
+  }
+  .blog-grid::-webkit-scrollbar { display: none; }
+  .blog-card {
+    flex: 0 0 80vw; scroll-snap-align: start;
+  }
   .blog-img { aspect-ratio: 16/9; }
   .blog-body { padding: 0.8rem; }
   .blog-body h3 { font-size: 1rem; }
@@ -2108,10 +2138,104 @@ section { padding: var(--section-py) 0; }
   .quote-modal-body {
     flex: 1;
     padding: 1rem;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Sticky progress bar inside modal — always visible at top of form */
+  .quote-modal .progress-bar {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: var(--cream);
+    padding: 0.5rem 0;
+    margin: 0 -1rem 0.5rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  /* Sticky action buttons at bottom of modal — always accessible */
+  .quote-modal .widget-actions {
+    position: sticky;
+    bottom: 0;
+    z-index: 2;
+    background: var(--cream);
+    padding: 0.8rem 0;
+    border-top: 1px solid var(--line);
+    margin: 0 -1rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
   }
 
   /* Hide inline quote section on mobile when modal exists */
   .quote-inline-hide { display: none !important; }
+
+  /* ── Bottom Tab Bar ── */
+  .mobile-tab-bar {
+    display: flex !important;
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    z-index: 150;
+    background: rgba(255,252,247,0.92);
+    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    border-top: 1px solid rgba(28,36,52,0.12);
+    box-shadow: 0 -2px 12px rgba(28,36,52,0.06);
+    padding: 0.4rem 0 max(0.4rem, env(safe-area-inset-bottom));
+    justify-content: space-around;
+    transition: transform 0.3s ease;
+  }
+  .mobile-tab-bar.hidden { transform: translateY(100%); }
+  .tab-item {
+    display: flex; flex-direction: column; align-items: center; gap: 0.15rem;
+    font-size: 0.65rem; font-weight: 600; color: var(--ink-faint);
+    text-decoration: none; padding: 0.3rem 0.8rem;
+    transition: color 0.2s;
+  }
+  .tab-item svg { opacity: 0.5; transition: opacity 0.2s; }
+  .tab-item:active { color: var(--charcoal); }
+  .tab-item:active svg { opacity: 1; }
+  .tab-quote {
+    color: var(--gold); font-weight: 700;
+  }
+  .tab-quote svg { opacity: 1; stroke: var(--gold); }
+
+  /* Footer bottom padding to clear tab bar */
+  .footer { padding-bottom: 5rem !important; }
+
+  /* ── Footer Accordion ── */
+  .footer-grid {
+    grid-template-columns: 1fr !important; gap: 0;
+  }
+  .footer-grid > div:not(:first-child) {
+    border-top: 1px solid rgba(255,255,255,0.08);
+  }
+  .footer-grid > div:not(:first-child) h4 {
+    cursor: pointer; display: flex; justify-content: space-between; align-items: center;
+    padding: 0.8rem 0; margin: 0;
+  }
+  .footer-grid > div:not(:first-child) h4::after {
+    content: '+'; font-size: 1.2rem; color: rgba(255,255,255,0.4);
+    transition: transform 0.3s;
+  }
+  .footer-grid > div:not(:first-child).open h4::after { content: '−'; }
+  .footer-grid > div:not(:first-child) .footer-links {
+    max-height: 0; overflow: hidden; transition: max-height 0.3s ease;
+  }
+  .footer-grid > div:not(:first-child).open .footer-links {
+    max-height: 300px;
+  }
+
+  /* ── FAQ: show only first 4 on mobile ── */
+  .faq-list .faq-item:nth-child(n+5) { display: none; }
+  .faq-list.expanded .faq-item:nth-child(n+5) { display: block; }
+  .faq-show-all {
+    display: block !important; text-align: center; margin-top: 0.8rem;
+    font-size: 0.88rem; font-weight: 600; color: var(--gold);
+    cursor: pointer; background: none; border: none; padding: 0.5rem;
+  }
+
+  /* Hide WhatsApp FAB (replaced by tab bar Call) */
+  .wa-btn { display: none !important; }
 }
 
 /* Extra small screens (< 350px) */
@@ -2127,6 +2251,9 @@ section { padding: var(--section-py) 0; }
    QUOTE MODAL — hidden on desktop
    ══════════════════════════════════════════ */
 .quote-modal { display: none; }
+.mobile-tab-bar { display: none; }
+.faq-show-all { display: none; }
+.pricing-mobile-cta { display: none; }
 @media (max-width: 768px) {
   .quote-modal { display: flex; }
 }
