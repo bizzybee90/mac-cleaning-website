@@ -187,6 +187,18 @@ const Q = {
 
 let activeHiw = 0;
 
+/* Mobile-only: simpler 4-step version with reveal animation */
+const HIW_STEPS_MOBILE = [
+  { num:"01", title:"Instant online quote",
+    summary:"Using our instant quote tool, you'll receive the cost for your clean online immediately. 4-weekly or 8-weekly, the price is the same." },
+  { num:"02", title:"Sign up online",
+    summary:"Easily register your payment details online to complete your signup. No payments are taken until we clean your property." },
+  { num:"03", title:"Confirmation",
+    summary:"Once you've signed up, within 24 hours, we'll email over the details of what you've signed up to, including when your first clean will be." },
+  { num:"04", title:"Cleaning day",
+    summary:"We send a reminder the night before your scheduled clean, then on the day of the clean we arrive to dirty windows, and leave with them looking immaculate." }
+];
+
 const HIW_VISUALS = {
   pills: `<div class="hiw-visual"><div class="hiw-pills"><div class="hiw-pill">House</div><div class="hiw-pill">Semi-detached</div><div class="hiw-pill">3 bedrooms</div></div><div class="hiw-split"><div class="hiw-vcard"><div class="hiw-vlabel">Extra</div><div class="hiw-vval">+£9</div><div class="hiw-vdesc">Conservatory</div></div><div class="hiw-vcard"><div class="hiw-vlabel">Extra</div><div class="hiw-vval">+£4</div><div class="hiw-vdesc">2 skylights</div></div></div></div>`,
   gate: `<div class="hiw-visual"><div class="hiw-split"><div class="hiw-vcard"><div class="hiw-vlabel">Check coverage</div><div class="hiw-vval" style="font-size:1.3rem">LU3 2AB</div></div><div class="hiw-vcard"><div class="hiw-vlabel">Send your quote</div><div class="hiw-vval" style="font-size:1.1rem">hello@email.com</div></div></div><div class="hiw-split" style="margin-top:0.6rem"><div class="hiw-vcard featured"><div class="hiw-vlabel">Every 4 weeks</div><div class="hiw-vval">£19</div><div class="hiw-vdesc">Best value</div></div><div class="hiw-vcard"><div class="hiw-vlabel">Every 8 weeks</div><div class="hiw-vval">£24</div><div class="hiw-vdesc">Same full service</div></div></div></div>`,
@@ -206,7 +218,6 @@ document.addEventListener('DOMContentLoaded', () => {
   initDiffStrip();
   initReviewCards();
   initFooterAccordion();
-  initTabBar();
   initFaqShowAll();
   loadGooglePlaces();
   loadStripe();
@@ -762,11 +773,28 @@ function initDiffStrip() {
   if (!track || !pipsEl) return;
   const cards = track.querySelectorAll('.diff-card');
   const total = cards.length;
+
+  /* Mobile: use native scrollLeft auto-scroll (CSS scroll-snap handles snapping) */
+  if (window.innerWidth < 768) {
+    let mIdx = 0;
+    const visibleCards = [...cards].filter(c => getComputedStyle(c).display !== 'none');
+    const mTotal = visibleCards.length;
+    function mobileNext() {
+      mIdx = (mIdx + 1) % mTotal;
+      const cardWidth = visibleCards[0]?.offsetWidth + 13 || 300; /* 13 ≈ gap */
+      track.scrollTo({ left: mIdx * cardWidth, behavior: 'smooth' });
+    }
+    let mTimer = setInterval(mobileNext, 4000);
+    track.addEventListener('touchstart', () => { clearInterval(mTimer); }, { passive: true });
+    track.addEventListener('touchend', () => { clearInterval(mTimer); mTimer = setInterval(mobileNext, 4000); }, { passive: true });
+    return;
+  }
+
+  /* Desktop/Tablet: translateX-based carousel */
   let perView = 3;
   let current = 0;
 
   function getPerView() {
-    if (window.innerWidth < 768) return 1;
     if (window.innerWidth < 1024) return 2;
     return 3;
   }
@@ -776,7 +804,6 @@ function initDiffStrip() {
     const maxSlide = Math.max(0, total - perView);
     if (current > maxSlide) current = maxSlide;
     track.style.transform = `translateX(-${current * (100 / perView)}%)`;
-    // Update pips
     const pipCount = maxSlide + 1;
     pipsEl.innerHTML = '';
     for (let i = 0; i < pipCount; i++) {
@@ -798,7 +825,6 @@ function initDiffStrip() {
   window.addEventListener('resize', () => update());
   update();
 
-  // Touch swipe on carousel
   let sx = 0, dx = 0;
   track.addEventListener('touchstart', e => { sx = e.touches[0].clientX; }, {passive:true});
   track.addEventListener('touchmove', e => { dx = e.touches[0].clientX - sx; }, {passive:true});
@@ -866,40 +892,54 @@ function initHiw() {
 
   const isMobile = window.innerWidth <= 1024;
 
+  if (isMobile) {
+    /* Mobile: simple 4-step reveal cards (IntersectionObserver fade-in) */
+    const steps = HIW_STEPS_MOBILE;
+    stepsEl.innerHTML = steps.map((s,i) => `
+      <article class="hiw-step hiw-reveal" data-hiw="${i}">
+        <div class="hiw-step-num">${s.num}</div>
+        <div class="hiw-step-body">
+          <h3>${s.title}</h3>
+          <p>${s.summary}</p>
+        </div>
+      </article>
+    `).join('');
+
+    const stepEls = stepsEl.querySelectorAll('.hiw-reveal');
+    const revealObs = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.classList.add('is-visible');
+        }
+      });
+    }, { threshold: 0.2, rootMargin: '0px 0px -8% 0px' });
+    stepEls.forEach(s => revealObs.observe(s));
+
+    /* Active highlight as you scroll */
+    const activeObs = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          stepEls.forEach(s => s.classList.remove('is-active'));
+          e.target.classList.add('is-visible', 'is-active');
+        }
+      });
+    }, { threshold: 0.55 });
+    stepEls.forEach(s => activeObs.observe(s));
+    return;
+  }
+
+  /* Desktop: 3-step scroll-driven with visuals */
   stepsEl.innerHTML = HIW_STEPS.map((s,i) => `
-    <div class="hiw-step ${(i===0||isMobile)?'active':''}" data-hiw="${i}">
+    <div class="hiw-step ${i===0?'active':''}" data-hiw="${i}">
       <div class="hiw-step-num">${s.num}</div>
       <h3>${s.title}</h3>
       <p>${s.summary}</p>
-      ${isMobile ? HIW_VISUALS[s.visual] : ''}
     </div>
   `).join('') + '<div class="hiw-dots">' + HIW_STEPS.map((_,i) => `<div class="hiw-dot ${i===0?'active':''}"></div>`).join('') + '</div>';
 
   renderHiwDisplay(0);
 
-  if (isMobile) {
-    // Mobile: Apptics-style overlapping sticky cards
-    const steps = stepsEl.querySelectorAll('.hiw-step');
-    let activeIdx = 0;
-
-    const obs = new IntersectionObserver((entries) => {
-      entries.forEach(e => {
-        if (e.isIntersecting && e.intersectionRatio > 0.5) {
-          const idx = [...steps].indexOf(e.target);
-          if (idx >= 0 && idx !== activeIdx) {
-            activeIdx = idx;
-            steps.forEach((s, i) => {
-              s.classList.toggle('active', i === idx);
-              s.classList.toggle('hiw-past', i < idx);
-            });
-          }
-        }
-      });
-    }, { threshold: [0.5], rootMargin: '-80px 0px -30% 0px' });
-    steps.forEach(s => obs.observe(s));
-
-    if (steps.length) { steps[0].classList.add('active'); }
-  } else {
+  {
     // Desktop: scroll-driven
     const spacer = document.querySelector('.hiw-spacer');
     if (!spacer) return;
@@ -1737,43 +1777,6 @@ function initFooterAccordion() {
   });
 }
 
-/* ──────────────────────────────────────────
-   MOBILE TAB BAR — scroll show/hide
-   ────────────────────────────────────────── */
-function initTabBar() {
-  const bar = document.getElementById('mobileTabBar');
-  if (!bar || window.innerWidth > 768) return;
-  let lastY = 0;
-  let ticking = false;
-  window.addEventListener('scroll', () => {
-    if (!ticking) {
-      requestAnimationFrame(() => {
-        const y = window.scrollY;
-        if (y > lastY + 10 && y > 200) bar.classList.add('hidden');
-        else if (y < lastY - 5) bar.classList.remove('hidden');
-        lastY = y;
-        ticking = false;
-      });
-      ticking = true;
-    }
-  }, { passive: true });
-  /* Quote tab opens modal */
-  bar.querySelector('.tab-quote')?.addEventListener('click', e => {
-    e.preventDefault();
-    document.getElementById('quoteModal')?.classList.add('open');
-    document.body.style.overflow = 'hidden';
-    const w = document.getElementById('quoteWidget');
-    const modal = document.getElementById('quoteModal');
-    const body = modal?.querySelector('.quote-modal-body');
-    if (w && body && !body.contains(w)) body.appendChild(w);
-    if (!Q.mode) renderQuote();
-  });
-  /* Home tab scrolls to top */
-  bar.querySelector('.tab-home')?.addEventListener('click', e => {
-    e.preventDefault();
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  });
-}
 
 /* ──────────────────────────────────────────
    FAQ SHOW ALL (mobile)

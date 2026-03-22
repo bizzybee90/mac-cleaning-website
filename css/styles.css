@@ -1820,17 +1820,20 @@ section { padding: var(--section-py) 0; }
   #areas .wrap { text-align: center; }
   .area-tags { justify-content: center; }
 
-  /* -- Nav -- */
+  /* -- Nav: centred logo, hamburger right -- */
   .nav { padding: 0.4rem 0.5rem; }
   .nav-inner {
     height: 48px;
-    padding: 0 0.4rem 0 0.8rem;
+    padding: 0 0.8rem;
     max-width: 100%;
+    justify-content: center;
+    position: relative;
   }
+  .nav-brand { position: absolute; left: 50%; transform: translateX(-50%); }
   .nav-logo-img { height: 28px; }
   .nav.scrolled .nav-logo-img { height: 24px; }
   .nav-links, .nav-phone { display: none; }
-  .nav-toggle { display: flex; }
+  .nav-toggle { display: flex; position: absolute; right: 0.8rem; }
   .nav-spacer { height: 64px; }
   /* Hide nav CTA on mobile — hero has it */
   .nav-right { display: none !important; }
@@ -1874,7 +1877,9 @@ section { padding: var(--section-py) 0; }
   .trust-item:nth-child(1) { display: none; }
   .trust-item:nth-child(3) { display: none; }
 
-  /* -- Difference: horizontal swipe carousel (Reviews-style) -- */
+  /* -- Difference: spacing + horizontal swipe carousel -- */
+  #difference { padding-top: 2.5rem; }
+  #difference .section-intro { margin-bottom: 1.5rem; }
   .diff-carousel { overflow: visible; }
   .diff-track {
     display: flex !important; flex-direction: row !important;
@@ -1897,33 +1902,29 @@ section { padding: var(--section-py) 0; }
   #diffPips { display: none; }
   .diff-nav { display: none; }
 
-  /* -- Services: compact 2-column photo grid -- */
-  .services-grid { grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+  /* -- Services: full-width swipeable carousel (like Blog) -- */
+  .services-grid {
+    display: flex !important; overflow-x: auto;
+    scroll-snap-type: x mandatory; gap: 0.8rem;
+    padding-bottom: 0.5rem;
+    scrollbar-width: none;
+  }
+  .services-grid::-webkit-scrollbar { display: none; }
   .service-card {
-    padding: 0; position: relative; overflow: hidden;
+    flex: 0 0 85vw; scroll-snap-align: start;
+    padding: 0; overflow: hidden;
     border-radius: var(--radius-md);
   }
-  .service-img { aspect-ratio: 1/1; }
-  .service-card .service-body {
-    position: absolute; bottom: 0; left: 0; right: 0;
-    background: linear-gradient(transparent, rgba(0,0,0,0.7));
-    padding: 0.6rem 0.8rem;
-    color: var(--white);
-  }
-  .service-card .service-body h3 { font-size: 0.85rem; color: var(--white); margin: 0; }
-  .service-card .service-body p { display: none; } /* Hide descriptions on mobile */
-  .service-card .service-body .service-price {
-    font-size: 0.72rem; background: var(--gold); color: var(--white);
-    padding: 0.2rem 0.5rem; border-radius: 999px; display: inline-block; margin-top: 0.3rem;
-  }
-  /* Centre the 5th card if it's alone in last row */
-  .services-grid .service-card:last-child:nth-child(odd) {
-    grid-column: 1 / -1; max-width: 50%; justify-self: center;
-  }
+  .service-img { aspect-ratio: 16/9; }
+  .service-card p { display: none; } /* Hide descriptions on mobile */
+  .services-desktop-intro { display: none; } /* Hide desktop subtext */
+  .services-mobile-intro { display: block !important; } /* Show mobile subtext */
 
-  /* -- Pricing: hide grid on mobile, one-liner replaces it -- */
+  /* -- Pricing: hide everything except mobile one-liner -- */
   .pricing-grid { display: none !important; }
-  .pricing-mobile-cta { display: block !important; text-align: center; padding: 1rem 0; }
+  .pricing-grid + div { display: none !important; } /* Hide desktop CTA below grid */
+  section:has(.pricing-grid) .section-intro-center { display: none !important; }
+  .pricing-mobile-cta { display: block !important; text-align: center; padding: 1.5rem 0; }
   .pricing-mobile-cta p { font-size: 0.95rem; color: var(--ink); margin-bottom: 0.8rem; }
 
   /* -- Hide standalone "Instant Quote" section on mobile -- */
@@ -1955,61 +1956,53 @@ section { padding: var(--section-py) 0; }
   /* Hide desktop display panel + dots */
   .hiw-display { display: none !important; }
   .hiw-dots { display: none; }
-  .hiw-steps { display: block; }
+  .hiw-steps { display: grid; gap: 1rem; max-width: 100%; padding: 0 1rem; }
 
-  /* Each card: sticky with scroll space for overlap effect */
+  /* HiW: IntersectionObserver reveal cards (not sticky) */
   .hiw-step {
-    position: sticky !important;
-    opacity: 1 !important;
-    transform: none !important;
-    pointer-events: auto !important;
-    background: rgba(255,255,255,0.06);
-    color: rgba(255,255,255,0.95);
+    display: grid;
+    grid-template-columns: 64px 1fr;
+    gap: 1rem;
+    align-items: start;
+    padding: 1.2rem;
     border: 1px solid rgba(255,255,255,0.10);
     border-radius: 1.2rem;
-    padding: 1.5rem 1.2rem;
-    margin-bottom: 40vh;
-    box-shadow: 0 -4px 24px rgba(0,0,0,0.3), 0 1px 4px rgba(0,0,0,0.15);
+    background: rgba(255,255,255,0.04);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    position: relative !important;
+    top: auto !important;
+    margin-bottom: 0 !important;
   }
-  .hiw-step:last-child { margin-bottom: 1rem; }
-
-  /* Staggered sticky tops — each card catches slightly lower */
-  .hiw-step:nth-child(1) { top: 56px;  z-index: 1; }
-  .hiw-step:nth-child(2) { top: 68px;  z-index: 2; }
-  .hiw-step:nth-child(3) { top: 80px;  z-index: 3; }
-  .hiw-step:nth-child(4) { top: 92px;  z-index: 4; }
-
-  /* Active card slightly brighter, past cards scale down + fade */
-  .hiw-step.active { background: rgba(255,255,255,0.09); border-color: rgba(184,134,11,0.4); }
-  .hiw-step.hiw-past { transform: scale(0.97) !important; opacity: 0.5 !important; }
+  .hiw-step.hiw-reveal {
+    opacity: 0;
+    transform: translateY(36px);
+    transition: opacity 0.6s ease, transform 0.6s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+  }
+  .hiw-step.is-visible {
+    opacity: 1 !important;
+    transform: translateY(0) !important;
+  }
+  .hiw-step.is-active {
+    border-color: rgba(184,134,11,0.5);
+    box-shadow: 0 12px 36px rgba(184,134,11,0.15);
+  }
 
   /* Step number badge */
   .hiw-step-num {
-    width: 2.2rem;
-    height: 2.2rem;
-    font-size: 0.78rem;
-    margin-bottom: 0.6rem;
+    width: 56px;
+    height: 56px;
+    border-radius: 14px;
+    display: grid;
+    place-items: center;
+    font-weight: 800;
+    font-size: 1rem;
     background: var(--gold);
+    color: var(--white);
   }
 
   /* Typography — dark theme */
-  .hiw-step h3 { color: var(--white) !important; font-size: 1.15rem; margin-bottom: 0.3rem; font-weight: 700; }
-  .hiw-step p { color: rgba(255,255,255,0.7) !important; font-size: 0.9rem; line-height: 1.6; display: block !important; }
-
-  /* Inline visuals in each card — dark theme */
-  .hiw-step .hiw-visual {
-    display: block;
-    margin-top: 1rem;
-    min-height: 0;
-    border-radius: 0.8rem;
-    padding: 1rem;
-    background: rgba(255,255,255,0.05);
-  }
-  .hiw-step .hiw-visual .hiw-pill { font-size: 0.78rem; padding: 0.4rem 0.7rem; }
-  .hiw-step .hiw-visual .hiw-vval { font-size: 1.15rem; }
-  .hiw-step .hiw-visual .hiw-vcard { padding: 0.6rem 0.7rem; }
-  .hiw-step .hiw-visual .hiw-vlabel { font-size: 0.68rem; }
-  .hiw-step .hiw-visual .hiw-vdesc { font-size: 0.72rem; }
+  .hiw-step h3 { color: var(--white) !important; font-size: 1.15rem; margin: 0 0 0.3rem; font-weight: 700; }
+  .hiw-step p { color: rgba(255,255,255,0.7) !important; font-size: 0.9rem; line-height: 1.65; margin: 0; display: block !important; }
 
   /* -- Quote section -- */
   .quote-layout { grid-template-columns: 1fr; }
@@ -2170,37 +2163,8 @@ section { padding: var(--section-py) 0; }
   /* Hide inline quote section on mobile when modal exists */
   .quote-inline-hide { display: none !important; }
 
-  /* ── Bottom Tab Bar ── */
-  .mobile-tab-bar {
-    display: flex !important;
-    position: fixed;
-    bottom: 0; left: 0; right: 0;
-    z-index: 150;
-    background: rgba(255,252,247,0.92);
-    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-    border-top: 1px solid rgba(28,36,52,0.12);
-    box-shadow: 0 -2px 12px rgba(28,36,52,0.06);
-    padding: 0.4rem 0 max(0.4rem, env(safe-area-inset-bottom));
-    justify-content: space-around;
-    transition: transform 0.3s ease;
-  }
-  .mobile-tab-bar.hidden { transform: translateY(100%); }
-  .tab-item {
-    display: flex; flex-direction: column; align-items: center; gap: 0.15rem;
-    font-size: 0.65rem; font-weight: 600; color: var(--ink-faint);
-    text-decoration: none; padding: 0.3rem 0.8rem;
-    transition: color 0.2s;
-  }
-  .tab-item svg { opacity: 0.5; transition: opacity 0.2s; }
-  .tab-item:active { color: var(--charcoal); }
-  .tab-item:active svg { opacity: 1; }
-  .tab-quote {
-    color: var(--gold); font-weight: 700;
-  }
-  .tab-quote svg { opacity: 1; stroke: var(--gold); }
-
-  /* Footer bottom padding to clear tab bar */
-  .footer { padding-bottom: 5rem !important; }
+  /* WhatsApp button on mobile — keep visible */
+  .wa-btn { bottom: 1.2rem; right: 1rem; }
 
   /* ── Footer Accordion ── */
   .footer-grid {
@@ -2234,8 +2198,6 @@ section { padding: var(--section-py) 0; }
     cursor: pointer; background: none; border: none; padding: 0.5rem;
   }
 
-  /* Hide WhatsApp FAB (replaced by tab bar Call) */
-  .wa-btn { display: none !important; }
 }
 
 /* Extra small screens (< 350px) */
@@ -2251,9 +2213,9 @@ section { padding: var(--section-py) 0; }
    QUOTE MODAL — hidden on desktop
    ══════════════════════════════════════════ */
 .quote-modal { display: none; }
-.mobile-tab-bar { display: none; }
 .faq-show-all { display: none; }
 .pricing-mobile-cta { display: none; }
+.services-mobile-intro { display: none; }
 @media (max-width: 768px) {
   .quote-modal { display: flex; }
 }
