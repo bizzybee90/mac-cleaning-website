@@ -1902,7 +1902,7 @@ section { padding: var(--section-py) 0; }
   #diffPips { display: none; }
   .diff-nav { display: none; }
 
-  /* -- Services: full-width swipeable carousel (like Blog) -- */
+  /* -- Services: full-width swipeable carousel with descriptions -- */
   .services-grid {
     display: flex !important; overflow-x: auto;
     scroll-snap-type: x mandatory; gap: 0.8rem;
@@ -1911,20 +1911,24 @@ section { padding: var(--section-py) 0; }
   }
   .services-grid::-webkit-scrollbar { display: none; }
   .service-card {
-    flex: 0 0 85vw; scroll-snap-align: start;
+    flex: 0 0 88vw; scroll-snap-align: start;
     padding: 0; overflow: hidden;
     border-radius: var(--radius-md);
   }
-  .service-img { aspect-ratio: 16/9; }
-  .service-card p { display: none; } /* Hide descriptions on mobile */
-  .services-desktop-intro { display: none; } /* Hide desktop subtext */
-  .services-mobile-intro { display: block !important; } /* Show mobile subtext */
+  .service-img { aspect-ratio: 16/10; }
+  .service-card p {
+    display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;
+    overflow: hidden; font-size: 0.85rem; line-height: 1.5;
+  }
+  .service-card h3 { font-size: 1.05rem; }
+  .service-card .service-body { padding: 1rem; }
+  .services-desktop-intro { display: none; }
+  .services-mobile-intro { display: block !important; }
 
-  /* -- Pricing: hide everything except mobile one-liner -- */
+  /* -- Pricing: hide desktop elements, show mobile one-liner only -- */
+  .pricing-desktop-only { display: none !important; }
   .pricing-grid { display: none !important; }
-  .pricing-grid + div { display: none !important; } /* Hide desktop CTA below grid */
-  section:has(.pricing-grid) .section-intro-center { display: none !important; }
-  .pricing-mobile-cta { display: block !important; text-align: center; padding: 1.5rem 0; }
+  .pricing-mobile-cta { display: block !important; text-align: center; padding: 1rem 0; }
   .pricing-mobile-cta p { font-size: 0.95rem; color: var(--ink); margin-bottom: 0.8rem; }
 
   /* -- Hide standalone "Instant Quote" section on mobile -- */
@@ -1956,53 +1960,52 @@ section { padding: var(--section-py) 0; }
   /* Hide desktop display panel + dots */
   .hiw-display { display: none !important; }
   .hiw-dots { display: none; }
-  .hiw-steps { display: grid; gap: 1rem; max-width: 100%; padding: 0 1rem; }
+  .hiw-steps {
+    display: flex; flex-direction: column;
+    max-width: 100%; padding: 0 1rem;
+  }
 
-  /* HiW: IntersectionObserver reveal cards (not sticky) */
+  /* HiW: Apptics-style sticky stacking cards */
   .hiw-step {
     display: grid;
-    grid-template-columns: 64px 1fr;
+    grid-template-columns: 56px 1fr;
     gap: 1rem;
     align-items: start;
-    padding: 1.2rem;
+    padding: 1.5rem 1.2rem;
     border: 1px solid rgba(255,255,255,0.10);
     border-radius: 1.2rem;
-    background: rgba(255,255,255,0.04);
-    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
-    position: relative !important;
-    top: auto !important;
-    margin-bottom: 0 !important;
-  }
-  .hiw-step.hiw-reveal {
-    opacity: 0;
-    transform: translateY(36px);
-    transition: opacity 0.6s ease, transform 0.6s ease, border-color 0.3s ease, box-shadow 0.3s ease;
-  }
-  .hiw-step.is-visible {
+    background: #1e2738;
+    box-shadow: 0 -8px 30px rgba(0,0,0,0.4), 0 2px 8px rgba(0,0,0,0.2);
+    position: sticky !important;
+    margin-bottom: 18vh; /* scroll runway — cards overlap as you scroll */
     opacity: 1 !important;
-    transform: translateY(0) !important;
+    transform: none !important;
   }
-  .hiw-step.is-active {
-    border-color: rgba(184,134,11,0.5);
-    box-shadow: 0 12px 36px rgba(184,134,11,0.15);
-  }
+  .hiw-step:last-child { margin-bottom: 2rem; }
+
+  /* Staggered sticky tops — each card catches 20px lower */
+  .hiw-step:nth-child(1) { top: 64px;  z-index: 1; }
+  .hiw-step:nth-child(2) { top: 84px;  z-index: 2; }
+  .hiw-step:nth-child(3) { top: 104px; z-index: 3; }
+  .hiw-step:nth-child(4) { top: 124px; z-index: 4; }
 
   /* Step number badge */
   .hiw-step-num {
-    width: 56px;
-    height: 56px;
-    border-radius: 14px;
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
     display: grid;
     place-items: center;
     font-weight: 800;
-    font-size: 1rem;
+    font-size: 0.95rem;
     background: var(--gold);
     color: var(--white);
+    flex-shrink: 0;
   }
 
   /* Typography — dark theme */
-  .hiw-step h3 { color: var(--white) !important; font-size: 1.15rem; margin: 0 0 0.3rem; font-weight: 700; }
-  .hiw-step p { color: rgba(255,255,255,0.7) !important; font-size: 0.9rem; line-height: 1.65; margin: 0; display: block !important; }
+  .hiw-step h3 { color: var(--white) !important; font-size: 1.1rem; margin: 0 0 0.3rem; font-weight: 700; }
+  .hiw-step p { color: rgba(255,255,255,0.7) !important; font-size: 0.88rem; line-height: 1.65; margin: 0; display: block !important; }
 
   /* -- Quote section -- */
   .quote-layout { grid-template-columns: 1fr; }

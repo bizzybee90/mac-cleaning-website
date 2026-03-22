@@ -219,6 +219,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initReviewCards();
   initFooterAccordion();
   initFaqShowAll();
+  initServicesAutoScroll();
   loadGooglePlaces();
   loadStripe();
   loadGA();
@@ -893,10 +894,10 @@ function initHiw() {
   const isMobile = window.innerWidth <= 1024;
 
   if (isMobile) {
-    /* Mobile: simple 4-step reveal cards (IntersectionObserver fade-in) */
+    /* Mobile: Apptics-style sticky stacking cards (pure CSS position:sticky) */
     const steps = HIW_STEPS_MOBILE;
     stepsEl.innerHTML = steps.map((s,i) => `
-      <article class="hiw-step hiw-reveal" data-hiw="${i}">
+      <article class="hiw-step" data-hiw="${i}">
         <div class="hiw-step-num">${s.num}</div>
         <div class="hiw-step-body">
           <h3>${s.title}</h3>
@@ -904,27 +905,7 @@ function initHiw() {
         </div>
       </article>
     `).join('');
-
-    const stepEls = stepsEl.querySelectorAll('.hiw-reveal');
-    const revealObs = new IntersectionObserver((entries) => {
-      entries.forEach(e => {
-        if (e.isIntersecting) {
-          e.target.classList.add('is-visible');
-        }
-      });
-    }, { threshold: 0.2, rootMargin: '0px 0px -8% 0px' });
-    stepEls.forEach(s => revealObs.observe(s));
-
-    /* Active highlight as you scroll */
-    const activeObs = new IntersectionObserver((entries) => {
-      entries.forEach(e => {
-        if (e.isIntersecting) {
-          stepEls.forEach(s => s.classList.remove('is-active'));
-          e.target.classList.add('is-visible', 'is-active');
-        }
-      });
-    }, { threshold: 0.55 });
-    stepEls.forEach(s => activeObs.observe(s));
+    /* No JS needed — CSS position:sticky with staggered top values handles everything */
     return;
   }
 
@@ -1793,4 +1774,31 @@ function initFaqShowAll() {
     btn.remove();
   });
   list.parentElement.appendChild(btn);
+}
+
+/* ──────────────────────────────────────────
+   SERVICES AUTO-SCROLL (mobile)
+   ────────────────────────────────────────── */
+function initServicesAutoScroll() {
+  if (window.innerWidth > 768) return;
+  const grid = document.querySelector('.services-grid');
+  if (!grid) return;
+  const cards = grid.querySelectorAll('.service-card');
+  if (!cards.length) return;
+  let idx = 0;
+  const total = cards.length;
+  let timer = setInterval(() => {
+    idx = (idx + 1) % total;
+    const cardWidth = cards[0].offsetWidth + 13;
+    grid.scrollTo({ left: idx * cardWidth, behavior: 'smooth' });
+  }, 5000);
+  grid.addEventListener('touchstart', () => clearInterval(timer), { passive: true });
+  grid.addEventListener('touchend', () => {
+    clearInterval(timer);
+    timer = setInterval(() => {
+      idx = (idx + 1) % total;
+      const cardWidth = cards[0].offsetWidth + 13;
+      grid.scrollTo({ left: idx * cardWidth, behavior: 'smooth' });
+    }, 5000);
+  }, { passive: true });
 }
