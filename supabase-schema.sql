@@ -153,14 +153,47 @@ SELECT
 FROM leads
 WHERE signed_up_at IS NOT NULL AND quoted_at IS NOT NULL;
 
+ALTER VIEW lead_stats SET (security_invoker = true);
+ALTER VIEW revenue_pipeline SET (security_invoker = true);
+ALTER VIEW conversion_speed SET (security_invoker = true);
+
 
 -- 5. ROW LEVEL SECURITY
 ALTER TABLE leads ENABLE ROW LEVEL SECURITY;
 ALTER TABLE lead_events ENABLE ROW LEVEL SECURITY;
+ALTER TABLE dashboard_users ENABLE ROW LEVEL SECURITY;
 
--- Allow service role (n8n) full access
+REVOKE ALL ON TABLE leads FROM anon;
+REVOKE ALL ON TABLE lead_events FROM anon;
+REVOKE ALL ON TABLE dashboard_users FROM anon, authenticated;
+REVOKE ALL ON TABLE lead_stats FROM anon;
+REVOKE ALL ON TABLE revenue_pipeline FROM anon;
+REVOKE ALL ON TABLE conversion_speed FROM anon;
+
+GRANT SELECT, UPDATE ON TABLE leads TO authenticated;
+GRANT SELECT, INSERT ON TABLE lead_events TO authenticated;
+GRANT SELECT ON TABLE lead_stats TO authenticated;
+GRANT SELECT ON TABLE revenue_pipeline TO authenticated;
+GRANT SELECT ON TABLE conversion_speed TO authenticated;
+
+-- Allow n8n/service role full access
 CREATE POLICY "Service role full access on leads" ON leads
-  FOR ALL USING (true) WITH CHECK (true);
+  FOR ALL TO service_role USING (true) WITH CHECK (true);
 
 CREATE POLICY "Service role full access on lead_events" ON lead_events
-  FOR ALL USING (true) WITH CHECK (true);
+  FOR ALL TO service_role USING (true) WITH CHECK (true);
+
+-- Allow authenticated dashboard users to read and update lead data.
+-- If you later introduce non-admin authenticated users, replace these
+-- broad policies with a tighter email allowlist or custom-claim check.
+CREATE POLICY "Authenticated users can read leads" ON leads
+  FOR SELECT TO authenticated USING (true);
+
+CREATE POLICY "Authenticated users can update leads" ON leads
+  FOR UPDATE TO authenticated USING (true) WITH CHECK (true);
+
+CREATE POLICY "Authenticated users can read lead events" ON lead_events
+  FOR SELECT TO authenticated USING (true);
+
+CREATE POLICY "Authenticated users can insert lead events" ON lead_events
+  FOR INSERT TO authenticated WITH CHECK (true);

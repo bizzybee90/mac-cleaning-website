@@ -493,14 +493,14 @@ section { padding: var(--section-py) 0; }
 /* ══════════════════════════════════════════
    HOW IT WORKS (sticky scroll)
    ══════════════════════════════════════════ */
-.hiw-spacer { height: 400vh; position: relative; }
+.hiw-spacer { height: 480vh; position: relative; }
 .hiw-pinned {
   position: sticky;
   top: 0;
   height: 100vh;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 2rem;
+  gap: 1.5rem;
   align-items: center;
   padding: 2rem 0;
   overflow: hidden;
@@ -559,9 +559,9 @@ section { padding: var(--section-py) 0; }
 .hiw-vdesc { font-size: 0.82rem; color: rgba(255,255,255,0.7); margin-top: 0.15rem; }
 
 /* Steps on right */
-.hiw-steps { display: flex; flex-direction: column; gap: 1.2rem; justify-content: center; }
+.hiw-steps { display: flex; flex-direction: column; gap: 0.85rem; justify-content: center; }
 .hiw-step {
-  padding: 1.2rem;
+  padding: 1rem 1.05rem;
   border-radius: var(--radius-md);
   border: 1px solid rgba(255,255,255,0.1);
   background: rgba(255,255,255,0.03);
@@ -574,6 +574,21 @@ section { padding: var(--section-py) 0; }
   color: var(--white);
   transform: translateY(-2px);
 }
+.hiw-step-head {
+  display: grid;
+  grid-template-columns: 2.2rem 1fr;
+  gap: 0.9rem;
+  align-items: start;
+}
+.hiw-step-copy { min-width: 0; }
+.hiw-step-kicker {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.52);
+  margin-bottom: 0.25rem;
+}
 .hiw-step-num {
   display: inline-flex;
   align-items: center;
@@ -583,12 +598,13 @@ section { padding: var(--section-py) 0; }
   background: rgba(255,255,255,0.08);
   font-weight: 700;
   font-size: 0.85rem;
-  margin-bottom: 0.6rem;
+  margin-bottom: 0;
   transition: background 0.3s;
 }
 .hiw-step.active .hiw-step-num { background: var(--gold); }
-.hiw-step h3 { font-size: 1.3rem; margin-bottom: 0.3rem; }
-.hiw-step p { font-size: 0.88rem; margin: 0; }
+.hiw-step h3 { font-size: 1.15rem; margin: 0 0 0.35rem; }
+.hiw-step p { font-size: 0.84rem; line-height: 1.55; margin: 0; }
+.hiw-step-preview { display: none; }
 
 /* Progress dots */
 .hiw-dots { display: flex; gap: 0.5rem; margin-top: 1rem; }
@@ -599,6 +615,20 @@ section { padding: var(--section-py) 0; }
   transition: all 0.3s;
 }
 .hiw-dot.active { background: var(--gold); transform: scale(1.3); }
+.hiw-section-cta {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 0 0 2rem;
+}
+.hiw-section-cta p {
+  margin: 0;
+  color: rgba(255,255,255,0.72);
+}
+@media (min-width: 769px) {
+  .hiw-section-cta { display: flex; }
+}
 
 /* 900px HiW overrides removed — handled in 768px mobile overhaul below */
 
@@ -1703,11 +1733,11 @@ section { padding: var(--section-py) 0; }
 .progress-pip.done { background: rgba(29,139,81,0.08); color: var(--success); border-color: rgba(29,139,81,0.15); }
 .progress-pip strong { font-size: 0.78rem; }
 
-@media (max-width: 1024px) {
+@media (max-width: 1279px) {
   .quote-layout { grid-template-columns: 1fr; }
   .quote-sidebar { position: relative; top: 0; }
 
-  /* HiW: Apptics-style sticky stacked cards for tablet */
+  /* HiW: keep one stacked experience across phone and tablet */
   .hiw-spacer { height: auto !important; position: relative; overflow: visible; }
   .hiw-pinned {
     position: relative !important;
@@ -1719,11 +1749,15 @@ section { padding: var(--section-py) 0; }
   #hiw.bg-dark {
     margin: 0;
     border-radius: 0;
-    padding-bottom: 0;
+    padding-bottom: 1.75rem;
   }
-  /* Keep dark theme headings — bg-dark provides white text */
   .hiw-display { display: none !important; }
-  .hiw-steps { display: block; }
+  .hiw-steps {
+    display: flex;
+    flex-direction: column;
+    max-width: 100%;
+    padding: 0 1rem;
+  }
   .hiw-dots { display: none; }
   .hiw-step {
     position: sticky !important;
@@ -1734,28 +1768,58 @@ section { padding: var(--section-py) 0; }
     background: #1a2233;
     border: 1px solid rgba(255,255,255,0.08);
     border-radius: 1.2rem;
-    padding: 1.5rem 1.2rem;
-    margin-bottom: 1.5rem;
+    padding: 1.35rem;
+    margin-bottom: 16vh;
     box-shadow: 0 -8px 32px rgba(0,0,0,0.4), 0 2px 8px rgba(0,0,0,0.2);
     transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1),
                 opacity 0.4s cubic-bezier(0.22, 1, 0.36, 1),
                 border-color 0.3s ease;
     will-change: transform;
   }
-  .hiw-step:nth-child(1) { top: 72px;  z-index: 1; }
-  .hiw-step:nth-child(2) { top: 84px;  z-index: 2; }
-  .hiw-step:nth-child(3) { top: 96px;  z-index: 3; }
-  .hiw-step:nth-child(4) { top: 108px; z-index: 4; }
-  .hiw-step.active {
-    border-color: rgba(184,134,11,0.5);
-    background: #1e2a3d;
-    box-shadow: 0 -8px 32px rgba(0,0,0,0.4), 0 2px 8px rgba(0,0,0,0.2), 0 0 0 1px rgba(184,134,11,0.15);
+  .hiw-step:last-child { margin-bottom: 2rem; }
+  .hiw-step:nth-child(1) { top: 80px;  z-index: 1; }
+  .hiw-step:nth-child(2) { top: 96px;  z-index: 2; }
+  .hiw-step:nth-child(3) { top: 112px; z-index: 3; }
+  .hiw-step:nth-child(4) { top: 128px; z-index: 4; }
+  .hiw-step-head { grid-template-columns: 56px 1fr; gap: 1rem; }
+  .hiw-step-copy { min-width: 0; }
+  .hiw-step-kicker { color: rgba(255,255,255,0.56); margin-bottom: 0.3rem; }
+  .hiw-step-num {
+    width: 3rem;
+    height: 3rem;
+    margin-bottom: 0;
+    border-radius: 14px;
+    background: var(--gold);
+    color: var(--white);
+    font-size: 0.95rem;
   }
-  .hiw-step.hiw-past { transform: scale(0.96) !important; opacity: 0.6 !important; }
-  .hiw-step-num { background: rgba(255,255,255,0.08); transition: background 0.3s ease; }
-  .hiw-step.active .hiw-step-num { background: var(--gold); }
-  .hiw-step h3 { color: var(--white); }
-  .hiw-step p { color: rgba(255,255,255,0.65); display: block !important; }
+  .hiw-step h3 { color: var(--white); font-size: 1.18rem; }
+  .hiw-step p { color: rgba(255,255,255,0.72); font-size: 0.92rem; line-height: 1.65; display: block !important; }
+  .hiw-step-preview { display: block; margin-top: 1rem; }
+  .hiw-step-preview .hiw-visual {
+    min-height: 0;
+    margin-top: 0;
+    padding: 1rem;
+    background: linear-gradient(160deg, rgba(255,255,255,0.08), rgba(184,134,11,0.16));
+    border: 1px solid rgba(255,255,255,0.08);
+    box-shadow: none;
+  }
+  .hiw-step-preview .hiw-pill {
+    padding: 0.5rem 0.7rem;
+    font-size: 0.78rem;
+  }
+  .hiw-step-preview .hiw-split {
+    gap: 0.55rem;
+    margin-top: 0.75rem;
+  }
+  .hiw-step-preview .hiw-vcard {
+    padding: 0.8rem;
+    background: rgba(11,17,27,0.28);
+  }
+  .hiw-step-preview .hiw-vcard.featured { background: rgba(184,134,11,0.24); }
+  .hiw-step-preview .hiw-vlabel { font-size: 0.66rem; }
+  .hiw-step-preview .hiw-vval { font-size: 1.2rem; }
+  .hiw-step-preview .hiw-vdesc { font-size: 0.75rem; }
 }
 @media (max-width: 768px) {
   .quote-shell { grid-template-columns: 1fr; }
@@ -1958,81 +2022,33 @@ section { padding: var(--section-py) 0; }
   .quote-chooser-card p { font-size: 0.85rem; color: var(--ink); margin: 0 0 0.8rem; line-height: 1.5; }
   .quote-chooser-card .btn { width: 100%; }
 
-  /* -- Hide standalone "Instant Quote" section on mobile -- */
-  #quote .quote-sidebar { display: none; }
-  #quote .quote-shell { display: none; }
+  /* -- Hide standalone "Instant Quote" section on homepage mobile only -- */
+  .page-home #quote .quote-sidebar { display: none; }
+  .page-home #quote .quote-shell { display: none; }
 
-  /* ── How It Works: Apptics-style sticky stacked cards ──
-     Each card sticks at a staggered top offset. As you scroll,
-     the next card slides up and overlaps the previous one.
-     margin-bottom on each card provides the scroll runway. */
-
-  .hiw-spacer { height: auto !important; position: relative; overflow: visible; }
-
-  .hiw-pinned {
-    position: relative !important;
-    top: auto !important;
-    height: auto !important;
-    display: block !important;
-    padding: 0.5rem 0 0;
-  }
-
-  /* HiW: keep dark bg on mobile, full-bleed */
-  #hiw.bg-dark {
-    margin: 0;
-    border-radius: 0;
-    padding-bottom: 2rem;
-  }
-
-  /* Hide desktop display panel + dots */
-  .hiw-display { display: none !important; }
-  .hiw-dots { display: none; }
-  .hiw-steps {
-    display: flex; flex-direction: column;
-    max-width: 100%; padding: 0 1rem;
-  }
-
-  /* HiW: Apptics-style sticky stacking cards */
-  .hiw-step {
-    display: grid;
-    grid-template-columns: 56px 1fr;
-    gap: 1rem;
-    align-items: start;
-    padding: 1.5rem 1.2rem;
-    border: 1px solid rgba(255,255,255,0.10);
-    border-radius: 1.2rem;
-    background: #1e2738;
-    box-shadow: 0 -8px 30px rgba(0,0,0,0.4), 0 2px 8px rgba(0,0,0,0.2);
-    position: sticky !important;
-    margin-bottom: 18vh; /* scroll runway — cards overlap as you scroll */
-    opacity: 1 !important;
-    transform: none !important;
-  }
-  .hiw-step:last-child { margin-bottom: 2rem; }
-
-  /* Staggered sticky tops — each card catches 20px lower */
+  /* -- HiW: smaller-phone tuning -- */
+  #hiw.bg-dark { padding-bottom: 1.5rem; }
+  .hiw-step { padding: 1.15rem; margin-bottom: 15vh; }
   .hiw-step:nth-child(1) { top: 64px;  z-index: 1; }
-  .hiw-step:nth-child(2) { top: 84px;  z-index: 2; }
-  .hiw-step:nth-child(3) { top: 104px; z-index: 3; }
-  .hiw-step:nth-child(4) { top: 124px; z-index: 4; }
-
-  /* Step number badge */
+  .hiw-step:nth-child(2) { top: 82px;  z-index: 2; }
+  .hiw-step:nth-child(3) { top: 100px; z-index: 3; }
+  .hiw-step:nth-child(4) { top: 118px; z-index: 4; }
+  .hiw-step-head { grid-template-columns: 48px 1fr; gap: 0.85rem; }
   .hiw-step-num {
     width: 48px;
     height: 48px;
     border-radius: 12px;
-    display: grid;
-    place-items: center;
-    font-weight: 800;
-    font-size: 0.95rem;
-    background: var(--gold);
-    color: var(--white);
-    flex-shrink: 0;
+    font-size: 0.92rem;
   }
-
-  /* Typography — dark theme */
-  .hiw-step h3 { color: var(--white) !important; font-size: 1.1rem; margin: 0 0 0.3rem; font-weight: 700; }
-  .hiw-step p { color: rgba(255,255,255,0.7) !important; font-size: 0.88rem; line-height: 1.65; margin: 0; display: block !important; }
+  .hiw-step-kicker { font-size: 0.68rem; }
+  .hiw-step h3 { font-size: 1.05rem; }
+  .hiw-step p { font-size: 0.84rem; line-height: 1.6; }
+  .hiw-step-preview { margin-top: 0.9rem; }
+  .hiw-step-preview .hiw-visual { padding: 0.9rem; }
+  .hiw-step-preview .hiw-pill { font-size: 0.74rem; }
+  .hiw-step-preview .hiw-vval { font-size: 1.05rem; }
+  .hiw-step-preview .hiw-vdesc { font-size: 0.72rem; }
+  .hiw-section-cta { display: none; }
 
   /* -- Quote section -- */
   .quote-layout { grid-template-columns: 1fr; }
@@ -2347,4 +2363,3 @@ a.service-card.glass:hover { transform: translateY(-4px); box-shadow: 0 12px 40p
   color: var(--gold);
   transition: gap 0.2s;
 }
-

@@ -10,8 +10,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js" integrity="sha384-odJMGkKBMEuhGROIBrJhergqgOOv1yL3aIPQmTOLqvwNKl9XsFNMpU+sHCbG7VGe" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js" integrity="sha384-vsrfeLOOY6KuIYKDlmVH5UiBmgIdB1oEf7p01YgWHuqmOHfZr374+odEv96n9tNC" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js" integrity="sha384-YieCqqg9gQufX7+5HcFvCEg/n3KUEdl8/Jb+A6J0npf1mB740VayvwKjTrtCeUoy" crossorigin="anonymous"></script>
 <style>
 /* ══════════════════════════════════════════
    DESIGN TOKENS
@@ -1342,6 +1342,10 @@ async function openPanel(id) {
   selectedLeadId = id;
   const lead = allLeads.find(l => l.id === id);
   if (!lead) return;
+  const mailtoHref = safeMailtoHref(lead.email);
+  const whatsappHref = buildWhatsAppHref(lead.phone);
+  const telHref = safeTelHref(lead.phone);
+  const paymentLinkHref = safeExternalHttpUrl(lead.payment_link);
 
   document.getElementById('panel-title').textContent = lead.name || 'Lead Details';
   const body = document.getElementById('panel-body');
@@ -1369,9 +1373,9 @@ async function openPanel(id) {
       <div class="detail-row"><span class="label">Phone</span><span class="value">${esc(lead.phone || '—')}</span></div>
       <div class="detail-row"><span class="label">Postcode</span><span class="value">${esc(lead.postcode || '—')}</span></div>
       <div class="contact-links">
-        ${lead.email ? `<a href="mailto:${esc(lead.email)}" class="contact-email">✉ Email</a>` : ''}
-        ${lead.phone ? `<a href="https://wa.me/44${lead.phone?.replace(/^0/, '').replace(/\s/g, '')}" target="_blank" class="contact-whatsapp">💬 WhatsApp</a>` : ''}
-        ${lead.phone ? `<a href="tel:${esc(lead.phone)}" class="contact-phone">📞 Call</a>` : ''}
+        ${mailtoHref ? `<a href="${mailtoHref}" class="contact-email">✉ Email</a>` : ''}
+        ${whatsappHref ? `<a href="${whatsappHref}" target="_blank" rel="noopener noreferrer" class="contact-whatsapp">💬 WhatsApp</a>` : ''}
+        ${telHref ? `<a href="${telHref}" class="contact-phone">📞 Call</a>` : ''}
       </div>
     </div>
 
@@ -1391,7 +1395,7 @@ async function openPanel(id) {
       <div class="detail-row"><span class="label">Price/clean</span><span class="value">${lead.price_per_clean ? '£' + lead.price_per_clean : '—'}</span></div>
       ${lead.addons_total ? `<div class="detail-row"><span class="label">Add-ons</span><span class="value">£${lead.addons_total}</span></div>` : ''}
       <div class="detail-row"><span class="label">Payment</span><span class="value">${esc(lead.payment_method || '—')}</span></div>
-      ${lead.payment_link ? `<div class="detail-row"><span class="label">Payment link</span><span class="value"><a href="${esc(lead.payment_link)}" target="_blank" style="color:var(--gold)">Open →</a></span></div>` : ''}
+      ${paymentLinkHref ? `<div class="detail-row"><span class="label">Payment link</span><span class="value"><a href="${paymentLinkHref}" target="_blank" rel="noopener noreferrer" style="color:var(--gold)">Open →</a></span></div>` : ''}
     </div>
 
     <!-- Tracking -->
@@ -1775,6 +1779,37 @@ function esc(str) {
   const el = document.createElement('span');
   el.textContent = str;
   return el.innerHTML;
+}
+
+function safeMailtoHref(value) {
+  const email = String(value || '').trim().replace(/[\r\n]/g, '');
+  if (!email) return '';
+  return `mailto:${encodeURIComponent(email)}`;
+}
+
+function safeTelHref(value) {
+  const phone = String(value || '').trim().replace(/[^\d+]/g, '');
+  if (!phone) return '';
+  return `tel:${phone}`;
+}
+
+function buildWhatsAppHref(value) {
+  const digits = String(value || '').replace(/\D/g, '');
+  if (!digits) return '';
+  const normalized = digits.startsWith('44') ? digits : `44${digits.replace(/^0+/, '')}`;
+  if (!/^\d{11,15}$/.test(normalized)) return '';
+  return `https://wa.me/${normalized}`;
+}
+
+function safeExternalHttpUrl(value) {
+  if (!value) return '';
+  try {
+    const url = new URL(value, window.location.origin);
+    if (!/^https?:$/.test(url.protocol)) return '';
+    return url.href;
+  } catch (err) {
+    return '';
+  }
 }
 
 function formatProperty(l) {

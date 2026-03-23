@@ -157,19 +157,25 @@ const STANDALONE = {
   }
 };
 
+const HIW_STACKED_BREAKPOINT = 1279;
+
 const HIW_STEPS = [
-  { num:"01", nav:"Your Price", title:"Get Your Price",
-    summary:"Tell us your property type and postcode. You'll see your exact price instantly — both 4-weekly and 8-weekly, side by side.",
-    detail:"The whole thing takes about 30 seconds. No sign-up required to see your price.",
-    visual:'pills' },
-  { num:"02", nav:"Your Schedule", title:"Choose Your Schedule",
-    summary:"Pick the frequency that suits you, confirm your details, and add any extras like gutters or fascias. That's it — you're booked.",
-    detail:"Once you've chosen, we'll send you a confirmation with your first clean date and a secure link to register your card.",
+  { num:"01", nav:"Instant Quote", title:"Get Your Instant Quote",
+    summary:"Tell us your property type, size, and postcode to see your exact price straight away.",
+    detail:"You will see both 4-weekly and 8-weekly pricing before you commit to anything.",
+    visual:'quote' },
+  { num:"02", nav:"Choose Your Schedule", title:"Pick Your Schedule",
+    summary:"Choose 4-weekly or 8-weekly cleaning and add any one-off exterior services you need.",
+    detail:"You can add gutters, fascias, and conservatory roof cleaning while you are booking.",
     visual:'schedule' },
-  { num:"03", nav:"The Easy Part", title:"We Handle the Rest",
-    summary:"You'll get a text the night before each clean. We turn up, we clean, your card is charged automatically. Simple, every time.",
-    detail:"Most new customers are on the round within a week.",
-    visual:'gate' }
+  { num:"03", nav:"Confirm Your Details", title:"Confirm Your Details",
+    summary:"Enter your address, contact details, and payment method. Nothing is charged until after your clean.",
+    detail:"We email your confirmation and keep your payment details securely with Stripe.",
+    visual:'confirm' },
+  { num:"04", nav:"Cleaning Day", title:"We Remind You and Clean",
+    summary:"We text you the night before, clean on the day, and charge your card automatically after the job.",
+    detail:"Most new customers are on the round within a week, backed by our 24-hour re-clean guarantee.",
+    visual:'reminder' }
 ];
 
 /* ──────────────────────────────────────────
@@ -187,24 +193,28 @@ const Q = {
 
 let activeHiw = 0;
 
-/* Mobile-only: simpler 4-step version with reveal animation */
-const HIW_STEPS_MOBILE = [
-  { num:"01", title:"Instant online quote",
-    summary:"Using our instant quote tool, you'll receive the cost for your clean online immediately. 4-weekly or 8-weekly, the price is the same." },
-  { num:"02", title:"Sign up online",
-    summary:"Easily register your payment details online to complete your signup. No payments are taken until we clean your property." },
-  { num:"03", title:"Confirmation",
-    summary:"Once you've signed up, within 24 hours, we'll email over the details of what you've signed up to, including when your first clean will be." },
-  { num:"04", title:"Cleaning day",
-    summary:"We send a reminder the night before your scheduled clean, then on the day of the clean we arrive to dirty windows, and leave with them looking immaculate." }
-];
-
 const HIW_VISUALS = {
-  pills: `<div class="hiw-visual"><div class="hiw-pills"><div class="hiw-pill">House</div><div class="hiw-pill">Semi-detached</div><div class="hiw-pill">3 bedrooms</div></div><div class="hiw-split"><div class="hiw-vcard"><div class="hiw-vlabel">Extra</div><div class="hiw-vval">+£9</div><div class="hiw-vdesc">Conservatory</div></div><div class="hiw-vcard"><div class="hiw-vlabel">Extra</div><div class="hiw-vval">+£4</div><div class="hiw-vdesc">2 skylights</div></div></div></div>`,
-  gate: `<div class="hiw-visual"><div class="hiw-split"><div class="hiw-vcard"><div class="hiw-vlabel">Check coverage</div><div class="hiw-vval" style="font-size:1.3rem">LU3 2AB</div></div><div class="hiw-vcard"><div class="hiw-vlabel">Send your quote</div><div class="hiw-vval" style="font-size:1.1rem">hello@email.com</div></div></div><div class="hiw-split" style="margin-top:0.6rem"><div class="hiw-vcard featured"><div class="hiw-vlabel">Every 4 weeks</div><div class="hiw-vval">£19</div><div class="hiw-vdesc">Best value</div></div><div class="hiw-vcard"><div class="hiw-vlabel">Every 8 weeks</div><div class="hiw-vval">£24</div><div class="hiw-vdesc">Same full service</div></div></div></div>`,
-  schedule: `<div class="hiw-visual"><div class="hiw-split"><div class="hiw-vcard"><div class="hiw-vlabel">Customer</div><div class="hiw-vval" style="font-size:1.3rem">Michael C</div><div class="hiw-vdesc">Booked and confirmed</div></div><div class="hiw-vcard featured"><div class="hiw-vlabel">Schedule</div><div class="hiw-vval">4-weekly</div><div class="hiw-vdesc">£19/clean</div></div></div><div class="hiw-pills" style="margin-top:0.8rem"><div class="hiw-pill">Night-before reminders</div><div class="hiw-pill">Secure card link by email</div></div></div>`,
-  addons: `<div class="hiw-visual"><div class="hiw-split"><div class="hiw-vcard"><div class="hiw-vlabel">Add-on</div><div class="hiw-vval">£105</div><div class="hiw-vdesc">Gutter clearing</div></div><div class="hiw-vcard featured"><div class="hiw-vlabel">Bundle 3</div><div class="hiw-vval">20% off</div><div class="hiw-vdesc">All add-ons together</div></div></div><div class="hiw-pills" style="margin-top:0.8rem"><div class="hiw-pill">First clean within 24hrs</div><div class="hiw-pill">Secure Stripe link</div><div class="hiw-pill">No payment until after clean</div></div></div>`
+  quote: `<div class="hiw-visual"><div class="hiw-pills"><div class="hiw-pill">Semi-detached</div><div class="hiw-pill">3 bedrooms</div><div class="hiw-pill">LU3 2AB</div></div><div class="hiw-split"><div class="hiw-vcard featured"><div class="hiw-vlabel">Every 4 weeks</div><div class="hiw-vval">£19</div><div class="hiw-vdesc">Best value</div></div><div class="hiw-vcard"><div class="hiw-vlabel">Every 8 weeks</div><div class="hiw-vval">£24</div><div class="hiw-vdesc">Same full clean</div></div></div></div>`,
+  schedule: `<div class="hiw-visual"><div class="hiw-pills"><div class="hiw-pill">4-weekly</div><div class="hiw-pill">Gutters</div><div class="hiw-pill">Fascias</div></div><div class="hiw-split"><div class="hiw-vcard"><div class="hiw-vlabel">Window Cleaning</div><div class="hiw-vval">£19</div><div class="hiw-vdesc">Recurring service</div></div><div class="hiw-vcard featured"><div class="hiw-vlabel">Add-ons</div><div class="hiw-vval">+£80</div><div class="hiw-vdesc">One-off exterior work</div></div></div></div>`,
+  confirm: `<div class="hiw-visual"><div class="hiw-split"><div class="hiw-vcard"><div class="hiw-vlabel">Customer</div><div class="hiw-vval" style="font-size:1.15rem">Your details</div><div class="hiw-vdesc">Address and contact saved</div></div><div class="hiw-vcard featured"><div class="hiw-vlabel">Payment</div><div class="hiw-vval" style="font-size:1.15rem">Stripe</div><div class="hiw-vdesc">Stored securely</div></div></div><div class="hiw-pills" style="margin-top:0.8rem"><div class="hiw-pill">No charge today</div><div class="hiw-pill">Confirmation by email</div></div></div>`,
+  reminder: `<div class="hiw-visual"><div class="hiw-split"><div class="hiw-vcard"><div class="hiw-vlabel">Reminder</div><div class="hiw-vval" style="font-size:1.15rem">Tomorrow</div><div class="hiw-vdesc">Text sent the night before</div></div><div class="hiw-vcard featured"><div class="hiw-vlabel">After the clean</div><div class="hiw-vval">Paid</div><div class="hiw-vdesc">Receipt emailed automatically</div></div></div><div class="hiw-pills" style="margin-top:0.8rem"><div class="hiw-pill">24-hour re-clean guarantee</div><div class="hiw-pill">Most homes on-round within a week</div></div></div>`
 };
+
+function renderHiwStep(step, idx, { active = false, inlineVisual = false } = {}) {
+  return `
+    <article class="hiw-step ${active ? 'active' : ''}" data-hiw="${idx}">
+      <div class="hiw-step-head">
+        <div class="hiw-step-num">${step.num}</div>
+        <div class="hiw-step-copy">
+          <div class="hiw-step-kicker">${step.nav}</div>
+          <h3>${step.title}</h3>
+          <p>${step.summary}</p>
+        </div>
+      </div>
+      ${inlineVisual ? `<div class="hiw-step-preview">${HIW_VISUALS[step.visual]}</div>` : ''}
+    </article>
+  `;
+}
 
 /* ──────────────────────────────────────────
    INIT
@@ -316,6 +326,8 @@ function initQuoteModal() {
     if (!link || !mq.matches) return;
     e.preventDefault();
     e.stopPropagation();
+    document.getElementById('navToggle')?.classList.remove('open');
+    document.getElementById('mobileMenu')?.classList.remove('open');
     openModal();
   }, true); // capture phase to beat initQuoteDeepLinks
 
@@ -692,6 +704,7 @@ function initNav() {
   const nav = document.getElementById('nav');
   const toggle = document.getElementById('navToggle');
   const menu = document.getElementById('mobileMenu');
+  if (!nav) return;
   let lastY = 0;
   window.addEventListener('scroll', () => {
     const y = scrollY;
@@ -897,32 +910,16 @@ function initHiw() {
   const stepsEl = document.getElementById('hiwSteps');
   if (!display || !stepsEl) return;
 
-  const isMobile = window.innerWidth <= 1024;
+  const isStacked = window.innerWidth <= HIW_STACKED_BREAKPOINT;
+  activeHiw = 0;
 
-  if (isMobile) {
-    /* Mobile: Apptics-style sticky stacking cards (pure CSS position:sticky) */
-    const steps = HIW_STEPS_MOBILE;
-    stepsEl.innerHTML = steps.map((s,i) => `
-      <article class="hiw-step" data-hiw="${i}">
-        <div class="hiw-step-num">${s.num}</div>
-        <div class="hiw-step-body">
-          <h3>${s.title}</h3>
-          <p>${s.summary}</p>
-        </div>
-      </article>
-    `).join('');
-    /* No JS needed — CSS position:sticky with staggered top values handles everything */
+  if (isStacked) {
+    stepsEl.innerHTML = HIW_STEPS.map((s, i) => renderHiwStep(s, i, { inlineVisual: true })).join('');
     return;
   }
 
-  /* Desktop: 3-step scroll-driven with visuals */
-  stepsEl.innerHTML = HIW_STEPS.map((s,i) => `
-    <div class="hiw-step ${i===0?'active':''}" data-hiw="${i}">
-      <div class="hiw-step-num">${s.num}</div>
-      <h3>${s.title}</h3>
-      <p>${s.summary}</p>
-    </div>
-  `).join('') + '<div class="hiw-dots">' + HIW_STEPS.map((_,i) => `<div class="hiw-dot ${i===0?'active':''}"></div>`).join('') + '</div>';
+  stepsEl.innerHTML = HIW_STEPS.map((s, i) => renderHiwStep(s, i, { active: i === 0 })).join('') +
+    '<div class="hiw-dots">' + HIW_STEPS.map((_, i) => `<div class="hiw-dot ${i===0 ? 'active' : ''}"></div>`).join('') + '</div>';
 
   renderHiwDisplay(0);
 
