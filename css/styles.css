@@ -1902,34 +1902,49 @@ section { padding: var(--section-py) 0; }
   #diffPips { display: none; }
   .diff-nav { display: none; }
 
-  /* -- Services: full-width swipeable carousel with descriptions -- */
+  /* -- Services: full-width swipeable carousel -- */
   .services-grid {
     display: flex !important; overflow-x: auto;
     scroll-snap-type: x mandatory; gap: 0.8rem;
-    padding-bottom: 0.5rem;
+    padding: 0 0 0.5rem;
     scrollbar-width: none;
   }
   .services-grid::-webkit-scrollbar { display: none; }
   .service-card {
-    flex: 0 0 88vw; scroll-snap-align: start;
-    padding: 0; overflow: hidden;
+    flex: 0 0 85vw; scroll-snap-align: start;
+    padding: 1.2rem; overflow: hidden;
     border-radius: var(--radius-md);
   }
-  .service-img { aspect-ratio: 16/10; }
+  .service-img { aspect-ratio: 16/10; margin-bottom: 0.8rem; }
+  .service-card h3 { font-size: 1.1rem; margin: 0.5rem 0 0.3rem; }
   .service-card p {
-    display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;
-    overflow: hidden; font-size: 0.85rem; line-height: 1.5;
+    font-size: 0.88rem; line-height: 1.55; margin-bottom: 0.6rem;
   }
-  .service-card h3 { font-size: 1.05rem; }
-  .service-card .service-body { padding: 1rem; }
+  .service-list { display: none; } /* Hide bullet lists on mobile — descriptions are enough */
+  .service-link { font-size: 0.85rem; }
   .services-desktop-intro { display: none; }
   .services-mobile-intro { display: block !important; }
 
-  /* -- Pricing: hide desktop elements, show mobile one-liner only -- */
+  /* -- Pricing/Quote: hide desktop pricing, show quote chooser on mobile -- */
   .pricing-desktop-only { display: none !important; }
   .pricing-grid { display: none !important; }
-  .pricing-mobile-cta { display: block !important; text-align: center; padding: 1rem 0; }
-  .pricing-mobile-cta p { font-size: 0.95rem; color: var(--ink); margin-bottom: 0.8rem; }
+  .quote-chooser { display: block !important; }
+  .quote-chooser-cards {
+    display: flex; flex-direction: column; gap: 0.8rem;
+  }
+  .quote-chooser-card {
+    display: flex; flex-direction: column; align-items: center;
+    text-align: center; padding: 1.5rem 1.2rem;
+    border-radius: var(--radius-md);
+    background: rgba(255,255,255,0.7); border: 1px solid var(--line);
+    text-decoration: none; color: inherit;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .quote-chooser-card:active { transform: scale(0.98); }
+  .qc-icon { font-size: 2rem; margin-bottom: 0.6rem; }
+  .quote-chooser-card h3 { font-size: 1.05rem; margin: 0 0 0.4rem; color: var(--charcoal); }
+  .quote-chooser-card p { font-size: 0.85rem; color: var(--ink); margin: 0 0 0.8rem; line-height: 1.5; }
+  .quote-chooser-card .btn { width: 100%; }
 
   /* -- Hide standalone "Instant Quote" section on mobile -- */
   #quote .quote-sidebar { display: none; }
@@ -2218,6 +2233,7 @@ section { padding: var(--section-py) 0; }
 .quote-modal { display: none; }
 .faq-show-all { display: none; }
 .pricing-mobile-cta { display: none; }
+.quote-chooser { display: none; }
 .services-mobile-intro { display: none; }
 @media (max-width: 768px) {
   .quote-modal { display: flex; }

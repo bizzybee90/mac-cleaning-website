@@ -246,14 +246,10 @@
         <span class="service-link">View full details →</span>
       </a>
     </div>
-    <!-- Mobile CTA after Services section -->
-    <div class="mobile-section-cta" style="display:none;text-align:center;margin-top:1.5rem;">
-      <a href="#quote" class="btn btn-primary">Get Your Price →</a>
-    </div>
   </div>
 </section>
 
-<!-- ═══════════════════ PRICING PREVIEW ═══════════════════ -->
+<!-- ═══════════════════ QUOTE CHOOSER (mobile) / PRICING (desktop) ═══════════════════ -->
 <section class="pricing-section">
   <div class="wrap">
     <div class="section-intro-center reveal pricing-desktop-only">
@@ -270,10 +266,23 @@
     <div style="text-align:center;margin-top:2rem;" class="reveal pricing-desktop-only">
       <a href="#quote" class="btn btn-primary">Get Your Exact Price</a>
     </div>
-    <!-- Mobile pricing one-liner (replaces entire section on mobile) -->
-    <div class="pricing-mobile-cta">
-      <p>Regular window cleaning <strong>from £19/clean</strong>. All-inclusive.</p>
-      <a href="#quote" class="btn btn-primary">Get Your Exact Price →</a>
+    <!-- Mobile: single quote chooser replacing duplicate CTAs -->
+    <div class="quote-chooser">
+      <h2 style="font-size:1.4rem;text-align:center;margin-bottom:1.2rem;">What would you like a price for?</h2>
+      <div class="quote-chooser-cards">
+        <a href="#quote" class="quote-chooser-card" data-quote-mode="regular">
+          <div class="qc-icon">🪟</div>
+          <h3>Regular Window Cleaning</h3>
+          <p>Recurring 4-weekly or 8-weekly cleans. Instant online quote from £19/clean.</p>
+          <span class="btn btn-primary btn-sm">Get Regular Quote</span>
+        </a>
+        <a href="#quote" class="quote-chooser-card" data-quote-mode="oneoff">
+          <div class="qc-icon">🏠</div>
+          <h3>One-Off Exterior Services</h3>
+          <p>Gutters, fascias and conservatory roofs. One-off pricing from £70–£80.</p>
+          <span class="btn btn-secondary btn-sm">Get One-Off Quote</span>
+        </a>
+      </div>
     </div>
   </div>
 </section>

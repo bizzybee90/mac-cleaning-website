@@ -220,6 +220,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initFooterAccordion();
   initFaqShowAll();
   initServicesAutoScroll();
+  initQuoteChooser();
   loadGooglePlaces();
   loadStripe();
   loadGA();
@@ -1801,4 +1802,31 @@ function initServicesAutoScroll() {
       grid.scrollTo({ left: idx * cardWidth, behavior: 'smooth' });
     }, 5000);
   }, { passive: true });
+}
+
+/* ──────────────────────────────────────────
+   QUOTE CHOOSER (mobile — opens modal with correct mode)
+   ────────────────────────────────────────── */
+function initQuoteChooser() {
+  if (window.innerWidth > 768) return;
+  document.querySelectorAll('.quote-chooser-card').forEach(card => {
+    card.addEventListener('click', e => {
+      e.preventDefault();
+      const mode = card.dataset.quoteMode;
+      const modal = document.getElementById('quoteModal');
+      const widget = document.getElementById('quoteWidget');
+      const body = modal?.querySelector('.quote-modal-body');
+      if (widget && body && !body.contains(widget)) body.appendChild(widget);
+      if (mode) {
+        Q.mode = mode;
+        Q.step = 1;
+        Q.feedback = null;
+      }
+      renderQuote();
+      if (modal) {
+        modal.classList.add('open');
+        document.body.style.overflow = 'hidden';
+      }
+    });
+  });
 }
