@@ -192,6 +192,10 @@ const Q = {
 };
 
 let activeHiw = 0;
+let hiwMode = null;
+let hiwCleanup = null;
+let hiwResizeBound = false;
+let hiwResizeTimer = null;
 
 const HIW_VISUALS = {
   quote: `<div class="hiw-visual"><div class="hiw-pills"><div class="hiw-pill">Semi-detached</div><div class="hiw-pill">3 bedrooms</div><div class="hiw-pill">LU3 2AB</div></div><div class="hiw-split"><div class="hiw-vcard featured"><div class="hiw-vlabel">Every 4 weeks</div><div class="hiw-vval">£19</div><div class="hiw-vdesc">Best value</div></div><div class="hiw-vcard"><div class="hiw-vlabel">Every 8 weeks</div><div class="hiw-vval">£24</div><div class="hiw-vdesc">Same full clean</div></div></div></div>`,
@@ -911,10 +915,30 @@ function initHiw() {
   if (!display || !stepsEl) return;
 
   const isStacked = window.innerWidth <= HIW_STACKED_BREAKPOINT;
+  const nextMode = isStacked ? 'stacked' : 'desktop';
+
+  if (!hiwResizeBound) {
+    window.addEventListener('resize', () => {
+      clearTimeout(hiwResizeTimer);
+      hiwResizeTimer = window.setTimeout(() => initHiw(), 120);
+    }, { passive: true });
+    hiwResizeBound = true;
+  }
+
+  if (hiwMode === nextMode && hiwCleanup) return;
+
+  if (typeof hiwCleanup === 'function') {
+    hiwCleanup();
+    hiwCleanup = null;
+  }
+
+  hiwMode = nextMode;
   activeHiw = 0;
 
   if (isStacked) {
-    stepsEl.innerHTML = HIW_STEPS.map((s, i) => renderHiwStep(s, i, { inlineVisual: true })).join('');
+    display.innerHTML = '';
+    stepsEl.innerHTML = HIW_STEPS.map((s, i) => renderHiwStep(s, i, { active: i === 0, inlineVisual: true })).join('');
+    hiwCleanup = initHiwStacked(stepsEl);
     return;
   }
 
@@ -922,25 +946,73 @@ function initHiw() {
     '<div class="hiw-dots">' + HIW_STEPS.map((_, i) => `<div class="hiw-dot ${i===0 ? 'active' : ''}"></div>`).join('') + '</div>';
 
   renderHiwDisplay(0);
+  hiwCleanup = initHiwDesktop(stepsEl);
+}
 
-  {
-    // Desktop: scroll-driven
-    const spacer = document.querySelector('.hiw-spacer');
-    if (!spacer) return;
-    window.addEventListener('scroll', () => {
-      const rect = spacer.getBoundingClientRect();
-      const total = spacer.offsetHeight - window.innerHeight;
-      if (total <= 0) return;
-      const progress = Math.max(0, Math.min(1, -rect.top / total));
-      const step = Math.min(Math.floor(progress * HIW_STEPS.length), HIW_STEPS.length - 1);
-      if (step !== activeHiw) {
-        activeHiw = step;
-        stepsEl.querySelectorAll('.hiw-step').forEach((el,i) => el.classList.toggle('active', i===step));
-        stepsEl.querySelectorAll('.hiw-dot').forEach((el,i) => el.classList.toggle('active', i===step));
-        renderHiwDisplay(step);
-      }
-    }, {passive:true});
-  }
+function initHiwDesktop(stepsEl) {
+  const spacer = document.querySelector('.hiw-spacer');
+  if (!spacer) return null;
+
+  const update = () => {
+    const rect = spacer.getBoundingClientRect();
+    const total = spacer.offsetHeight - window.innerHeight;
+    if (total <= 0) return;
+    const progress = Math.max(0, Math.min(1, -rect.top / total));
+    const step = Math.min(Math.floor(progress * HIW_STEPS.length), HIW_STEPS.length - 1);
+    if (step !== activeHiw) {
+      activeHiw = step;
+      stepsEl.querySelectorAll('.hiw-step').forEach((el, i) => el.classList.toggle('active', i === step));
+      stepsEl.querySelectorAll('.hiw-dot').forEach((el, i) => el.classList.toggle('active', i === step));
+      renderHiwDisplay(step);
+    }
+  };
+
+  window.addEventListener('scroll', update, { passive: true });
+  requestAnimationFrame(update);
+  return () => window.removeEventListener('scroll', update);
+}
+
+function initHiwStacked(stepsEl) {
+  const steps = [...stepsEl.querySelectorAll('.hiw-step')];
+  if (!steps.length) return null;
+
+  let rafId = 0;
+  const getActivationLine = () => Math.min(window.innerHeight * 0.28, window.innerWidth <= 768 ? 132 : 156);
+
+  const update = () => {
+    rafId = 0;
+    const activationLine = getActivationLine();
+    let current = 0;
+
+    steps.forEach((step, idx) => {
+      const rect = step.getBoundingClientRect();
+      if (rect.top <= activationLine) current = idx;
+    });
+
+    activeHiw = current;
+    steps.forEach((step, idx) => {
+      step.classList.toggle('active', idx === current);
+      step.classList.toggle('is-current', idx === current);
+      step.classList.toggle('is-past', idx < current);
+      step.classList.toggle('is-next', idx === current + 1);
+      step.classList.toggle('is-future', idx > current + 1);
+    });
+  };
+
+  const requestUpdate = () => {
+    if (rafId) return;
+    rafId = requestAnimationFrame(update);
+  };
+
+  window.addEventListener('scroll', requestUpdate, { passive: true });
+  window.addEventListener('resize', requestUpdate);
+  requestUpdate();
+
+  return () => {
+    window.removeEventListener('scroll', requestUpdate);
+    window.removeEventListener('resize', requestUpdate);
+    if (rafId) cancelAnimationFrame(rafId);
+  };
 }
 
 function renderHiwDisplay(idx) {

@@ -568,7 +568,8 @@ section { padding: var(--section-py) 0; }
   color: rgba(255,255,255,0.55);
   transition: all 0.4s var(--ease);
 }
-.hiw-step.active {
+.hiw-step.active,
+.hiw-step.is-current {
   background: rgba(255,255,255,0.08);
   border-color: rgba(255,255,255,0.2);
   color: var(--white);
@@ -601,7 +602,8 @@ section { padding: var(--section-py) 0; }
   margin-bottom: 0;
   transition: background 0.3s;
 }
-.hiw-step.active .hiw-step-num { background: var(--gold); }
+.hiw-step.active .hiw-step-num,
+.hiw-step.is-current .hiw-step-num { background: var(--gold); }
 .hiw-step h3 { font-size: 1.15rem; margin: 0 0 0.35rem; }
 .hiw-step p { font-size: 0.84rem; line-height: 1.55; margin: 0; }
 .hiw-step-preview { display: none; }
@@ -1756,24 +1758,27 @@ section { padding: var(--section-py) 0; }
     display: flex;
     flex-direction: column;
     max-width: 100%;
-    padding: 0 1rem;
+    padding: 0 1rem 132vh;
   }
   .hiw-dots { display: none; }
   .hiw-step {
     position: sticky !important;
-    opacity: 1 !important;
+    opacity: 0.86 !important;
     transform: none !important;
     pointer-events: auto !important;
+    transform-origin: center top;
     color: var(--white);
-    background: #1a2233;
+    background: linear-gradient(180deg, rgba(26,34,51,0.96), rgba(18,25,39,0.92));
     border: 1px solid rgba(255,255,255,0.08);
     border-radius: 1.2rem;
     padding: 1.35rem;
-    margin-bottom: 16vh;
+    margin-bottom: 13vh;
     box-shadow: 0 -8px 32px rgba(0,0,0,0.4), 0 2px 8px rgba(0,0,0,0.2);
     transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1),
                 opacity 0.4s cubic-bezier(0.22, 1, 0.36, 1),
-                border-color 0.3s ease;
+                border-color 0.3s ease,
+                box-shadow 0.3s ease,
+                filter 0.3s ease;
     will-change: transform;
   }
   .hiw-step:last-child { margin-bottom: 2rem; }
@@ -1781,6 +1786,27 @@ section { padding: var(--section-py) 0; }
   .hiw-step:nth-child(2) { top: 96px;  z-index: 2; }
   .hiw-step:nth-child(3) { top: 112px; z-index: 3; }
   .hiw-step:nth-child(4) { top: 128px; z-index: 4; }
+  .hiw-step.is-current {
+    opacity: 1 !important;
+    transform: translateY(-8px) scale(1.01) !important;
+    border-color: rgba(232,193,92,0.34);
+    box-shadow: 0 24px 48px rgba(0,0,0,0.34), 0 0 0 1px rgba(184,134,11,0.14);
+    filter: saturate(1);
+  }
+  .hiw-step.is-past {
+    opacity: 0.52 !important;
+    transform: translateY(-18px) scale(0.95) !important;
+    border-color: rgba(255,255,255,0.04);
+    box-shadow: 0 -8px 24px rgba(0,0,0,0.28);
+    filter: saturate(0.78);
+  }
+  .hiw-step.is-next {
+    opacity: 0.94 !important;
+    filter: saturate(0.94);
+  }
+  .hiw-step.is-future {
+    opacity: 0.8 !important;
+  }
   .hiw-step-head { grid-template-columns: 56px 1fr; gap: 1rem; }
   .hiw-step-copy { min-width: 0; }
   .hiw-step-kicker { color: rgba(255,255,255,0.56); margin-bottom: 0.3rem; }
@@ -1799,10 +1825,11 @@ section { padding: var(--section-py) 0; }
   .hiw-step-preview .hiw-visual {
     min-height: 0;
     margin-top: 0;
-    padding: 1rem;
+    padding: 0.95rem;
     background: linear-gradient(160deg, rgba(255,255,255,0.08), rgba(184,134,11,0.16));
     border: 1px solid rgba(255,255,255,0.08);
     box-shadow: none;
+    transition: background 0.3s ease, border-color 0.3s ease, opacity 0.3s ease, transform 0.3s ease;
   }
   .hiw-step-preview .hiw-pill {
     padding: 0.5rem 0.7rem;
@@ -1820,6 +1847,14 @@ section { padding: var(--section-py) 0; }
   .hiw-step-preview .hiw-vlabel { font-size: 0.66rem; }
   .hiw-step-preview .hiw-vval { font-size: 1.2rem; }
   .hiw-step-preview .hiw-vdesc { font-size: 0.75rem; }
+  .hiw-step.is-past .hiw-step-preview .hiw-visual {
+    opacity: 0.7;
+    transform: scale(0.98);
+  }
+  .hiw-step.is-current .hiw-step-preview .hiw-visual {
+    background: linear-gradient(160deg, rgba(255,255,255,0.1), rgba(184,134,11,0.24));
+    border-color: rgba(232,193,92,0.18);
+  }
 }
 @media (max-width: 768px) {
   .quote-shell { grid-template-columns: 1fr; }
@@ -2028,7 +2063,8 @@ section { padding: var(--section-py) 0; }
 
   /* -- HiW: smaller-phone tuning -- */
   #hiw.bg-dark { padding-bottom: 1.5rem; }
-  .hiw-step { padding: 1.15rem; margin-bottom: 15vh; }
+  .hiw-steps { padding: 0 1rem 124vh; }
+  .hiw-step { padding: 1.15rem; margin-bottom: 12vh; }
   .hiw-step:nth-child(1) { top: 64px;  z-index: 1; }
   .hiw-step:nth-child(2) { top: 82px;  z-index: 2; }
   .hiw-step:nth-child(3) { top: 100px; z-index: 3; }
