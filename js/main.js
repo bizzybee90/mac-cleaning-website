@@ -326,6 +326,11 @@ function initQuoteModal() {
       moveBack();
     }
   });
+
+  // Auto-open modal if page loaded with #quote hash (e.g. from service page /#quote links)
+  if (window.location.hash === '#quote' && mq.matches) {
+    setTimeout(() => openModal(), 300);
+  }
 }
 
 /* ─── GOOGLE PLACES AUTOCOMPLETE ────────── */
@@ -1788,19 +1793,25 @@ function initServicesAutoScroll() {
   if (!cards.length) return;
   let idx = 0;
   const total = cards.length;
-  let timer = setInterval(() => {
-    idx = (idx + 1) % total;
+  function advance() {
+    idx++;
     const cardWidth = cards[0].offsetWidth + 13;
-    grid.scrollTo({ left: idx * cardWidth, behavior: 'smooth' });
-  }, 5000);
+    if (idx >= total) {
+      /* At end: instant reset to start (no visible reverse scroll), then smooth to card 1 */
+      grid.scrollTo({ left: 0, behavior: 'instant' });
+      idx = 0;
+    } else {
+      grid.scrollTo({ left: idx * cardWidth, behavior: 'smooth' });
+    }
+  }
+  let timer = setInterval(advance, 5000);
   grid.addEventListener('touchstart', () => clearInterval(timer), { passive: true });
   grid.addEventListener('touchend', () => {
     clearInterval(timer);
-    timer = setInterval(() => {
-      idx = (idx + 1) % total;
-      const cardWidth = cards[0].offsetWidth + 13;
-      grid.scrollTo({ left: idx * cardWidth, behavior: 'smooth' });
-    }, 5000);
+    /* Detect current position after swipe */
+    const cardWidth = cards[0].offsetWidth + 13;
+    idx = Math.round(grid.scrollLeft / cardWidth);
+    timer = setInterval(advance, 5000);
   }, { passive: true });
 }
 
