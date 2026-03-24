@@ -1700,7 +1700,7 @@ section { padding: var(--section-py) 0; }
   .quote-sidebar { position: relative; top: 0; }
 
   /* HiW: tablet — full-bleed dark bg */
-  #hiw.bg-dark { margin: 0; border-radius: 0; }
+  #hiw.bg-dark { margin: 0 0.3rem; border-radius: 1.5rem; }
   .hiw-card-inner { padding: 2rem; }
 }
 @media (max-width: 768px) {
@@ -1754,7 +1754,7 @@ section { padding: var(--section-py) 0; }
   .reveal { opacity: 1 !important; transform: none !important; }
 
   /* -- Full-bleed sections on mobile -- */
-  .bg-alt, .bg-dark { margin: 0; border-radius: 0; }
+  .bg-alt, .bg-dark { margin: 0 0.3rem; border-radius: 1.5rem; }
 
   /* -- Show mobile-only CTAs and one-liners -- */
   .mobile-section-cta { display: block !important; }
@@ -1786,16 +1786,8 @@ section { padding: var(--section-py) 0; }
   .nav.hidden { transform: translateY(-100%); }
 
   /* -- Hero mobile image -- */
-  .hero-mobile-image {
-    display: block !important;
-    margin-top: 1.2rem;
-    border-radius: 1rem;
-    overflow: hidden;
-    aspect-ratio: 16/9;
-  }
-  .hero-mobile-image img {
-    width: 100%; height: 100%; object-fit: cover; display: block;
-  }
+  /* Hide photo on mobile — replaced by compact pricing panels */
+  .hero-mobile-image { display: none !important; }
 
   /* -- Hero: stripped back, Apple-clean -- */
   .hero { padding: 2.5rem 0 1.5rem; }
@@ -1807,10 +1799,44 @@ section { padding: var(--section-py) 0; }
   .hero-actions { flex-direction: column; gap: 0.5rem; margin: 1.5rem 0 0; }
   .hero-actions .btn { width: 100%; text-align: center; justify-content: center; padding: 1rem 1.2rem; font-size: 1rem; }
   .hero-actions .btn-secondary { display: none; }
-  /* Hide proof bullets + pricing panel — trust strip does this job */
+  /* Hide proof bullets — trust strip does this job */
   .hero-proof { display: none !important; }
   .hero .hero-grid > .reveal > p[style*="font-display"] { display: none !important; }
-  .hero-stage { display: none !important; }
+
+  /* Show compact pricing panels on mobile (instead of photo) */
+  .hero-stage {
+    display: block !important;
+    margin-top: 1.5rem;
+  }
+  .hero-panel {
+    grid-template-columns: 1fr !important;
+    gap: 0.8rem !important;
+  }
+  .hero-panel-main {
+    padding: 1.2rem !important;
+    border-radius: 1rem !important;
+  }
+  .hero-panel-main h3 { font-size: 0.85rem !important; margin-bottom: 0.6rem !important; }
+  .hero-panel-main .panel-prices {
+    gap: 0.5rem !important;
+  }
+  .hero-panel-main .panel-price { padding: 0.8rem !important; }
+  .hero-panel-main .panel-price strong { font-size: 1.6rem !important; }
+  .hero-panel-main .panel-note { font-size: 0.72rem !important; margin-top: 0.5rem !important; }
+  .hero-panel-side {
+    grid-template-columns: 1fr !important;
+    gap: 0.6rem !important;
+  }
+  .hero-panel-review {
+    padding: 1rem !important;
+    border-radius: 1rem !important;
+  }
+  .hero-panel-review p { font-size: 0.85rem !important; }
+  .hero-panel-included {
+    padding: 1rem !important;
+    border-radius: 1rem !important;
+  }
+  .hero-panel-included li { font-size: 0.82rem !important; }
 
   /* -- Trust strip: simplified — just reviews + price -- */
   .trust-strip { padding: 0.2rem 0; }
@@ -1910,7 +1936,7 @@ section { padding: var(--section-py) 0; }
   /* -- HiW: smaller-phone tuning -- */
   #hiw.bg-dark { padding-bottom: 1.5rem; }
   /* HiW mobile: same sticky stacking, smaller cards */
-  #hiw.bg-dark { margin: 0; border-radius: 0; }
+  #hiw.bg-dark { margin: 0 0.3rem; border-radius: 1.5rem; }
   #hiw .section-intro-center { padding: 1.5rem 0 1rem; }
   .hiw-card {
     top: calc(70px + var(--i) * 16px); /* tighter spacing on mobile */
