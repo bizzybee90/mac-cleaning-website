@@ -1,13 +1,13 @@
 # Cloudflare Pages redirects
-# Old area pages → homepage with quote section
-/luton             /#quote  301
-/dunstable         /#quote  301
-/harpenden         /#quote  301
-/st-albans         /#quote  301
-/hemel-hempstead   /#quote  301
-/hitchin           /#quote  301
-/ampthill          /#quote  301
-/flitwick          /#quote  301
-/barton-le-clay    /#quote  301
-/milton-keynes     /#quote  301
-
+# Location pages are at /locations/[town] — do NOT redirect /[town] URLs
+# If old links exist pointing to /luton etc, redirect to the proper location pages
+/luton             /locations/luton             301
+/dunstable         /locations/dunstable         301
+/harpenden         /locations/harpenden         301
+/st-albans         /locations/st-albans         301
+/hemel-hempstead   /locations/hemel-hempstead   301
+/hitchin           /locations/hitchin           301
+/ampthill          /locations/ampthill          301
+/flitwick          /locations/flitwick          301
+/barton-le-clay    /locations/barton-le-clay    301
+/milton-keynes     /locations/milton-keynes     301
