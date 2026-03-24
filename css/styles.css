@@ -494,12 +494,20 @@ section { padding: var(--section-py) 0; }
    HOW IT WORKS — Pure CSS sticky card stack
    Zero JavaScript. Cards stack via position:sticky.
    ══════════════════════════════════════════ */
+/* Sticky header — pins at top of viewport, cards stack below it */
+#hiw .section-intro-center {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  padding: 2rem 0 1.5rem;
+  background: linear-gradient(180deg, #161d2b 80%, rgba(22,29,43,0));
+}
 .hiw-stack { position: relative; max-width: 48rem; margin: 0 auto; }
 .hiw-card {
   position: sticky;
-  top: calc(80px + var(--i) * 20px);
+  top: calc(100px + var(--i) * 20px); /* below sticky header */
   margin-bottom: 40px;
-  z-index: calc(4 - var(--i));
+  z-index: calc(1 + var(--i)); /* Step 4 (--i:3) has highest z-index → ends on top */
 }
 .hiw-card:last-child { margin-bottom: 0; }
 .hiw-card-inner {
@@ -566,8 +574,25 @@ section { padding: var(--section-py) 0; }
 .hiw-vlabel { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; color: rgba(255,255,255,0.5); }
 .hiw-vval { font-family: var(--font-display); font-size: 1.5rem; line-height: 1; margin-top: 0.2rem; }
 .hiw-vdesc { font-size: 0.78rem; color: rgba(255,255,255,0.6); margin-top: 0.1rem; }
-.hiw-section-cta { text-align: center; padding: 1rem 0 2rem; }
-.hiw-section-cta a { display: inline-block; }
+.hiw-section-cta { text-align: center; padding: 1.5rem 0 2.5rem; }
+.hiw-section-cta a {
+  display: inline-block;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: var(--white);
+  padding: 1rem 2.5rem;
+  border-radius: var(--radius-md);
+  font-weight: 700;
+  font-size: 1rem;
+  backdrop-filter: blur(8px);
+  transition: all 0.3s var(--ease);
+}
+.hiw-section-cta a:hover {
+  background: var(--gold);
+  border-color: var(--gold);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(184,134,11,0.3);
+}
 
 /* ══════════════════════════════════════════
    REVIEWS — 3D carousel
@@ -1884,14 +1909,17 @@ section { padding: var(--section-py) 0; }
 
   /* -- HiW: smaller-phone tuning -- */
   #hiw.bg-dark { padding-bottom: 1.5rem; }
-  /* HiW mobile: slightly smaller cards */
+  /* HiW mobile: same sticky stacking, smaller cards */
   #hiw.bg-dark { margin: 0; border-radius: 0; }
-  .hiw-card { margin-bottom: 1.5rem; }
+  #hiw .section-intro-center { padding: 1.5rem 0 1rem; }
+  .hiw-card {
+    top: calc(70px + var(--i) * 16px); /* tighter spacing on mobile */
+    margin-bottom: 30px;
+  }
   .hiw-card-inner { padding: 1.5rem; }
   .hiw-num-bg { font-size: 3.5rem; }
   .hiw-card h3 { font-size: 1.15rem; }
   .hiw-card p { font-size: 0.88rem; }
-  .hiw-section-cta { display: block; text-align: center; padding-top: 0.5rem; }
 
   /* -- Quote section -- */
   .quote-layout { grid-template-columns: 1fr; }
