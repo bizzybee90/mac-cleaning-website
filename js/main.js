@@ -679,15 +679,31 @@ function initNav() {
 }
 
 function initReveals() {
-  const obs = new IntersectionObserver(entries => {
-    entries.forEach((e,i) => {
-      if (e.isIntersecting) {
-        setTimeout(() => e.target.classList.add('visible'), i * 80);
-        obs.unobserve(e.target);
-      }
+  const els = document.querySelectorAll('.reveal');
+  /* Wait for layout to settle, then reveal elements already in viewport */
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      let delay = 0;
+      els.forEach(el => {
+        const rect = el.getBoundingClientRect();
+        if (rect.top < window.innerHeight + 50 && rect.bottom > 0) {
+          setTimeout(() => el.classList.add('visible'), delay);
+          delay += 60;
+          el.dataset.revealed = '1';
+        }
+      });
+      /* Observe remaining elements for scroll reveal */
+      const obs = new IntersectionObserver(entries => {
+        entries.forEach(e => {
+          if (e.isIntersecting) {
+            e.target.classList.add('visible');
+            obs.unobserve(e.target);
+          }
+        });
+      }, {threshold:0.01, rootMargin:'0px 0px 0px 0px'});
+      els.forEach(el => { if (!el.dataset.revealed) obs.observe(el); });
     });
-  }, {threshold:0.08, rootMargin:'0px 0px -40px 0px'});
-  document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+  });
 }
 
 /* ──────────────────────────────────────────

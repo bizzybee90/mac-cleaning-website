@@ -230,7 +230,7 @@ section { padding: var(--section-py) 0; }
 /* ══════════════════════════════════════════
    HERO
    ══════════════════════════════════════════ */
-.hero { padding: 3.5rem 0 2.5rem; position: relative; overflow: hidden; }
+.hero { padding: 1.5rem 0 2.5rem; position: relative; overflow: hidden; }
 .hero-grid {
   display: grid;
   grid-template-columns: 1.1fr 0.9fr;
