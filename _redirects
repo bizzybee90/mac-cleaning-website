@@ -1,13 +1,13 @@
 # Cloudflare Pages redirects
-# Location pages are at /locations/[town] — do NOT redirect /[town] URLs
-# If old links exist pointing to /luton etc, redirect to the proper location pages
-/luton             /locations/luton             301
-/dunstable         /locations/dunstable         301
-/harpenden         /locations/harpenden         301
-/st-albans         /locations/st-albans         301
-/hemel-hempstead   /locations/hemel-hempstead   301
-/hitchin           /locations/hitchin           301
-/ampthill          /locations/ampthill          301
-/flitwick          /locations/flitwick          301
-/barton-le-clay    /locations/barton-le-clay    301
-/milton-keynes     /locations/milton-keynes     301
+# Location pages exist at BOTH /locations/[town].html AND /[town].html
+# Trailing slash variants redirect to canonical (no trailing slash)
+/luton/             /locations/luton             301
+/dunstable/         /locations/dunstable         301
+/harpenden/         /locations/harpenden         301
+/st-albans/         /locations/st-albans         301
+/hemel-hempstead/   /locations/hemel-hempstead   301
+/hitchin/           /locations/hitchin           301
+/ampthill/          /locations/ampthill          301
+/flitwick/          /locations/flitwick          301
+/barton-le-clay/    /locations/barton-le-clay    301
+/milton-keynes/     /locations/milton-keynes     301
