@@ -157,26 +157,7 @@ const STANDALONE = {
   }
 };
 
-const HIW_STACKED_BREAKPOINT = 1279;
-
-const HIW_STEPS = [
-  { num:"01", nav:"Instant Quote", title:"Get Your Instant Quote",
-    summary:"Tell us your property type, size, and postcode to see your exact price straight away.",
-    detail:"You will see both 4-weekly and 8-weekly pricing before you commit to anything.",
-    visual:'quote' },
-  { num:"02", nav:"Choose Your Schedule", title:"Pick Your Schedule",
-    summary:"Choose 4-weekly or 8-weekly cleaning and add any one-off exterior services you need.",
-    detail:"You can add gutters, fascias, and conservatory roof cleaning while you are booking.",
-    visual:'schedule' },
-  { num:"03", nav:"Confirm Your Details", title:"Confirm Your Details",
-    summary:"Enter your address, contact details, and payment method. Nothing is charged until after your clean.",
-    detail:"We email your confirmation and keep your payment details securely with Stripe.",
-    visual:'confirm' },
-  { num:"04", nav:"Cleaning Day", title:"We Remind You and Clean",
-    summary:"We text you the night before, clean on the day, and charge your card automatically after the job.",
-    detail:"Most new customers are on the round within a week, backed by our 24-hour re-clean guarantee.",
-    visual:'reminder' }
-];
+/* HIW_STEPS removed — How It Works is now pure HTML + CSS sticky cards (no JS) */
 
 /* ──────────────────────────────────────────
    STATE
@@ -191,34 +172,7 @@ const Q = {
   termsAccepted:false, submitted:false, cardRegistered:false, feedback:null
 };
 
-let activeHiw = 0;
-let hiwMode = null;
-let hiwCleanup = null;
-let hiwResizeBound = false;
-let hiwResizeTimer = null;
-
-const HIW_VISUALS = {
-  quote: `<div class="hiw-visual"><div class="hiw-pills"><div class="hiw-pill">Semi-detached</div><div class="hiw-pill">3 bedrooms</div><div class="hiw-pill">LU3 2AB</div></div><div class="hiw-split"><div class="hiw-vcard featured"><div class="hiw-vlabel">Every 4 weeks</div><div class="hiw-vval">£19</div><div class="hiw-vdesc">Best value</div></div><div class="hiw-vcard"><div class="hiw-vlabel">Every 8 weeks</div><div class="hiw-vval">£24</div><div class="hiw-vdesc">Same full clean</div></div></div></div>`,
-  schedule: `<div class="hiw-visual"><div class="hiw-pills"><div class="hiw-pill">4-weekly</div><div class="hiw-pill">Gutters</div><div class="hiw-pill">Fascias</div></div><div class="hiw-split"><div class="hiw-vcard"><div class="hiw-vlabel">Window Cleaning</div><div class="hiw-vval">£19</div><div class="hiw-vdesc">Recurring service</div></div><div class="hiw-vcard featured"><div class="hiw-vlabel">Add-ons</div><div class="hiw-vval">+£80</div><div class="hiw-vdesc">One-off exterior work</div></div></div></div>`,
-  confirm: `<div class="hiw-visual"><div class="hiw-split"><div class="hiw-vcard"><div class="hiw-vlabel">Customer</div><div class="hiw-vval" style="font-size:1.15rem">Your details</div><div class="hiw-vdesc">Address and contact saved</div></div><div class="hiw-vcard featured"><div class="hiw-vlabel">Payment</div><div class="hiw-vval" style="font-size:1.15rem">Stripe</div><div class="hiw-vdesc">Stored securely</div></div></div><div class="hiw-pills" style="margin-top:0.8rem"><div class="hiw-pill">No charge today</div><div class="hiw-pill">Confirmation by email</div></div></div>`,
-  reminder: `<div class="hiw-visual"><div class="hiw-split"><div class="hiw-vcard"><div class="hiw-vlabel">Reminder</div><div class="hiw-vval" style="font-size:1.15rem">Tomorrow</div><div class="hiw-vdesc">Text sent the night before</div></div><div class="hiw-vcard featured"><div class="hiw-vlabel">After the clean</div><div class="hiw-vval">Paid</div><div class="hiw-vdesc">Receipt emailed automatically</div></div></div><div class="hiw-pills" style="margin-top:0.8rem"><div class="hiw-pill">24-hour re-clean guarantee</div><div class="hiw-pill">Most homes on-round within a week</div></div></div>`
-};
-
-function renderHiwStep(step, idx, { active = false, inlineVisual = false } = {}) {
-  return `
-    <article class="hiw-step ${active ? 'active' : ''}" data-hiw="${idx}">
-      <div class="hiw-step-head">
-        <div class="hiw-step-num">${step.num}</div>
-        <div class="hiw-step-copy">
-          <div class="hiw-step-kicker">${step.nav}</div>
-          <h3>${step.title}</h3>
-          <p>${step.summary}</p>
-        </div>
-      </div>
-      ${inlineVisual ? `<div class="hiw-step-preview">${HIW_VISUALS[step.visual]}</div>` : ''}
-    </article>
-  `;
-}
+/* All HiW data, visuals, and render functions removed — content is in HTML, scroll is pure CSS */
 
 /* ──────────────────────────────────────────
    INIT
@@ -228,7 +182,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initReveals();
   initFaq();
   initCounters();
-  initHiw();
+  /* initHiw() removed — HiW is pure CSS sticky cards */
   initDiffStrip();
   initReviewCards();
   initFooterAccordion();
@@ -907,126 +861,9 @@ function initReviewCards() {
 }
 
 /* ──────────────────────────────────────────
-   HOW IT WORKS — SCROLL PINNED
+   HOW IT WORKS — Pure CSS sticky cards (no JS)
+   All content in HTML, scroll effect via position:sticky
    ────────────────────────────────────────── */
-function initHiw() {
-  const display = document.getElementById('hiwDisplay');
-  const stepsEl = document.getElementById('hiwSteps');
-  if (!display || !stepsEl) return;
-
-  const isStacked = window.innerWidth <= HIW_STACKED_BREAKPOINT;
-  const nextMode = isStacked ? 'stacked' : 'desktop';
-
-  if (!hiwResizeBound) {
-    window.addEventListener('resize', () => {
-      clearTimeout(hiwResizeTimer);
-      hiwResizeTimer = window.setTimeout(() => initHiw(), 120);
-    }, { passive: true });
-    hiwResizeBound = true;
-  }
-
-  if (hiwMode === nextMode && hiwCleanup) return;
-
-  if (typeof hiwCleanup === 'function') {
-    hiwCleanup();
-    hiwCleanup = null;
-  }
-
-  hiwMode = nextMode;
-  activeHiw = 0;
-
-  if (isStacked) {
-    display.innerHTML = '';
-    stepsEl.innerHTML = HIW_STEPS.map((s, i) => renderHiwStep(s, i, { active: i === 0, inlineVisual: true })).join('');
-    hiwCleanup = initHiwStacked(stepsEl);
-    return;
-  }
-
-  stepsEl.innerHTML = HIW_STEPS.map((s, i) => renderHiwStep(s, i, { active: i === 0 })).join('') +
-    '<div class="hiw-dots">' + HIW_STEPS.map((_, i) => `<div class="hiw-dot ${i===0 ? 'active' : ''}"></div>`).join('') + '</div>';
-
-  renderHiwDisplay(0);
-  hiwCleanup = initHiwDesktop(stepsEl);
-}
-
-function initHiwDesktop(stepsEl) {
-  const spacer = document.querySelector('.hiw-spacer');
-  if (!spacer) return null;
-
-  const update = () => {
-    const rect = spacer.getBoundingClientRect();
-    const total = spacer.offsetHeight - window.innerHeight;
-    if (total <= 0) return;
-    const progress = Math.max(0, Math.min(1, -rect.top / total));
-    const step = Math.min(Math.floor(progress * HIW_STEPS.length), HIW_STEPS.length - 1);
-    if (step !== activeHiw) {
-      activeHiw = step;
-      stepsEl.querySelectorAll('.hiw-step').forEach((el, i) => el.classList.toggle('active', i === step));
-      stepsEl.querySelectorAll('.hiw-dot').forEach((el, i) => el.classList.toggle('active', i === step));
-      renderHiwDisplay(step);
-    }
-  };
-
-  window.addEventListener('scroll', update, { passive: true });
-  requestAnimationFrame(update);
-  return () => window.removeEventListener('scroll', update);
-}
-
-function initHiwStacked(stepsEl) {
-  const steps = [...stepsEl.querySelectorAll('.hiw-step')];
-  if (!steps.length) return null;
-
-  let rafId = 0;
-  const getActivationLine = () => Math.min(window.innerHeight * 0.28, window.innerWidth <= 768 ? 132 : 156);
-
-  const update = () => {
-    rafId = 0;
-    const activationLine = getActivationLine();
-    let current = 0;
-
-    steps.forEach((step, idx) => {
-      const rect = step.getBoundingClientRect();
-      if (rect.top <= activationLine) current = idx;
-    });
-
-    activeHiw = current;
-    steps.forEach((step, idx) => {
-      step.classList.toggle('active', idx === current);
-      step.classList.toggle('is-current', idx === current);
-      step.classList.toggle('is-past', idx < current);
-      step.classList.toggle('is-next', idx === current + 1);
-      step.classList.toggle('is-future', idx > current + 1);
-    });
-  };
-
-  const requestUpdate = () => {
-    if (rafId) return;
-    rafId = requestAnimationFrame(update);
-  };
-
-  window.addEventListener('scroll', requestUpdate, { passive: true });
-  window.addEventListener('resize', requestUpdate);
-  requestUpdate();
-
-  return () => {
-    window.removeEventListener('scroll', requestUpdate);
-    window.removeEventListener('resize', requestUpdate);
-    if (rafId) cancelAnimationFrame(rafId);
-  };
-}
-
-function renderHiwDisplay(idx) {
-  const d = document.getElementById('hiwDisplay');
-  if (!d) return;
-  const s = HIW_STEPS[idx];
-  d.innerHTML = `
-    <div class="tag hiw-display-step" style="margin-bottom:0.8rem"><strong style="display:inline-grid;place-items:center;width:1.6rem;height:1.6rem;border-radius:50%;background:var(--charcoal);color:var(--white);font-size:0.78rem;">${s.num}</strong>${s.nav}</div>
-    <h3>${s.title}</h3>
-    <p style="color:var(--ink)">${s.summary}</p>
-    ${HIW_VISUALS[s.visual]}
-    <p style="color:var(--ink-faint);font-size:0.88rem;margin-top:0.8rem">${s.detail}</p>
-  `;
-}
 
 /* ──────────────────────────────────────────
    QUOTE ENGINE
