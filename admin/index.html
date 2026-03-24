@@ -65,7 +65,7 @@ body {
    LOGIN SCREEN
    ══════════════════════════════════════════ */
 #login-screen {
-  display: flex;
+  display: none; /* Login bypassed — dashboard loads directly */
   align-items: center;
   justify-content: center;
   min-height: 100vh;
@@ -154,7 +154,7 @@ body {
    DASHBOARD LAYOUT
    ══════════════════════════════════════════ */
 #dashboard {
-  display: none;
+  display: block; /* Dashboard visible by default (login bypassed) */
 }
 #dashboard.active {
   display: block;
