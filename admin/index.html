@@ -1062,15 +1062,26 @@ const STATUS_CONFIG = {
 };
 
 document.addEventListener('DOMContentLoaded', async () => {
-  if (!SUPABASE_ANON_KEY) {
-    showDemoMode();
-    return;
+  try {
+    if (!SUPABASE_ANON_KEY) {
+      showDemoMode();
+      return;
+    }
+
+    if (typeof supabase === 'undefined') {
+      document.querySelector('.lead-table tbody').innerHTML = '<tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--error)">Supabase library failed to load. Check network/ad-blocker.</td></tr>';
+      return;
+    }
+
+    sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    console.log('Supabase client created, loading data...');
+
+    // Skip login — go straight to dashboard
+    showDashboard();
+  } catch (initErr) {
+    console.error('Init error:', initErr);
+    document.querySelector('.lead-table tbody').innerHTML = '<tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--error)">Init error: ' + initErr.message + '</td></tr>';
   }
-
-  sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-  // Skip login — go straight to dashboard
-  showDashboard();
 
   // Login form (kept for future re-enable)
   document.getElementById('login-form')?.addEventListener('submit', handleLogin);
@@ -1156,9 +1167,14 @@ function showDashboard() {
    DATA LOADING
    ══════════════════════════════════════════ */
 async function loadAll() {
-  await Promise.all([loadLeads(), loadStats()]);
-  loadCharts();
-  document.getElementById('last-refresh').textContent = 'Updated ' + new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+  try {
+    await Promise.all([loadLeads(), loadStats()]);
+    loadCharts();
+    document.getElementById('last-refresh').textContent = 'Updated ' + new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+  } catch (err) {
+    console.error('loadAll failed:', err);
+    document.querySelector('.lead-table tbody').innerHTML = '<tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--error)">Error loading data: ' + (err.message || err) + '</td></tr>';
+  }
 }
 
 async function loadLeads() {
@@ -1170,9 +1186,11 @@ async function loadLeads() {
 
   if (error) {
     console.error('Load leads error:', error);
+    document.querySelector('.lead-table tbody').innerHTML = '<tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--error)">Query error: ' + (error.message || JSON.stringify(error)) + '</td></tr>';
     return;
   }
   allLeads = data || [];
+  console.log('Loaded', allLeads.length, 'leads');
   applyFilters();
 }
 
