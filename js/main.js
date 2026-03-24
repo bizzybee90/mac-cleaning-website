@@ -59,7 +59,7 @@ const GOOGLE_PLACES_KEY = 'AIzaSyAApbgPqrc-IXXu2mcKrM2fAcdS7mUUGpk';
    When this is empty, form submissions are logged to console only.
    When populated, leads are POSTed to your n8n workflow.
    ────────────────────────────────────────── */
-const N8N_WEBHOOK = 'https://bizzybee.app.n8n.cloud/webhook/mac-cleaning-lead';
+const N8N_WEBHOOK = ''; // Dead endpoint removed — use LEAD_PARTIAL_URL and LEAD_COMPLETE_URL instead
 
 /* ──────────────────────────────────────────
    LEAD PIPELINE CONFIGURATION
@@ -68,8 +68,8 @@ const N8N_WEBHOOK = 'https://bizzybee.app.n8n.cloud/webhook/mac-cleaning-lead';
    full (quote accepted) lead capture.
    When empty, falls back to N8N_WEBHOOK above.
    ────────────────────────────────────────── */
-const LEAD_PARTIAL_URL = ''; // e.g. 'https://bizzybee.app.n8n.cloud/webhook/mac-lead-partial'
-const LEAD_COMPLETE_URL = ''; // e.g. 'https://bizzybee.app.n8n.cloud/webhook/mac-lead-complete'
+const LEAD_PARTIAL_URL = 'https://bizzybee.app.n8n.cloud/webhook/mac-lead-partial';
+const LEAD_COMPLETE_URL = 'https://bizzybee.app.n8n.cloud/webhook/mac-quote-delivered';
 
 /* ──────────────────────────────────────────
    SUPABASE CONFIGURATION
