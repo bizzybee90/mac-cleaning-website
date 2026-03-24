@@ -1061,11 +1061,23 @@ function handleQuoteClick(e) {
   else if (a==='mode:oneoff') { Q.mode='oneoff'; Q.step=1; Q.feedback=null; Q._scroll=true; }
   else if (a==='backToEntry') { Q.mode=''; Q.step=1; Q.feedback=null; Q.leadCaptured=false; Q._scroll=true; }
 
-  /* Property / build / beds (shared) */
-  else if (a.startsWith('prop:')) { Q.property=a.split(':')[1]; Q.build=['flat','terraced','townhouse','commercial'].includes(Q.property)?'semi':''; if(Q.property==='commercial'){Q.beds='custom';} else {Q.beds='';} Q.feedback=null; }
-  else if (a.startsWith('build:')) { Q.build=a.split(':')[1]; Q.beds=''; Q.feedback=null; }
-  else if (a.startsWith('beds:')) { Q.beds=a.split(':')[1]; Q.feedback=null; }
-  else if (a.startsWith('extra:')) { const k=a.split(':')[1]; Q.extras[k]=!Q.extras[k]; if(k==='skylights'&&!Q.extras[k]) Q.skylightCount=1; Q.feedback=null; }
+  /* Property / build / beds (shared) — locked after price reveal to prevent exploitation */
+  else if (a.startsWith('prop:')) {
+    if (Q.leadCaptured) { Q.leadCaptured=false; Q.feedback={t:'info',m:'Property changed — tap "See my price" again to update your quote.'}; }
+    Q.property=a.split(':')[1]; Q.build=['flat','terraced','townhouse','commercial'].includes(Q.property)?'semi':''; if(Q.property==='commercial'){Q.beds='custom';} else {Q.beds='';} Q.feedback=Q.feedback||null;
+  }
+  else if (a.startsWith('build:')) {
+    if (Q.leadCaptured) { Q.leadCaptured=false; Q.feedback={t:'info',m:'Property changed — tap "See my price" again to update your quote.'}; }
+    Q.build=a.split(':')[1]; Q.beds=''; Q.feedback=Q.feedback||null;
+  }
+  else if (a.startsWith('beds:')) {
+    if (Q.leadCaptured) { Q.leadCaptured=false; Q.feedback={t:'info',m:'Property changed — tap "See my price" again to update your quote.'}; }
+    Q.beds=a.split(':')[1]; Q.feedback=Q.feedback||null;
+  }
+  else if (a.startsWith('extra:')) {
+    if (Q.leadCaptured) { Q.leadCaptured=false; Q.feedback={t:'info',m:'Extras changed — tap "See my price" again to update your quote.'}; }
+    const k=a.split(':')[1]; Q.extras[k]=!Q.extras[k]; if(k==='skylights'&&!Q.extras[k]) Q.skylightCount=1; Q.feedback=Q.feedback||null;
+  }
   else if (a==='sky+') { Q.skylightCount=Math.min(Q.skylightCount+1,10); Q.feedback=null; }
   else if (a==='sky-') { Q.skylightCount=Math.max(Q.skylightCount-1,1); Q.feedback=null; }
 
