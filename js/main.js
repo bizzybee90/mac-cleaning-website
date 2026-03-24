@@ -535,12 +535,15 @@ function capturePartialLead() {
   const payload = {
     status: 'partial',
     timestamp: new Date().toISOString(),
+    name: Q.name,
     email: Q.email,
     postcode: Q.postcode,
     property_type: Q.property,
     build_type: getBuild(),
     bedrooms: Q.beds,
     extras: Q.extras || {},
+    price_4weekly: getPrice('4-weekly'),
+    price_8weekly: getPrice('8-weekly'),
     ...getSourceData()
   };
   console.log('[MAC] Partial lead captured');
@@ -1235,6 +1238,7 @@ function validateStep1() {
     const anyService = Object.values(Q.oneoffServices).some(v => v);
     if (!anyService) return {msg:'Select at least one service.', field:'services'};
   }
+  if (!Q.name || Q.name.trim().length < 2) return {msg:'Enter your name.', field:'name'};
   if (!/^[A-Z]{1,2}\d[A-Z\d]?\s?\d[A-Z]{2}$/i.test(Q.postcode.trim())) return {msg:'Enter a valid postcode.', field:'postcode'};
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(Q.email.trim())) return {msg:'Enter a valid email address.', field:'email'};
   return null;
@@ -1326,6 +1330,7 @@ function renderStep1() {
         <p style="font-size:0.82rem;color:var(--ink-faint);margin-top:0.4rem">Upload photos of your property if you'd like a more accurate quote.</p>
       </div>
       <div class="widget-panel"><h3>Check coverage &amp; see your price</h3>
+      <div class="field" style="margin-bottom:0.6rem"><label>Your name</label><input data-field="name" value="${esc(Q.name)}" placeholder="e.g. Sarah Thompson" autocomplete="name" class="${fieldHasError('name')?'field-input--error':''}">${fieldError('name')}</div>
       <div class="field-row">
         <div class="field ${fieldHasError('postcode')?'field--error':''}"><label>Postcode</label><input data-field="postcode" value="${esc(Q.postcode)}" placeholder="e.g. LU3 2AB" autocomplete="postal-code" class="${fieldHasError('postcode')?'field-input--error':''}"><div class="field-hint">Check we cover your area</div>${fieldError('postcode')}</div>
         <div class="field ${fieldHasError('email')?'field--error':''}"><label>Email</label><input data-field="email" type="email" value="${esc(Q.email)}" placeholder="name@email.com" autocomplete="email" class="${fieldHasError('email')?'field-input--error':''}"><div class="field-hint">We'll email you a copy of your quote</div>${fieldError('email')}</div>
