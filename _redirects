@@ -1,4 +1,8 @@
 # Cloudflare Pages redirects
+
+# Fix broken email links — /book was in old email templates
+/book               /#quote              302
+
 # Location pages exist at BOTH /locations/[town].html AND /[town].html
 # Trailing slash variants redirect to canonical (no trailing slash)
 /luton/             /locations/luton             301

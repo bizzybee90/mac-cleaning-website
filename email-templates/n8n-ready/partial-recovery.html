@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en-GB" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<meta name="supported-color-schemes" content="light">
+<!--[if mso]><xml><o:OfficeDocumentSettings><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml><![endif]-->
+<title>Your prices</title>
+<style>
+  body,table,td,a{-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%}
+  table,td{mso-table-lspace:0pt;mso-table-rspace:0pt}
+  img{-ms-interpolation-mode:bicubic;border:0;height:auto;line-height:100%;outline:none;text-decoration:none}
+  body{margin:0;padding:0;width:100%!important;background-color:#f4f3f0;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif}
+  @media only screen and (max-width:620px){
+    .container{width:100%!important}
+    .body-content,.header,.footer{padding-left:24px!important;padding-right:24px!important}
+    .price-cell{display:block!important;width:100%!important;padding-bottom:12px!important}
+  }
+</style>
+</head>
+<body style="margin:0;padding:0;background-color:#f4f3f0">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f4f3f0">
+<tr><td style="padding:24px 16px">
+<table role="presentation" class="container" width="580" cellpadding="0" cellspacing="0" align="center" style="margin:0 auto">
+
+<!-- HEADER -->
+<tr><td class="header" style="background:#1C2434;padding:32px 40px;text-align:center;border-radius:12px 12px 0 0">
+  <img src="https://maccleaning.uk/assets/mac-logo-email.png" alt="MAC Cleaning" width="180" style="display:block;margin:0 auto;width:180px;max-width:100%;height:auto">
+</td></tr>
+
+<!-- BODY -->
+<tr><td class="body-content" style="background:#ffffff;padding:40px">
+
+  <p style="font-size:18px;color:#1C2434;font-weight:600;margin:0 0 16px">Hi {{ $('Insert Lead').item.json.name }},</p>
+
+  <p style="font-size:15px;color:#444;line-height:1.65;margin:0 0 24px">
+    Here are your window cleaning prices for your {{ $('Webhook Trigger').item.json.body.bedrooms }}-bed {{ $('Webhook Trigger').item.json.body.property_type }} in {{ $('Insert Lead').item.json.postcode }}:
+  </p>
+
+  <!-- TWO PRICE CARDS -->
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 24px">
+    <tr>
+      <td class="price-cell" width="48%" valign="top" style="padding-right:8px">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#fafaf7;border:2px solid #B8860B;border-radius:12px;overflow:hidden">
+          <tr><td style="padding:24px;text-align:center">
+            <p style="font-size:11px;color:#B8860B;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;margin:0 0 8px">EVERY 4 WEEKS</p>
+            <p style="font-size:36px;font-weight:800;color:#1C2434;margin:0">&pound;{{ $('Webhook Trigger').item.json.body.price_4weekly }}</p>
+            <p style="font-size:13px;color:#888;margin:6px 0 0">per clean &middot; Best value</p>
+          </td></tr>
+        </table>
+      </td>
+      <td class="price-cell" width="48%" valign="top" style="padding-left:8px">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#fafaf7;border:1.5px solid #e8e6e1;border-radius:12px;overflow:hidden">
+          <tr><td style="padding:24px;text-align:center">
+            <p style="font-size:11px;color:#888;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;margin:0 0 8px">EVERY 8 WEEKS</p>
+            <p style="font-size:36px;font-weight:800;color:#1C2434;margin:0">&pound;{{ $('Webhook Trigger').item.json.body.price_8weekly }}</p>
+            <p style="font-size:13px;color:#888;margin:6px 0 0">per clean &middot; Same full service</p>
+          </td></tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+
+  <p style="font-size:15px;color:#444;line-height:1.65;margin:0 0 8px"><strong>What's included:</strong></p>
+  <p style="font-size:14px;color:#666;line-height:1.65;margin:0 0 24px">
+    All exterior windows, frames, sills and doors. Pure water cleaning &mdash; no chemicals. Text reminder the night before, automatic card payment after each clean.
+  </p>
+
+  <!-- CTA -->
+  <div style="text-align:center;padding:20px 0 8px">
+    <!--[if !mso]><!-->
+    <a href="https://maccleaning.uk/#quote" style="display:inline-block;background:#1C2434;color:#ffffff!important;text-decoration:none;padding:16px 40px;border-radius:50px;font-size:16px;font-weight:700">
+      Continue My Quote &rarr;
+    </a>
+    <!--<![endif]-->
+    <p style="font-size:13px;color:#999;margin-top:12px">Pick your frequency and sign up in under 60 seconds</p>
+  </div>
+
+  <div style="height:1px;background:#e8e6e1;margin:24px 0"></div>
+
+  <p style="font-size:14px;color:#666;line-height:1.65;margin:0">
+    Questions? Reply to this email or call <a href="tel:01582858588" style="color:#B8860B;text-decoration:none;font-weight:600">01582 858 588</a>
+  </p>
+
+</td></tr>
+
+<!-- FOOTER -->
+<tr><td class="footer" style="background:#fafaf7;padding:28px 40px;border-radius:0 0 12px 12px;text-align:center;border-top:1px solid #e8e6e1">
+  <p style="font-size:12px;color:#999;line-height:1.6;margin:0">
+    MAC Cleaning Limited &middot; Luton, Bedfordshire<br>
+    <a href="https://maccleaning.uk" style="color:#B8860B;text-decoration:none">maccleaning.uk</a> &middot;
+    <a href="mailto:hello@maccleaning.uk" style="color:#B8860B;text-decoration:none">hello@maccleaning.uk</a> &middot;
+    <a href="tel:01582858588" style="color:#B8860B;text-decoration:none">01582 858 588</a>
+  </p>
+</td></tr>
+
+</table>
+</td></tr>
+</table>
+</body>
+</html>
