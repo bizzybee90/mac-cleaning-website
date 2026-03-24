@@ -1069,15 +1069,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  // Check for existing session
-  const { data: { session } } = await sb.auth.getSession();
-  if (session) {
-    showDashboard();
-  }
+  // Skip login — go straight to dashboard
+  showDashboard();
 
-  // Login form
-  document.getElementById('login-form').addEventListener('submit', handleLogin);
-  document.getElementById('btn-logout').addEventListener('click', handleLogout);
+  // Login form (kept for future re-enable)
+  document.getElementById('login-form')?.addEventListener('submit', handleLogin);
+  document.getElementById('btn-logout')?.addEventListener('click', handleLogout);
 
   // Search
   document.getElementById('global-search').addEventListener('input', debounce(handleSearch, 300));
