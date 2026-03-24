@@ -899,8 +899,14 @@ function getPrice(freq) {
 function getStandalonePrice(key) {
   const svc = STANDALONE[key]; if (!svc) return 0;
   const b = getBuild();
-  if (key === 'conservatory_roof') return svc.prices[Q.beds] || 0;
-  const pk = Q.property === 'bungalow' || Q.property === 'flat' ? Q.property : `${b}_${Q.beds}`;
+  if (key === 'conservatory_roof') return svc.prices[Q.beds] || svc.prices['3'] || 0;
+  if (Q.property === 'bungalow' || Q.property === 'flat') return svc.prices[Q.property] || 0;
+  /* Standalone prices use grouped bed keys: "semi_1-2", "semi_3", "semi_4", "detached_3", etc. */
+  const beds = parseInt(Q.beds) || 3;
+  let pk;
+  if (beds <= 2) pk = `${b}_1-2`;
+  else if (beds >= 5) pk = `${b}_5+`;
+  else pk = `${b}_${beds}`;
   return svc.prices[pk] || 0;
 }
 function getBundleDiscount() {
