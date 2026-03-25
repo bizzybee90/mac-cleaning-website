@@ -617,6 +617,21 @@ function buildLeadPayload() {
     payload.property = Q.property;
     payload.build = getBuild();
     payload.beds = Q.beds;
+    /* Service details for each selected one-off service */
+    const svcDetail = {};
+    Object.entries(Q.oneoffServices).filter(([,v])=>v).forEach(([k])=>{
+      svcDetail[k] = { label: STANDALONE[k].label, price: getStandalonePrice(k) };
+    });
+    payload.service_detail = svcDetail;
+    payload.service_requested = Object.entries(Q.oneoffServices).filter(([,v])=>v).map(([k])=>STANDALONE[k].label).join(', ');
+  }
+  /* Commercial-specific fields */
+  if (Q.property === 'commercial') {
+    payload.job_type = 'commercial';
+    payload.commercial_type = Q.commercialType || '';
+    payload.commercial_desc = Q.commercialDesc || '';
+    payload.price_per_clean = 0; /* Commercial = custom quote, no auto-pricing */
+    payload.frequency = 'custom';
   }
   return payload;
 }
@@ -689,13 +704,14 @@ function initReveals() {
       let delay = 0;
       els.forEach(el => {
         const rect = el.getBoundingClientRect();
-        if (rect.top < window.innerHeight + 50 && rect.bottom > 0) {
+        if (rect.top < window.innerHeight + 100 && rect.bottom > -50) {
           setTimeout(() => el.classList.add('visible'), delay);
           delay += 60;
           el.dataset.revealed = '1';
         }
       });
-      /* Observe remaining elements for scroll reveal */
+      /* Observe remaining elements for scroll reveal — generous rootMargin catches elements
+         inside overflow:hidden parents or near viewport edges */
       const obs = new IntersectionObserver(entries => {
         entries.forEach(e => {
           if (e.isIntersecting) {
@@ -703,8 +719,17 @@ function initReveals() {
             obs.unobserve(e.target);
           }
         });
-      }, {threshold:0.01, rootMargin:'0px 0px 0px 0px'});
+      }, {threshold:0, rootMargin:'200px 0px 200px 0px'});
       els.forEach(el => { if (!el.dataset.revealed) obs.observe(el); });
+      /* Safety net: reveal any elements still hidden after 3 seconds (catches edge cases
+         where overflow:hidden parents or CSS containment prevent intersection) */
+      setTimeout(() => {
+        els.forEach(el => {
+          if (!el.classList.contains('visible')) {
+            el.classList.add('visible');
+          }
+        });
+      }, 3000);
     });
   });
 }
@@ -771,19 +796,53 @@ function initDiffStrip() {
   const cards = track.querySelectorAll('.diff-card');
   const total = cards.length;
 
-  /* Mobile: use native scrollLeft auto-scroll (CSS scroll-snap handles snapping) */
+  /* Mobile: smooth infinite loop using clone technique */
   if (window.innerWidth < 768) {
-    let mIdx = 0;
     const visibleCards = [...cards].filter(c => getComputedStyle(c).display !== 'none');
     const mTotal = visibleCards.length;
-    function mobileNext() {
-      mIdx = (mIdx + 1) % mTotal;
-      const cardWidth = visibleCards[0]?.offsetWidth + 13 || 300; /* 13 ≈ gap */
-      track.scrollTo({ left: mIdx * cardWidth, behavior: 'smooth' });
+    if (!mTotal) return;
+
+    /* Clone visible cards for seamless wrap */
+    visibleCards.forEach(c => {
+      const cl = c.cloneNode(true);
+      cl.setAttribute('aria-hidden', 'true');
+      track.appendChild(cl);
+    });
+
+    let mIdx = 0;
+    let transitioning = false;
+
+    function getCardW() {
+      return visibleCards[0].offsetWidth + parseFloat(getComputedStyle(track).gap || 13);
     }
+
+    function mobileNext() {
+      if (transitioning) return;
+      mIdx++;
+      const cw = getCardW();
+      if (mIdx >= mTotal) {
+        track.scrollTo({ left: mIdx * cw, behavior: 'smooth' });
+        transitioning = true;
+        setTimeout(() => {
+          track.scrollTo({ left: 0, behavior: 'instant' });
+          mIdx = 0;
+          transitioning = false;
+        }, 600);
+      } else {
+        track.scrollTo({ left: mIdx * cw, behavior: 'smooth' });
+      }
+    }
+
     let mTimer = setInterval(mobileNext, 4000);
     track.addEventListener('touchstart', () => { clearInterval(mTimer); }, { passive: true });
-    track.addEventListener('touchend', () => { clearInterval(mTimer); mTimer = setInterval(mobileNext, 4000); }, { passive: true });
+    track.addEventListener('touchend', () => {
+      clearInterval(mTimer);
+      const cw = getCardW();
+      const raw = Math.round(track.scrollLeft / cw);
+      mIdx = raw >= mTotal ? 0 : raw;
+      if (raw >= mTotal) track.scrollTo({ left: 0, behavior: 'instant' });
+      mTimer = setInterval(mobileNext, 4000);
+    }, { passive: true });
     return;
   }
 
@@ -1734,29 +1793,57 @@ function initServicesAutoScroll() {
   if (window.innerWidth > 768) return;
   const grid = document.querySelector('.services-grid');
   if (!grid) return;
-  const cards = grid.querySelectorAll('.service-card');
+  const cards = [...grid.querySelectorAll('.service-card')];
   if (!cards.length) return;
-  let idx = 0;
+
+  /* Clone all cards and append — creates seamless infinite loop */
+  cards.forEach(c => {
+    const clone = c.cloneNode(true);
+    clone.setAttribute('aria-hidden', 'true');
+    clone.classList.add('service-card-clone');
+    grid.appendChild(clone);
+  });
+
   const total = cards.length;
+  let idx = 0;
+  let isTransitioning = false;
+
+  function getCardWidth() {
+    return cards[0].offsetWidth + parseFloat(getComputedStyle(grid).gap || 13);
+  }
+
   function advance() {
+    if (isTransitioning) return;
     idx++;
-    const cardWidth = cards[0].offsetWidth + 13;
+    const cw = getCardWidth();
+
     if (idx >= total) {
-      /* At end: instant reset to start (no visible reverse scroll), then smooth to card 1 */
-      grid.scrollTo({ left: 0, behavior: 'instant' });
-      idx = 0;
+      /* Smooth scroll to the cloned first card */
+      grid.scrollTo({ left: idx * cw, behavior: 'smooth' });
+      isTransitioning = true;
+      /* After scroll animation completes, jump back to real first card instantly */
+      setTimeout(() => {
+        grid.scrollTo({ left: 0, behavior: 'instant' });
+        idx = 0;
+        isTransitioning = false;
+      }, 600);
     } else {
-      grid.scrollTo({ left: idx * cardWidth, behavior: 'smooth' });
+      grid.scrollTo({ left: idx * cw, behavior: 'smooth' });
     }
   }
-  let timer = setInterval(advance, 5000);
-  grid.addEventListener('touchstart', () => clearInterval(timer), { passive: true });
+
+  let timer = setInterval(advance, 4000);
+
+  /* Pause on touch, resume after */
+  grid.addEventListener('touchstart', () => { clearInterval(timer); }, { passive: true });
   grid.addEventListener('touchend', () => {
     clearInterval(timer);
-    /* Detect current position after swipe */
-    const cardWidth = cards[0].offsetWidth + 13;
-    idx = Math.round(grid.scrollLeft / cardWidth);
-    timer = setInterval(advance, 5000);
+    const cw = getCardWidth();
+    const rawIdx = Math.round(grid.scrollLeft / cw);
+    /* If user swiped past the originals into clones, wrap back */
+    idx = rawIdx >= total ? rawIdx - total : rawIdx;
+    if (rawIdx >= total) grid.scrollTo({ left: idx * cw, behavior: 'instant' });
+    timer = setInterval(advance, 4000);
   }, { passive: true });
 }
 
