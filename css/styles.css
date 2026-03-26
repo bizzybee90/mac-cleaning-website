@@ -1806,22 +1806,24 @@ section { padding: var(--section-py) 0; }
   /* Show compact pricing panels on mobile (instead of photo) */
   .hero-stage {
     display: block !important;
-    margin-top: 1.5rem;
+    margin-top: 1rem;
   }
   .hero-panel {
     grid-template-columns: 1fr !important;
     gap: 0.8rem !important;
   }
   .hero-panel-main {
-    padding: 1.2rem !important;
+    padding: 1rem !important;
     border-radius: 1rem !important;
+    font-size: 0.85rem;
   }
   .hero-panel-main h3 { font-size: 0.85rem !important; margin-bottom: 0.6rem !important; }
   .hero-panel-main .panel-prices {
     gap: 0.5rem !important;
   }
   .hero-panel-main .panel-price { padding: 0.8rem !important; }
-  .hero-panel-main .panel-price strong { font-size: 1.6rem !important; }
+  .hero-panel-main .panel-price strong { font-size: 1.8rem !important; }
+  .hero-panel-main .pricing-col strong { font-size: 1.8rem !important; }
   .hero-panel-main .panel-note { font-size: 0.72rem !important; margin-top: 0.5rem !important; }
   .hero-panel-side {
     grid-template-columns: 1fr !important;

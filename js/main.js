@@ -174,6 +174,88 @@ const Q = {
 
 /* All HiW data, visuals, and render functions removed — content is in HTML, scroll is pure CSS */
 
+/* ── LIVE GOOGLE REVIEWS ─────────────────────────
+   Fetches MAC Cleaning's rating & review count from Google Places API
+   and updates the trust strip. Results cached in localStorage for 24h.
+
+   NOTE: The Places API (New) does NOT support browser CORS requests,
+   so we proxy through an n8n webhook. If the proxy is unavailable the
+   hardcoded fallback values in the HTML remain visible.
+   ────────────────────────────────────────── */
+const MAC_PLACE_ID = 'ChIJK0RKubxmdkgR6pf5H1C1vqs';
+// n8n webhook that proxies the Places request (avoids CORS)
+const REVIEWS_PROXY_URL = 'https://mac-cleaning.app.n8n.cloud/webhook/google-reviews';
+
+function initLiveReviews() {
+  const ratingEl = document.getElementById('live-rating');
+  const countEl  = document.getElementById('live-review-count');
+  if (!ratingEl || !countEl) return;
+
+  // Check localStorage cache first (24-hour TTL)
+  const CACHE_KEY = 'mac_google_reviews';
+  const cached = localStorage.getItem(CACHE_KEY);
+  if (cached) {
+    try {
+      const data = JSON.parse(cached);
+      if (data.ts && Date.now() - data.ts < 24 * 60 * 60 * 1000) {
+        applyReviewData(ratingEl, countEl, data.rating, data.count);
+        return;
+      }
+    } catch (_) { /* ignore bad cache */ }
+  }
+
+  // Fetch fresh data via proxy
+  fetchReviewData(ratingEl, countEl);
+}
+
+function applyReviewData(ratingEl, countEl, rating, count) {
+  if (rating != null) {
+    ratingEl.setAttribute('data-count', String(rating));
+    ratingEl.textContent = String(rating);
+  }
+  if (count != null) {
+    countEl.textContent = String(count);
+  }
+}
+
+async function fetchReviewData(ratingEl, countEl) {
+  try {
+    // Try the n8n proxy first
+    const res = await fetch(REVIEWS_PROXY_URL);
+    if (!res.ok) throw new Error('Proxy returned ' + res.status);
+    const data = await res.json();
+
+    const rating = data.rating ?? data.result?.rating ?? null;
+    const count  = data.userRatingCount ?? data.user_ratings_total
+                   ?? data.result?.user_ratings_total ?? null;
+
+    if (rating != null && count != null) {
+      applyReviewData(ratingEl, countEl, rating, count);
+      localStorage.setItem('mac_google_reviews', JSON.stringify({
+        rating, count, ts: Date.now()
+      }));
+    }
+  } catch (err) {
+    // Proxy unavailable — try Places API (New) directly (may fail due to CORS)
+    try {
+      const url = `https://places.googleapis.com/v1/places/${MAC_PLACE_ID}?fields=rating,userRatingCount&key=${GOOGLE_PLACES_KEY}`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error('Places API returned ' + res.status);
+      const data = await res.json();
+
+      if (data.rating != null && data.userRatingCount != null) {
+        applyReviewData(ratingEl, countEl, data.rating, data.userRatingCount);
+        localStorage.setItem('mac_google_reviews', JSON.stringify({
+          rating: data.rating, count: data.userRatingCount, ts: Date.now()
+        }));
+      }
+    } catch (_) {
+      // Both attempts failed — hardcoded HTML values remain as fallback
+      console.warn('Live reviews: could not fetch Google rating, using fallback values.');
+    }
+  }
+}
+
 /* ──────────────────────────────────────────
    INIT
    ────────────────────────────────────────── */
@@ -189,6 +271,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initFaqShowAll();
   initServicesAutoScroll();
   initQuoteChooser();
+  initLiveReviews();
   loadGooglePlaces();
   loadStripe();
   loadGA();

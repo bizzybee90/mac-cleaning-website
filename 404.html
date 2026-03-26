@@ -6,73 +6,145 @@
 <title>Page Not Found | MAC Cleaning</title>
 <meta name="robots" content="noindex">
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/styles.css">
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body {
-    font-family: 'DM Sans', sans-serif;
-    background: #fafaf7;
-    color: #1c2434;
+  .four-oh-four {
     display: flex;
     align-items: center;
     justify-content: center;
-    min-height: 100vh;
-    padding: 2rem;
     text-align: center;
+    min-height: 70vh;
+    padding: 3rem 1.5rem;
   }
-  .container { max-width: 480px; }
-  .code {
-    font-size: 6rem;
-    font-weight: 800;
-    color: #b8860b;
+  .four-oh-four__inner { max-width: 520px; }
+  .four-oh-four__code {
+    font-family: 'Playfair Display', serif;
+    font-size: 7rem;
+    font-weight: 700;
+    color: var(--gold, #b8860b);
     line-height: 1;
     margin-bottom: 0.5rem;
   }
-  h1 {
-    font-size: 1.5rem;
+  .four-oh-four__heading {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.8rem;
     font-weight: 700;
+    color: var(--charcoal, #1c2434);
     margin-bottom: 1rem;
   }
-  p {
-    font-size: 1rem;
-    color: #555;
+  .four-oh-four__text {
+    font-size: 1.05rem;
+    color: var(--ink-faint, #555);
     line-height: 1.6;
     margin-bottom: 2rem;
   }
-  .btn {
-    display: inline-block;
-    padding: 0.85rem 2rem;
-    background: #b8860b;
-    color: #fff;
-    text-decoration: none;
-    border-radius: 8px;
-    font-weight: 600;
-    font-size: 0.95rem;
-    transition: background 0.2s;
-  }
-  .btn:hover { background: #9a7209; }
-  .links {
+  .four-oh-four__links {
     margin-top: 1.5rem;
-    font-size: 0.85rem;
-    color: #888;
+    font-size: 0.88rem;
+    color: var(--ink-faint, #888);
   }
-  .links a {
-    color: #b8860b;
+  .four-oh-four__links a {
+    color: var(--gold, #b8860b);
     text-decoration: none;
-    font-weight: 500;
+    font-weight: 600;
   }
-  .links a:hover { text-decoration: underline; }
+  .four-oh-four__links a:hover { text-decoration: underline; }
 </style>
 </head>
 <body>
-<div class="container">
-  <div class="code">404</div>
-  <h1>Page not found</h1>
-  <p>Sorry, we couldn't find that page. It may have been moved or no longer exists.</p>
-  <a href="/" class="btn">Back to Homepage</a>
-  <div class="links">
-    Or jump to: <a href="/#quote">Get a Quote</a> &middot; <a href="tel:01582858588">Call Us</a>
+
+<!-- Nav -->
+<nav class="nav" id="nav">
+  <div class="nav-inner">
+    <a href="/" aria-label="MAC Cleaning — Home" class="nav-logo"><img src="/assets/mac-logo-full.png" alt="MAC Cleaning" class="nav-logo-img" style="height:36px;width:auto;"></a>
+    <div class="nav-links">
+      <a href="/#difference">Why MAC</a>
+      <a href="/#services">Services</a>
+      <a href="/#hiw">How it works</a>
+      <a href="/#quote">Quote</a>
+      <a href="/#faq">FAQ</a>
+    </div>
+    <div class="nav-right">
+      <a href="tel:01582858588" class="nav-phone">01582 858 588</a>
+      <a href="/#quote" class="btn btn-primary btn-sm">Get Your Price</a>
+    </div>
+    <button class="nav-toggle" id="navToggle" aria-label="Menu"><span></span><span></span><span></span></button>
   </div>
-</div>
+</nav>
+<div class="nav-spacer"></div>
+
+<!-- 404 Content -->
+<section class="four-oh-four">
+  <div class="four-oh-four__inner">
+    <div class="four-oh-four__code">404</div>
+    <h1 class="four-oh-four__heading">Page not found</h1>
+    <p class="four-oh-four__text">Sorry, we couldn't find that page. It may have been moved or no longer exists.</p>
+    <a href="/" class="btn btn-primary">Back to Home</a>
+    <div class="four-oh-four__links">
+      Or jump to: <a href="/#quote">Get a Quote</a> &middot; <a href="tel:01582858588">Call Us</a>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="footer">
+  <div class="wrap footer-grid">
+    <div>
+      <div style="margin-bottom:0.8rem;">
+        <img src="/assets/mac-logo-full.png" alt="MAC Cleaning" style="height:44px;width:auto;filter:brightness(0) invert(1);opacity:0.9;" loading="lazy">
+      </div>
+      <p>Making things immaculate. Professional window cleaning across Luton, Bedfordshire &amp; Hertfordshire. Serving 840+ regular customers. Mon&ndash;Sat, 8am&ndash;5pm.</p>
+    </div>
+    <div>
+      <h4>Navigation</h4>
+      <div class="footer-links">
+        <a href="/#difference">Why MAC</a>
+        <a href="/#services">Services</a>
+        <a href="/#hiw">How it works</a>
+        <a href="/#quote">Instant quote</a>
+        <a href="/#faq">FAQ</a>
+      </div>
+    </div>
+    <div>
+      <h4>Services</h4>
+      <div class="footer-links">
+        <a href="/services/window-cleaning">Window Cleaning</a>
+        <a href="/services/commercial-window-cleaning">Commercial Cleaning</a>
+        <a href="/services/gutter-clearing">Gutter Clearing</a>
+        <a href="/services/fascia-cleaning">Fascia &amp; Soffit Cleaning</a>
+        <a href="/services/conservatory-roof-cleaning">Conservatory Roof</a>
+        <a href="/terms.html">Terms of Business</a>
+        <a href="/privacy.html">Privacy Policy</a>
+      </div>
+    </div>
+    <div>
+      <h4>Locations</h4>
+      <div class="footer-links">
+        <a href="/locations/luton">Luton</a>
+        <a href="/locations/dunstable">Dunstable</a>
+        <a href="/locations/harpenden">Harpenden</a>
+        <a href="/locations/st-albans">St Albans</a>
+        <a href="/locations/hemel-hempstead">Hemel Hempstead</a>
+        <a href="/locations/hitchin">Hitchin</a>
+        <a href="/locations/ampthill">Ampthill</a>
+        <a href="/locations/flitwick">Flitwick</a>
+        <a href="/locations/barton-le-clay">Barton-le-Clay</a>
+        <a href="/locations/milton-keynes">Milton Keynes</a>
+      </div>
+    </div>
+    <div>
+      <h4>Contact</h4>
+      <div class="footer-links">
+        <a href="tel:01582858588">01582 858 588</a>
+        <a href="https://wa.me/441582858588">WhatsApp</a>
+        <a href="mailto:hello@maccleaning.uk">hello@maccleaning.uk</a>
+        <a href="https://maccleaning.uk/">maccleaning.uk</a>
+      </div>
+    </div>
+  </div>
+  <div class="footer-bottom">&copy; 2026 MAC Cleaning Limited. All rights reserved. Registered in England &amp; Wales.</div>
+</footer>
+
 </body>
 </html>

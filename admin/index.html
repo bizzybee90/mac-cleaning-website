@@ -209,11 +209,12 @@ tbody tr:has(.badge-commercial_pending){border-left-color:#8e44ad}
 }
 .panel-overlay.open{opacity:1;pointer-events:auto}
 .detail-panel{
-  position:fixed;top:0;right:-440px;bottom:0;width:420px;z-index:210;
+  position:fixed;top:0;right:0;bottom:0;width:420px;z-index:210;
   background:var(--white);box-shadow:-4px 0 24px rgba(0,0,0,0.1);
-  transition:right var(--transition);overflow-y:auto;padding:24px;
+  transform:translateX(100%);transition:transform var(--transition);
+  overflow-y:auto;padding:24px;
 }
-.detail-panel.open{right:0}
+.detail-panel.open{transform:translateX(0)}
 .panel-close{
   position:absolute;top:16px;right:16px;width:32px;height:32px;
   display:flex;align-items:center;justify-content:center;
@@ -305,7 +306,7 @@ canvas{border-radius:8px}
   .stats-row{grid-template-columns:repeat(2,1fr);gap:10px}
   .two-col{grid-template-columns:1fr}
   .revenue-row{grid-template-columns:1fr}
-  .detail-panel{width:100%;right:-100%}
+  .detail-panel{width:100%}
   .filters-bar{flex-direction:column;align-items:stretch}
   .lead-count{margin-left:0}
 }
@@ -896,6 +897,15 @@ function openPanel(leadId) {
         <div class="panel-detail-item"><div class="panel-detail-label">Payment</div>${esc(lead.payment_method || '-')}</div>
       </div>
     </div>
+
+    ${(lead.payment_link || lead.gocardless_link) ? `
+    <div class="panel-section">
+      <div class="panel-section-title">Payment Links</div>
+      <div style="font-size:.85rem;display:flex;flex-direction:column;gap:6px">
+        ${lead.payment_link ? `<a href="${esc(lead.payment_link)}" target="_blank" rel="noopener" style="color:var(--info);text-decoration:underline;word-break:break-all">Stripe Payment Link</a>` : ''}
+        ${lead.gocardless_link ? `<a href="${esc(lead.gocardless_link)}" target="_blank" rel="noopener" style="color:var(--success);text-decoration:underline;word-break:break-all">GoCardless Link</a>` : ''}
+      </div>
+    </div>` : ''}
 
     ${lead.extras ? `<div class="panel-section"><div class="panel-section-title">Extras</div><div style="font-size:.85rem">${renderExtras(lead.extras)}</div></div>` : ''}
 
