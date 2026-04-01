@@ -77,7 +77,7 @@ const LEAD_COMPLETE_URL = 'https://bizzybee.app.n8n.cloud/webhook/mac-quote-deli
    Used for photo uploads and future direct access.
    All lead writes go through n8n (service_role key).
    ────────────────────────────────────────── */
-const SUPABASE_URL = 'https://atukvssploxwyqpwjmrc.supabase.co';
+const SUPABASE_URL = 'https://efzcbnvkvyfnmoykeyue.supabase.co';
 const SUPABASE_ANON_KEY = ''; // Not used for writes — n8n handles DB via service_role
 
 /* ──────────────────────────────────────────
