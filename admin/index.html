@@ -1483,6 +1483,19 @@ $('#btnExport').addEventListener('click', exportCSV);
 
 // ── INIT ────────────────────────────────────────────────────
 fetchData();
+
+// ── REALTIME SUBSCRIPTION ──────────────────────────────────
+sb.channel('leads-realtime')
+  .on('postgres_changes', { event: '*', schema: 'public', table: 'leads' }, () => {
+    fetchData();
+  })
+  .subscribe();
+
+sb.channel('events-realtime')
+  .on('postgres_changes', { event: '*', schema: 'public', table: 'lead_events' }, () => {
+    fetchData();
+  })
+  .subscribe();
 </script>
 </body>
 </html>
