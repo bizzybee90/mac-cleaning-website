@@ -110,6 +110,31 @@ input,select,textarea{font-family:inherit;font-size:inherit}
 .stat-value{font-size:2.2rem;font-weight:800;color:var(--charcoal);line-height:1.1;letter-spacing:-.02em}
 .stat-sub{font-size:.78rem;color:var(--ink-faint);margin-top:4px}
 
+/* ── AI SUMMARY ─────────────────────────────────────────── */
+.ai-summary{
+  background:linear-gradient(135deg,#1c2434 0%,#2d3546 100%);
+  border-radius:var(--radius);padding:24px 28px;margin-bottom:20px;
+  color:#fff;position:relative;overflow:hidden;
+  box-shadow:0 4px 24px rgba(28,36,52,0.15);
+}
+.ai-summary::before{
+  content:'';position:absolute;top:-40px;right:-40px;width:120px;height:120px;
+  background:radial-gradient(circle,rgba(184,134,11,0.15) 0%,transparent 70%);
+  border-radius:50%;
+}
+.ai-summary-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.ai-summary-label{
+  font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;
+  color:var(--gold-light);
+}
+.ai-summary-status{font-size:.75rem;color:rgba(255,255,255,0.4);font-weight:500}
+.ai-summary-body{font-size:.9rem;line-height:1.7;color:rgba(255,255,255,0.85)}
+.ai-summary-body ul{margin:0;padding:0 0 0 18px}
+.ai-summary-body li{margin-bottom:6px}
+.ai-summary-body li:last-child{margin-bottom:0}
+@keyframes aiPulse{0%,100%{opacity:.85}50%{opacity:.4}}
+.ai-summary.loading .ai-summary-body{animation:aiPulse 1.8s ease-in-out infinite}
+
 /* ── SECTION HEADINGS ────────────────────────────────────── */
 .section-title{font-size:1.05rem;font-weight:700;margin:32px 0 16px;color:var(--charcoal)}
 
@@ -343,6 +368,15 @@ canvas{border-radius:8px}
   <div class="error-banner" id="errorBanner">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
     <span id="errorText"></span>
+  </div>
+
+  <!-- AI Summary -->
+  <div class="ai-summary" id="aiSummary">
+    <div class="ai-summary-header">
+      <span class="ai-summary-label">AI Insights</span>
+      <span class="ai-summary-status" id="aiStatus">Analysing...</span>
+    </div>
+    <div class="ai-summary-body" id="aiBody">Loading lead analysis...</div>
   </div>
 
   <!-- Date Range -->
@@ -1483,17 +1517,65 @@ $('#btnExport').addEventListener('click', exportCSV);
 
 // ── INIT ────────────────────────────────────────────────────
 fetchData();
+fetchAiSummary();
+
+// ── AI SUMMARY ─────────────────────────────────────────────
+let aiDebounceTimer = null;
+async function fetchAiSummary() {
+  const el = $('#aiSummary');
+  const body = $('#aiBody');
+  const status = $('#aiStatus');
+  el.classList.add('loading');
+  status.textContent = 'Analysing...';
+
+  try {
+    const res = await fetch(SUPABASE_URL + '/functions/v1/ai-leads-summary', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + SUPABASE_KEY,
+      },
+    });
+    const data = await res.json();
+    const text = data.summary || 'No summary available.';
+    // Convert bullet points to HTML list
+    const lines = text.split('\n').filter(l => l.trim());
+    const hasBullets = lines.some(l => /^[-*•]/.test(l.trim()));
+    if (hasBullets) {
+      body.innerHTML = '<ul>' + lines.map(l => {
+        const clean = l.replace(/^[-*•]\s*/, '').trim();
+        return clean ? '<li>' + clean + '</li>' : '';
+      }).join('') + '</ul>';
+    } else {
+      body.textContent = text;
+    }
+    status.textContent = 'Updated just now';
+  } catch (err) {
+    body.textContent = 'Summary temporarily unavailable.';
+    status.textContent = 'Error';
+    console.error('AI summary error:', err);
+  } finally {
+    el.classList.remove('loading');
+  }
+}
+
+function debouncedAiSummary() {
+  clearTimeout(aiDebounceTimer);
+  aiDebounceTimer = setTimeout(fetchAiSummary, 3000);
+}
 
 // ── REALTIME SUBSCRIPTION ──────────────────────────────────
 sb.channel('leads-realtime')
   .on('postgres_changes', { event: '*', schema: 'public', table: 'leads' }, () => {
     fetchData();
+    debouncedAiSummary();
   })
   .subscribe();
 
 sb.channel('events-realtime')
   .on('postgres_changes', { event: '*', schema: 'public', table: 'lead_events' }, () => {
     fetchData();
+    debouncedAiSummary();
   })
   .subscribe();
 </script>
