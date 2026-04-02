@@ -392,7 +392,7 @@ canvas{border-radius:8px}
             <th data-sort="status">Status <span class="sort-arrow">&#9650;</span></th>
             <th data-sort="postcode">Area <span class="sort-arrow">&#9650;</span></th>
             <th data-sort="source_page">Source <span class="sort-arrow">&#9650;</span></th>
-            <th data-sort="created_at">Created <span class="sort-arrow">&#9650;</span></th>
+            <th data-sort="updated_at">Updated <span class="sort-arrow">&#9650;</span></th>
           </tr>
         </thead>
         <tbody id="tableBody"></tbody>
@@ -527,7 +527,7 @@ let allEvents = [];
 let currentRange = 30; // days, 0 = all
 let currentPage = 1;
 const PAGE_SIZE = 20;
-let sortCol = 'created_at';
+let sortCol = 'updated_at';
 let sortDir = 'desc';
 let searchQuery = '';
 let filterStatus = '';
@@ -797,7 +797,7 @@ function renderTable(leads) {
     if (sortCol === 'price_per_clean') {
       va = parseFloat(va) || 0;
       vb = parseFloat(vb) || 0;
-    } else if (sortCol === 'created_at') {
+    } else if (sortCol === 'created_at' || sortCol === 'updated_at') {
       va = va ? new Date(va).getTime() : 0;
       vb = vb ? new Date(vb).getTime() : 0;
     } else {
@@ -838,7 +838,7 @@ function renderTable(leads) {
         <td><span class="badge badge-${l.status || 'partial'}">${statusLabel(l.status || 'partial')}</span></td>
         <td>${esc(postcodeArea(l.postcode))}</td>
         <td>${esc(l.source_page || '-')}</td>
-        <td title="${fullDate(l.created_at)}">${relativeTime(l.created_at)}</td>
+        <td title="${fullDate(l.updated_at || l.created_at)}">${relativeTime(l.updated_at || l.created_at)}</td>
       </tr>
     `).join('');
   }
