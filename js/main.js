@@ -291,7 +291,30 @@ document.addEventListener('DOMContentLoaded', () => {
   renderQuote();
   initQuoteDeepLinks();
   initQuoteModal();
+  initHeroPostcode();
 });
+
+/* ── HERO POSTCODE INPUT ─────────────────── */
+function initHeroPostcode() {
+  const input = document.getElementById('heroPostcode');
+  const btn = document.getElementById('heroPostcodeBtn');
+  if (!input || !btn) return;
+
+  function submitPostcode() {
+    const val = input.value.trim();
+    if (!val) { input.focus(); return; }
+    /* Set the quote state */
+    if (!Q.mode) { Q.mode = 'regular'; Q.step = 1; Q.feedback = null; }
+    Q.postcode = val.toUpperCase();
+    renderQuote();
+    /* Scroll to quote widget */
+    const target = document.getElementById('quoteWidget');
+    if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  btn.addEventListener('click', submitPostcode);
+  input.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); submitPostcode(); } });
+}
 
 /* ── CTA DEEP LINKS ──────────────────────
    All #quote links skip the service chooser and go
@@ -765,12 +788,19 @@ function initNav() {
   const menu = document.getElementById('mobileMenu');
   if (!nav) return;
   let lastY = 0;
+  const marquee = document.getElementById('marqueeBar');
   window.addEventListener('scroll', () => {
     const y = scrollY;
     const down = y > lastY;
     nav.classList.toggle('scrolled', y > 80);
     if (y > 200 && down) nav.classList.add('hidden');
     else nav.classList.remove('hidden');
+    /* Collapse marquee on scroll */
+    if (marquee) {
+      const collapsed = y > 50;
+      marquee.classList.toggle('collapsed', collapsed);
+      nav.style.top = collapsed ? '0' : '';
+    }
     lastY = y;
   }, {passive:true});
   if (toggle && menu) {

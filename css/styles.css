@@ -180,13 +180,55 @@ section { padding: var(--section-py) 0; }
 }
 
 /* ══════════════════════════════════════════
+   MARQUEE BAR
+   ══════════════════════════════════════════ */
+.marquee-bar {
+  position: fixed; top: 0; left: 0; right: 0;
+  z-index: 101;
+  background: var(--charcoal);
+  overflow: hidden;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  transition: transform 0.35s var(--ease);
+}
+.marquee-track {
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+  animation: marqueeScroll 30s linear infinite;
+  gap: 0;
+}
+.marquee-item {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.85);
+  padding: 0 0.6rem;
+}
+.marquee-sep {
+  color: var(--gold);
+  font-size: 0.6rem;
+  opacity: 0.7;
+}
+.marquee-bar.collapsed {
+  transform: translateY(-100%);
+  pointer-events: none;
+}
+@keyframes marqueeScroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+/* ══════════════════════════════════════════
    NAVIGATION — Always a pill
    ══════════════════════════════════════════ */
 .nav {
-  position: fixed; top: 0; left: 0; right: 0;
+  position: fixed; top: 32px; left: 0; right: 0;
   z-index: 100; padding: 0.6rem 1rem;
   transform: translateY(0);
-  transition: transform 0.4s var(--ease), padding 0.4s var(--ease);
+  transition: transform 0.4s var(--ease), padding 0.4s var(--ease), top 0.35s var(--ease);
 }
 .nav.scrolled { padding: 0.4rem 1rem; }
 .nav.hidden { transform: translateY(-100%); }
@@ -222,7 +264,7 @@ section { padding: var(--section-py) 0; }
 .mobile-menu.open { display: flex; }
 .mobile-menu a { font-size: 1.15rem; font-weight: 600; color: var(--charcoal); }
 .mobile-menu a.btn-primary { color: #fff !important; }
-.nav-spacer { height: 72px; }
+.nav-spacer { height: 104px; }
 @media (max-width: 900px) { .nav-links, .nav-phone, .nav-right { display: none; } .nav-toggle { display: flex; } .nav-inner { max-width: 100%; } }
 
 
@@ -243,7 +285,43 @@ section { padding: var(--section-py) 0; }
   max-width: 14ch;
 }
 .hero-sub { font-size: 1.1rem; max-width: 34rem; margin: 1.2rem 0 0; }
-.hero-actions { display: flex; gap: 0.8rem; flex-wrap: wrap; margin: 1.8rem 0 1.4rem; }
+/* Hero postcode input bar */
+.hero-postcode-bar { margin: 1.8rem 0 0.8rem; max-width: 520px; }
+.hero-postcode-inner {
+  display: flex;
+  align-items: center;
+  padding: 0.35rem 0.35rem 0.35rem 1rem;
+  border-radius: var(--radius-pill);
+  gap: 0.6rem;
+  background: rgba(255,255,255,0.85);
+  border: 1.5px solid var(--line-strong);
+  box-shadow: var(--shadow-md), 0 0 0 0 rgba(184,134,11,0);
+  transition: all 0.3s var(--ease);
+}
+.hero-postcode-inner:focus-within {
+  border-color: var(--gold);
+  box-shadow: var(--shadow-md), 0 0 0 4px var(--gold-glow);
+}
+.hero-postcode-icon {
+  flex-shrink: 0;
+  color: var(--gold);
+  display: flex;
+  align-items: center;
+}
+.hero-postcode-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--charcoal);
+  outline: none;
+  min-width: 0;
+}
+.hero-postcode-input::placeholder { color: var(--ink-faint); font-weight: 400; }
+.hero-postcode-btn { padding: 0.75rem 1.4rem; flex-shrink: 0; font-size: 0.9rem; }
+
+.hero-actions { display: flex; gap: 0.8rem; flex-wrap: wrap; margin: 0.4rem 0 1.4rem; }
 .hero-proof { display: flex; flex-wrap: wrap; gap: 0.6rem 1.4rem; }
 .hero-proof li { position: relative; padding-left: 1.3rem; font-weight: 500; color: var(--ink); }
 .hero-proof li::before {
@@ -1779,7 +1857,10 @@ section { padding: var(--section-py) 0; }
   .nav.scrolled .nav-logo-img { height: 24px; }
   .nav-links, .nav-phone { display: none; }
   .nav-toggle { display: flex; position: absolute; right: 0.8rem; }
-  .nav-spacer { height: 64px; }
+  .marquee-bar { height: 28px; }
+  .marquee-item { font-size: 0.65rem; padding: 0 0.4rem; }
+  .nav { top: 28px; }
+  .nav-spacer { height: 76px; }
   /* Hide nav CTA on mobile — hero has it */
   .nav-right { display: none !important; }
   /* Nav hides on scroll down, shows on scroll up */
@@ -1796,8 +1877,27 @@ section { padding: var(--section-py) 0; }
   .hero-headline { font-size: clamp(2.2rem, 8vw, 2.8rem) !important; line-height: 1.02; margin-top: 0 !important; letter-spacing: -0.04em; }
   .hero-sub { display: none; }
   .hero-sub-mobile { display: block !important; font-size: 1rem; margin: 0.5rem 0 0; line-height: 1.5; color: var(--ink); }
-  .hero-actions { flex-direction: column; gap: 0.5rem; margin: 1.5rem 0 0; }
-  .hero-actions .btn { width: 100%; text-align: center; justify-content: center; padding: 1rem 1.2rem; font-size: 1rem; }
+  /* Hero postcode — stacked on mobile */
+  .hero-postcode-bar { max-width: 100%; margin: 1.2rem 0 0; }
+  .hero-postcode-inner {
+    flex-direction: column;
+    padding: 0.6rem;
+    border-radius: var(--radius-md);
+    gap: 0.5rem;
+  }
+  .hero-postcode-icon { display: none; }
+  .hero-postcode-input {
+    width: 100%;
+    text-align: center;
+    padding: 0.7rem 0.8rem;
+    font-size: 1rem;
+    background: var(--cream);
+    border-radius: var(--radius-pill);
+  }
+  .hero-postcode-btn { width: 100%; padding: 0.9rem 1.2rem; font-size: 1rem; }
+
+  .hero-actions { flex-direction: column; gap: 0.5rem; margin: 0.6rem 0 0; }
+  .hero-actions .btn { width: 100%; text-align: center; justify-content: center; padding: 0.8rem 1.2rem; font-size: 0.9rem; }
   .hero-actions .btn-secondary { display: none; }
   /* Hide proof bullets — trust strip does this job */
   .hero-proof { display: none !important; }
