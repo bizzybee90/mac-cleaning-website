@@ -795,8 +795,8 @@ function initNav() {
     nav.classList.toggle('scrolled', y > 80);
     if (y > 200 && down) nav.classList.add('hidden');
     else nav.classList.remove('hidden');
-    /* Collapse marquee on scroll */
-    if (marquee) {
+    /* Collapse marquee on scroll — desktop only */
+    if (marquee && window.innerWidth > 768) {
       const collapsed = y > 50;
       marquee.classList.toggle('collapsed', collapsed);
       nav.style.top = collapsed ? '0' : '';
