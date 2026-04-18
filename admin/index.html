@@ -154,6 +154,14 @@ input,select,textarea{font-family:inherit;font-size:inherit}
 .filters-bar{
   display:flex;align-items:center;gap:10px;flex-wrap:nowrap;margin-bottom:16px;
 }
+.queue-pills{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.queue-pill{
+  padding:7px 14px;border-radius:var(--radius-pill);font-size:.8rem;font-weight:600;
+  border:1px solid var(--line);background:var(--white);color:var(--ink);
+  transition:all var(--transition);white-space:nowrap;
+}
+.queue-pill:hover{border-color:var(--gold);color:var(--gold)}
+.queue-pill.active{background:var(--charcoal);color:var(--white);border-color:var(--charcoal)}
 .filter-select{
   padding:7px 16px;border:1px solid var(--line);border-radius:var(--radius-pill);
   background:var(--white);color:var(--charcoal);outline:none;cursor:pointer;
@@ -187,6 +195,17 @@ tbody tr:nth-child(even){background:rgba(241,237,230,0.25)}
 tbody tr:hover{background:rgba(184,134,11,0.06)}
 tbody td{padding:8px 14px;white-space:nowrap}
 .empty-row td{text-align:center;padding:40px 14px;color:var(--ink-faint);font-style:italic}
+.lead-name{display:flex;flex-direction:column;gap:4px}
+.lead-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.mini-pill{
+  display:inline-flex;align-items:center;padding:2px 8px;border-radius:var(--radius-pill);
+  font-size:.68rem;font-weight:700;letter-spacing:.03em;text-transform:uppercase;
+}
+.mini-pill-attention{background:#fff0d9;color:#935116}
+.mini-pill-source{background:var(--cream-2);color:var(--ink)}
+.lead-subtle{font-size:.74rem;color:var(--ink-faint)}
+.row-attention{background:rgba(230,126,34,0.06)!important}
+.row-attention:hover{background:rgba(230,126,34,0.12)!important}
 
 /* Status-coloured left border on table rows */
 tbody tr:has(.badge-partial){border-left-color:#f39c12}
@@ -252,6 +271,11 @@ tbody tr:has(.badge-commercial_pending){border-left-color:#8e44ad}
 .panel-contact a{color:var(--info);text-decoration:underline}
 .panel-section{margin-top:20px}
 .panel-section-title{font-size:.78rem;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-faint);margin-bottom:8px}
+.attention-list{display:flex;flex-wrap:wrap;gap:8px}
+.attention-chip{
+  display:inline-flex;align-items:center;padding:6px 10px;border-radius:var(--radius-pill);
+  font-size:.76rem;font-weight:700;background:#fff0d9;color:#935116;border:1px solid rgba(230,126,34,0.16);
+}
 .panel-detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .panel-detail-item{font-size:.85rem}
 .panel-detail-label{color:var(--ink-faint);font-size:.75rem}
@@ -410,6 +434,11 @@ canvas{border-radius:8px}
   <!-- Filters + Table -->
   <div class="card" style="margin-bottom:20px">
     <div class="filters-bar">
+      <div class="queue-pills" id="queuePills">
+        <button class="queue-pill active" data-queue="all">All leads</button>
+        <button class="queue-pill" data-queue="attention">Needs attention</button>
+        <button class="queue-pill" data-queue="manual_review">Manual review</button>
+      </div>
       <select class="filter-select" id="filterStatus"><option value="">All Statuses</option></select>
       <select class="filter-select" id="filterProperty"><option value="">All Properties</option></select>
       <select class="filter-select" id="filterFrequency"><option value="">All Frequencies</option></select>
@@ -558,12 +587,14 @@ const COLORS = {
 // ── STATE ───────────────────────────────────────────────────
 let allLeads = [];
 let allEvents = [];
+let eventsByLead = new Map();
 let currentRange = 30; // days, 0 = all
 let currentPage = 1;
 const PAGE_SIZE = 20;
 let sortCol = 'updated_at';
 let sortDir = 'desc';
 let searchQuery = '';
+let filterQueue = 'all';
 let filterStatus = '';
 let filterProperty = '';
 let filterFrequency = '';
@@ -644,6 +675,51 @@ function statusLabel(s) {
   return s.replace(/_/g, ' ');
 }
 
+function normalizeSourceLabel(source) {
+  if (!source) return 'Unknown';
+  const value = String(source).trim();
+  if (!value) return 'Unknown';
+  if (value === '/' || value === '/index.html') return 'Homepage';
+  const cleaned = value.replace(/^https?:\/\/[^/]+/i, '').replace(/^\/+|\/+$/g, '');
+  if (!cleaned) return 'Homepage';
+  const parts = cleaned.split('/').filter(Boolean);
+  if (parts[0] === 'locations' && parts[1]) return `Location: ${titleCase(parts[1].replace(/-/g, ' '))}`;
+  if (parts[0] === 'services' && parts[1]) return `Service: ${titleCase(parts[1].replace(/-/g, ' '))}`;
+  return titleCase(parts.join(' ').replace(/-/g, ' '));
+}
+
+function titleCase(value) {
+  return value.replace(/\b\w/g, c => c.toUpperCase());
+}
+
+function leadEvents(leadId) {
+  return eventsByLead.get(leadId) || [];
+}
+
+function leadAttentionReasons(lead) {
+  const reasons = [];
+  const events = leadEvents(lead.id);
+
+  const manualReviewEvent = events.find(e =>
+    e.event_type === 'coverage.manual_review_required' ||
+    e.event_type === 'coverage.lookup_unavailable' ||
+    e.details?.requires_manual_review === true
+  );
+  if (manualReviewEvent) reasons.push('Manual review');
+
+  if (lead.last_error) reasons.push('Error logged');
+
+  const stalePartial = lead.status === 'partial' && lead.updated_at &&
+    (Date.now() - new Date(lead.updated_at).getTime()) > (24 * 60 * 60 * 1000);
+  if (stalePartial) reasons.push('Unfinished quote');
+
+  return [...new Set(reasons)];
+}
+
+function hasManualReview(lead) {
+  return leadAttentionReasons(lead).includes('Manual review');
+}
+
 function isInRange(dateStr) {
   if (currentRange === 0 || !dateStr) return true;
   const d = new Date(dateStr);
@@ -686,6 +762,12 @@ async function fetchData() {
 
     allLeads = leadsRes.data || [];
     allEvents = eventsRes.data || [];
+    eventsByLead = new Map();
+    allEvents.forEach(event => {
+      const list = eventsByLead.get(event.lead_id) || [];
+      list.push(event);
+      eventsByLead.set(event.lead_id, list);
+    });
 
     populateFilters();
     computeAll();
@@ -694,6 +776,7 @@ async function fetchData() {
     showError('Failed to load data: ' + (err.message || 'Unknown error'));
     allLeads = [];
     allEvents = [];
+    eventsByLead = new Map();
     computeAll();
   } finally {
     btn.classList.remove('spinning');
@@ -725,6 +808,9 @@ function populateFilters() {
 function getFilteredLeads() {
   return allLeads.filter(l => {
     if (!isInRange(l.created_at)) return false;
+    const attentionReasons = leadAttentionReasons(l);
+    if (filterQueue === 'attention' && attentionReasons.length === 0) return false;
+    if (filterQueue === 'manual_review' && !attentionReasons.includes('Manual review')) return false;
     if (filterStatus && l.status !== filterStatus) return false;
     if (filterProperty && l.property_type !== filterProperty) return false;
     if (filterFrequency && l.frequency !== filterFrequency) return false;
@@ -850,7 +936,10 @@ function renderTable(leads) {
   const page = sorted.slice(start, start + PAGE_SIZE);
 
   // Lead count
-  $('#leadCount').textContent = sorted.length + ' lead' + (sorted.length !== 1 ? 's' : '');
+  const attentionCount = sorted.filter(l => leadAttentionReasons(l).length > 0).length;
+  $('#leadCount').textContent =
+    sorted.length + ' lead' + (sorted.length !== 1 ? 's' : '') +
+    (filterQueue === 'all' && attentionCount ? ` · ${attentionCount} need attention` : '');
 
   // Headers
   $$('#tableHead th').forEach(th => {
@@ -865,13 +954,24 @@ function renderTable(leads) {
     tbody.innerHTML = '<tr class="empty-row"><td colspan="7">Waiting for your first lead...</td></tr>';
   } else {
     tbody.innerHTML = page.map(l => `
-      <tr data-id="${l.id}">
-        <td><strong>${esc(l.name || '-')}</strong></td>
+      <tr data-id="${l.id}" class="${leadAttentionReasons(l).length ? 'row-attention' : ''}">
+        <td>
+          <div class="lead-name">
+            <strong>${esc(l.name || '-')}</strong>
+            <div class="lead-meta">
+              ${leadAttentionReasons(l)[0] ? `<span class="mini-pill mini-pill-attention">${esc(leadAttentionReasons(l)[0])}</span>` : ''}
+              <span class="mini-pill mini-pill-source">${esc(normalizeSourceLabel(l.source_page))}</span>
+            </div>
+          </div>
+        </td>
         <td>${esc(propertyDisplay(l))}</td>
         <td>${formatPrice(l.price_per_clean, l.frequency)}</td>
         <td><span class="badge badge-${l.status || 'partial'}">${statusLabel(l.status || 'partial')}</span></td>
         <td>${esc(postcodeArea(l.postcode))}</td>
-        <td>${esc(l.source_page || '-')}</td>
+        <td>
+          <div>${esc(normalizeSourceLabel(l.source_page))}</div>
+          ${hasManualReview(l) ? '<div class="lead-subtle">Confirm coverage manually</div>' : ''}
+        </td>
         <td title="${fullDate(l.updated_at || l.created_at)}">${relativeTime(l.updated_at || l.created_at)}</td>
       </tr>
     `).join('');
@@ -907,6 +1007,7 @@ function openPanel(leadId) {
   selectedLead = lead;
 
   const events = allEvents.filter(e => e.lead_id === leadId).sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
+  const attentionReasons = leadAttentionReasons(lead);
 
   const panel = $('#panelContent');
   panel.innerHTML = `
@@ -938,6 +1039,14 @@ function openPanel(leadId) {
       <div style="font-size:.85rem;display:flex;flex-direction:column;gap:6px">
         ${lead.payment_link ? `<a href="${esc(lead.payment_link)}" target="_blank" rel="noopener" style="color:var(--info);text-decoration:underline;word-break:break-all">Stripe Payment Link</a>` : ''}
         ${lead.gocardless_link ? `<a href="${esc(lead.gocardless_link)}" target="_blank" rel="noopener" style="color:var(--success);text-decoration:underline;word-break:break-all">GoCardless Link</a>` : ''}
+      </div>
+    </div>` : ''}
+
+    ${attentionReasons.length ? `
+    <div class="panel-section">
+      <div class="panel-section-title">Needs Attention</div>
+      <div class="attention-list">
+        ${attentionReasons.map(reason => `<span class="attention-chip">${esc(reason)}</span>`).join('')}
       </div>
     </div>` : ''}
 
@@ -1376,7 +1485,7 @@ function renderGeoTable(leads) {
 function renderSourceTable(leads) {
   const sources = {};
   leads.forEach(l => {
-    const s = l.source_page || 'Unknown';
+    const s = normalizeSourceLabel(l.source_page);
     if (!sources[s]) sources[s] = { total:0, signedUp:0, prices:[] };
     sources[s].total++;
     if (l.status === 'signed_up' || l.status === 'confirmed') sources[s].signedUp++;
@@ -1470,6 +1579,15 @@ $('#searchInput').addEventListener('input', e => {
     currentPage = 1;
     computeAll();
   }, 300);
+});
+
+$('#queuePills').addEventListener('click', e => {
+  const pill = e.target.closest('.queue-pill');
+  if (!pill) return;
+  filterQueue = pill.dataset.queue || 'all';
+  $$('#queuePills .queue-pill').forEach(p => p.classList.toggle('active', p === pill));
+  currentPage = 1;
+  computeAll();
 });
 
 // Filters
