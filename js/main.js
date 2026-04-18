@@ -6,30 +6,32 @@
    2. Go to Developers → API Keys
    3. Copy your Publishable key (starts with pk_live_ or pk_test_)
    4. Paste it below as STRIPE_PK
-   5. Set up your n8n workflow with Stripe nodes (see setup guide)
-   6. Paste the n8n webhook URL as STRIPE_SETUP_ENDPOINT
+   5. Make sure the MAC Cleaning backend is live
+   6. The card setup route is derived automatically below
 
    The frontend uses Stripe Elements for secure card input.
-   The n8n endpoint creates a Stripe Customer + SetupIntent
+   The MAC Cleaning backend creates a Stripe Customer + SetupIntent
    and returns { clientSecret, customerId }.
 
    When STRIPE_PK is empty, customers see a fallback message.
    When populated, they get the real Stripe card form.
    ────────────────────────────────────────── */
 const STRIPE_PK = 'pk_live_F9lKTLJaVfsKk8ePmjxR2JsN';
-const STRIPE_SETUP_ENDPOINT = 'https://bizzybee.app.n8n.cloud/webhook/mac-stripe-setup';
+const MAC_API_BASE = (window.MAC_CLEANING_API_BASE || '').replace(/\/$/, '');
+const STRIPE_SETUP_ENDPOINT = `${MAC_API_BASE}/webhook/mac-stripe-setup`;
 
 /* ──────────────────────────────────────────
    GOCARDLESS CONFIGURATION
    ──────────────────────────────────────────
    For Direct Debit payments as an alternative to card.
-   Set up a GoCardless account and create an n8n workflow
-   that creates a billing request and returns the redirect URL.
+   The MAC Cleaning backend creates a billing request
+   and returns the redirect URL.
 
    When empty, only card payment is shown.
    When populated, customers can choose Card or Direct Debit.
    ────────────────────────────────────────── */
-const GOCARDLESS_SETUP_ENDPOINT = 'https://bizzybee.app.n8n.cloud/webhook/mac-gocardless-setup';
+const GOCARDLESS_ENABLED = window.MAC_CLEANING_GOCARDLESS_ENABLED !== false;
+const GOCARDLESS_SETUP_ENDPOINT = GOCARDLESS_ENABLED ? `${MAC_API_BASE}/webhook/mac-gocardless-setup` : '';
 
 /* ──────────────────────────────────────────
    GOOGLE PLACES CONFIGURATION
@@ -48,37 +50,22 @@ const GOCARDLESS_SETUP_ENDPOINT = 'https://bizzybee.app.n8n.cloud/webhook/mac-go
 const GOOGLE_PLACES_KEY = 'AIzaSyAApbgPqrc-IXXu2mcKrM2fAcdS7mUUGpk';
 
 /* ──────────────────────────────────────────
-   N8N WEBHOOK CONFIGURATION
-   ──────────────────────────────────────────
-   HOW TO SET UP:
-   1. Create a workflow in n8n with a Webhook trigger node
-   2. Set the HTTP Method to POST
-   3. Copy the Production webhook URL
-   4. Paste it below
-
-   When this is empty, form submissions are logged to console only.
-   When populated, leads are POSTed to your n8n workflow.
-   ────────────────────────────────────────── */
-const N8N_WEBHOOK = ''; // Dead endpoint removed — use LEAD_PARTIAL_URL and LEAD_COMPLETE_URL instead
-
-/* ──────────────────────────────────────────
    LEAD PIPELINE CONFIGURATION
    ──────────────────────────────────────────
    Separate endpoints for partial (soft gate) and
    full (quote accepted) lead capture.
-   When empty, falls back to N8N_WEBHOOK above.
    ────────────────────────────────────────── */
-const LEAD_PARTIAL_URL = 'https://bizzybee.app.n8n.cloud/webhook/mac-lead-partial';
-const LEAD_COMPLETE_URL = 'https://bizzybee.app.n8n.cloud/webhook/mac-quote-delivered';
+const LEAD_PARTIAL_URL = `${MAC_API_BASE}/webhook/mac-lead-partial`;
+const LEAD_COMPLETE_URL = `${MAC_API_BASE}/webhook/mac-quote-delivered`;
 
 /* ──────────────────────────────────────────
    SUPABASE CONFIGURATION
    ──────────────────────────────────────────
-   Used for photo uploads and future direct access.
-   All lead writes go through n8n (service_role key).
+   Reserved for future direct client features.
+   Lead writes are handled server-side by the MAC backend.
    ────────────────────────────────────────── */
 const SUPABASE_URL = 'https://efzcbnvkvyfnmoykeyue.supabase.co';
-const SUPABASE_ANON_KEY = ''; // Not used for writes — n8n handles DB via service_role
+const SUPABASE_ANON_KEY = ''; // Not used for writes — the backend handles privileged DB access
 
 /* ──────────────────────────────────────────
    GOOGLE ANALYTICS CONFIGURATION
@@ -162,15 +149,206 @@ const STANDALONE = {
 /* ──────────────────────────────────────────
    STATE
    ────────────────────────────────────────── */
-const Q = {
-  mode:'', step:1, property:'', build:'', beds:'',
-  extras:{conservatory:false,extension:false,porch:false,garage:false,skylights:false},
-  skylightCount:1, commercialType:'', commercialDesc:'', postcode:'', email:'', leadCaptured:false,
-  name:'', phone:'', address:'', frequency:'4-weekly',
-  addons:{ gutter:{selected:false,plan:'single'}, fascia:{selected:false,plan:'single'}, conservatory_roof:{selected:false,plan:'single'} },
-  oneoffServices:{ gutter:false, fascia:false, conservatory_roof:false },
-  termsAccepted:false, submitted:false, cardRegistered:false, feedback:null
-};
+function createInitialQuoteState() {
+  return {
+    mode:'', step:1, property:'', build:'', beds:'',
+    extras:{conservatory:false,extension:false,porch:false,garage:false,skylights:false},
+    skylightCount:1, commercialType:'', commercialDesc:'', postcode:'', email:'', leadCaptured:false,
+    name:'', phone:'', address:'', frequency:'4-weekly',
+    addons:{ gutter:{selected:false,plan:'single'}, fascia:{selected:false,plan:'single'}, conservatory_roof:{selected:false,plan:'single'} },
+    oneoffServices:{ gutter:false, fascia:false, conservatory_roof:false },
+    termsAccepted:false, submitted:false, cardRegistered:false, feedback:null, leadToken:'', paymentMethod:''
+  };
+}
+
+const Q = createInitialQuoteState();
+
+const QUOTE_STATE_STORAGE_KEY = 'mac_quote_v2';
+const LEGACY_QUOTE_STATE_STORAGE_KEYS = ['mac_quote'];
+const QUOTE_STATE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+let _quoteStateRestored = false;
+
+function removeStoredQuoteState(store, keys) {
+  try {
+    keys.forEach((key) => store.removeItem(key));
+  } catch (e) {}
+}
+
+function readStoredQuoteState() {
+  const keys = [QUOTE_STATE_STORAGE_KEY, ...LEGACY_QUOTE_STATE_STORAGE_KEYS];
+  const stores = [
+    { store: localStorage, label: 'localStorage' },
+    { store: sessionStorage, label: 'sessionStorage' }
+  ];
+
+  for (const { store, label } of stores) {
+    for (const key of keys) {
+      try {
+        const saved = store.getItem(key);
+        if (saved) return { saved, key, store, label };
+      } catch (e) {}
+    }
+  }
+
+  return null;
+}
+
+function createPersistableQuoteState() {
+  return {
+    mode: Q.mode,
+    step: Q.step,
+    property: Q.property,
+    build: Q.build,
+    beds: Q.beds,
+    extras: Q.extras,
+    skylightCount: Q.skylightCount,
+    commercialType: Q.commercialType,
+    commercialDesc: Q.commercialDesc,
+    postcode: Q.postcode,
+    email: Q.email,
+    leadCaptured: Q.leadCaptured,
+    name: Q.name,
+    phone: Q.phone,
+    address: Q.address,
+    frequency: Q.frequency,
+    addons: Q.addons,
+    oneoffServices: Q.oneoffServices,
+    termsAccepted: Q.termsAccepted,
+    submitted: Q.submitted,
+    cardRegistered: Q.cardRegistered,
+    leadToken: Q.leadToken,
+    paymentMethod: Q.paymentMethod
+  };
+}
+
+function hasMeaningfulQuoteState(state = Q) {
+  if (!state || typeof state !== 'object') return false;
+  if (state.mode || state.name || state.email || state.postcode || state.address || state.phone || state.leadToken) return true;
+  if (state.leadCaptured || state.submitted || state.cardRegistered) return true;
+  if (Object.values(state.extras || {}).some(Boolean)) return true;
+  if (Object.values(state.oneoffServices || {}).some(Boolean)) return true;
+  if (Object.values(state.addons || {}).some(v => v && v.selected)) return true;
+  return false;
+}
+
+function clearQuoteState() {
+  removeStoredQuoteState(localStorage, [QUOTE_STATE_STORAGE_KEY, ...LEGACY_QUOTE_STATE_STORAGE_KEYS]);
+  removeStoredQuoteState(sessionStorage, [QUOTE_STATE_STORAGE_KEY, ...LEGACY_QUOTE_STATE_STORAGE_KEYS]);
+}
+
+function persistQuoteState() {
+  try {
+    const state = createPersistableQuoteState();
+    if (!hasMeaningfulQuoteState(state)) {
+      clearQuoteState();
+      return;
+    }
+    localStorage.setItem(QUOTE_STATE_STORAGE_KEY, JSON.stringify({
+      version: 2,
+      savedAt: Date.now(),
+      state
+    }));
+  } catch (e) {}
+}
+
+function restoreQuoteState(options = {}) {
+  if (_quoteStateRestored) return false;
+  _quoteStateRestored = true;
+
+  try {
+    const stored = readStoredQuoteState();
+    if (!stored?.saved) return false;
+
+    const parsed = JSON.parse(stored.saved);
+    const savedAt = Number(parsed?.savedAt || 0);
+    if (savedAt && Date.now() - savedAt > QUOTE_STATE_TTL_MS) {
+      clearQuoteState();
+      return false;
+    }
+
+    const restored = parsed?.state && typeof parsed.state === 'object' ? parsed.state : parsed;
+    if (!hasMeaningfulQuoteState(restored)) {
+      clearQuoteState();
+      return false;
+    }
+
+    Object.assign(Q, createInitialQuoteState(), restored, {
+      extras: { ...createInitialQuoteState().extras, ...(restored.extras || {}) },
+      addons: mergeAddonState(restored.addons),
+      oneoffServices: { ...createInitialQuoteState().oneoffServices, ...(restored.oneoffServices || {}) },
+      feedback: null
+    });
+
+    if (Q.cardRegistered) Q.submitted = true;
+    if (!Q.mode) Q.step = 1;
+    else Q.step = clampQuoteStep(Q.mode, Q.step);
+
+    if (options.announce) {
+      Q.feedback = {
+        t: 'info',
+        m: Q.submitted && !Q.cardRegistered
+          ? 'We picked up your quote so you can finish signup.'
+          : 'We picked up your last quote where you left off.'
+      };
+    }
+
+    persistQuoteState();
+    if (stored.key !== QUOTE_STATE_STORAGE_KEY || stored.label !== 'localStorage') {
+      removeStoredQuoteState(stored.store, [stored.key]);
+    }
+
+    return true;
+  } catch (e) {
+    clearQuoteState();
+    return false;
+  }
+}
+
+function mergeAddonState(addons) {
+  const next = createInitialQuoteState().addons;
+  if (!addons || typeof addons !== 'object') return next;
+  Object.keys(next).forEach((key) => {
+    if (addons[key] && typeof addons[key] === 'object') {
+      next[key] = {
+        ...next[key],
+        selected: addons[key].selected === true,
+        plan: typeof addons[key].plan === 'string' ? addons[key].plan : next[key].plan
+      };
+    }
+  });
+  return next;
+}
+
+function clampQuoteStep(mode, step) {
+  const max = mode === 'regular' ? 4 : mode === 'oneoff' ? 3 : 1;
+  const parsed = Number(step);
+  if (!Number.isFinite(parsed)) return 1;
+  return Math.min(max, Math.max(1, Math.trunc(parsed)));
+}
+
+function resetQuoteState(overrides = {}) {
+  Object.assign(Q, createInitialQuoteState(), overrides);
+  persistQuoteState();
+}
+
+async function readJsonResponse(res) {
+  const text = await res.text();
+  if (!text) return null;
+  try {
+    return JSON.parse(text);
+  } catch (err) {
+    console.warn('[MAC] Response was not valid JSON:', text);
+    return null;
+  }
+}
+
+function assignLeadToken(data) {
+  const token = data?.leadToken || data?.lead_token || data?.lead?.public_token || data?.public_token || '';
+  if (!token) return '';
+  Q.leadToken = token;
+  persistQuoteState();
+  return token;
+}
 
 /* All HiW data, visuals, and render functions removed — content is in HTML, scroll is pure CSS */
 
@@ -179,17 +357,21 @@ const Q = {
    and updates the trust strip. Results cached in localStorage for 24h.
 
    NOTE: The Places API (New) does NOT support browser CORS requests,
-   so we proxy through an n8n webhook. If the proxy is unavailable the
+   so we proxy through a backend endpoint. If the proxy is unavailable the
    hardcoded fallback values in the HTML remain visible.
    ────────────────────────────────────────── */
 const MAC_PLACE_ID = 'ChIJK0RKubxmdkgR6pf5H1C1vqs';
-// n8n webhook that proxies the Places request (avoids CORS)
-const REVIEWS_PROXY_URL = 'https://mac-cleaning.app.n8n.cloud/webhook/google-reviews';
+// Keep the static trust-strip figures unless a working reviews proxy is re-enabled.
+const REVIEWS_PROXY_URL = '';
 
 function initLiveReviews() {
   const ratingEl = document.getElementById('live-rating');
   const countEl  = document.getElementById('live-review-count');
   if (!ratingEl || !countEl) return;
+
+  const fallbackRating = Number.parseFloat(ratingEl.getAttribute('data-count') || ratingEl.textContent || '4.7');
+  const fallbackCount = Number.parseInt(countEl.textContent || '111', 10);
+  applyReviewData(ratingEl, countEl, fallbackRating, fallbackCount);
 
   // Check localStorage cache first (24-hour TTL)
   const CACHE_KEY = 'mac_google_reviews';
@@ -204,8 +386,9 @@ function initLiveReviews() {
     } catch (_) { /* ignore bad cache */ }
   }
 
-  // Fetch fresh data via proxy
-  fetchReviewData(ratingEl, countEl);
+  if (REVIEWS_PROXY_URL) {
+    fetchReviewData(ratingEl, countEl);
+  }
 }
 
 function applyReviewData(ratingEl, countEl, rating, count) {
@@ -219,8 +402,9 @@ function applyReviewData(ratingEl, countEl, rating, count) {
 }
 
 async function fetchReviewData(ratingEl, countEl) {
+  if (!REVIEWS_PROXY_URL) return;
   try {
-    // Try the n8n proxy first
+    // Try the backend proxy first
     const res = await fetch(REVIEWS_PROXY_URL);
     if (!res.ok) throw new Error('Proxy returned ' + res.status);
     const data = await res.json();
@@ -236,23 +420,7 @@ async function fetchReviewData(ratingEl, countEl) {
       }));
     }
   } catch (err) {
-    // Proxy unavailable — try Places API (New) directly (may fail due to CORS)
-    try {
-      const url = `https://places.googleapis.com/v1/places/${MAC_PLACE_ID}?fields=rating,userRatingCount&key=${GOOGLE_PLACES_KEY}`;
-      const res = await fetch(url);
-      if (!res.ok) throw new Error('Places API returned ' + res.status);
-      const data = await res.json();
-
-      if (data.rating != null && data.userRatingCount != null) {
-        applyReviewData(ratingEl, countEl, data.rating, data.userRatingCount);
-        localStorage.setItem('mac_google_reviews', JSON.stringify({
-          rating: data.rating, count: data.userRatingCount, ts: Date.now()
-        }));
-      }
-    } catch (_) {
-      // Both attempts failed — hardcoded HTML values remain as fallback
-      console.warn('Live reviews: could not fetch Google rating, using fallback values.');
-    }
+    console.warn('Live reviews: could not fetch Google rating, using fallback values.');
   }
 }
 
@@ -275,10 +443,11 @@ document.addEventListener('DOMContentLoaded', () => {
   loadGooglePlaces();
   loadStripe();
   loadGA();
-  handleStripeReturn();
+  const resumedFromPaymentReturn = handlePaymentReturn();
+  const resumedQuote = resumedFromPaymentReturn || restoreQuoteState({ announce: true });
   /* Auto-init quote mode from data attributes (for embedded service pages) */
   const _autoWidget = document.getElementById('quoteWidget');
-  if (_autoWidget && _autoWidget.dataset.quoteMode) {
+  if (_autoWidget && _autoWidget.dataset.quoteMode && !resumedQuote) {
     Q.mode = _autoWidget.dataset.quoteMode;
     Q.step = 1;
     if (_autoWidget.dataset.quoteService) {
@@ -465,7 +634,7 @@ function loadStripe() {
 }
 
 /**
- * Create a Stripe SetupIntent via the n8n endpoint.
+ * Create a Stripe SetupIntent via the MAC backend.
  * Returns { clientSecret, customerId } or null on failure.
  */
 async function createStripeSetup() {
@@ -475,15 +644,21 @@ async function createStripeSetup() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
+        mode: 'elements',
+        leadToken: Q.leadToken || '',
+        lead_token: Q.leadToken || '',
         name: Q.name,
         email: Q.email,
         phone: Q.phone,
         address: Q.address,
-        postcode: Q.postcode
+        postcode: Q.postcode,
+        source_page: window.location.pathname
       })
     });
     if (!res.ok) throw new Error('Setup endpoint returned ' + res.status);
-    return await res.json();
+    const data = await readJsonResponse(res);
+    assignLeadToken(data);
+    return data;
   } catch (err) {
     console.error('[MAC] Stripe setup failed:', err);
     return null;
@@ -552,7 +727,7 @@ async function mountStripeElement() {
 async function confirmStripeSetup() {
   if (!_stripe || !_stripeElements) return { success: false, error: 'Stripe not ready.' };
   /* Save quote state before potential 3D Secure redirect */
-  try { sessionStorage.setItem('mac_quote', JSON.stringify(Q)); } catch(e) {}
+  persistQuoteState();
   const { error } = await _stripe.confirmSetup({
     elements: _stripeElements,
     confirmParams: {
@@ -571,24 +746,26 @@ async function confirmStripeSetup() {
  * Handle return from 3D Secure / SCA redirect.
  * Stripe appends ?setup_intent=...&setup_intent_client_secret=...&redirect_status=succeeded
  */
-function handleStripeReturn() {
+function handlePaymentReturn() {
   const params = new URLSearchParams(window.location.search);
   if (!params.has('setup_intent') && !params.has('setup')) return false;
-  /* Restore quote state from sessionStorage */
-  try {
-    const saved = sessionStorage.getItem('mac_quote');
-    if (saved) {
-      const restored = JSON.parse(saved);
-      Object.assign(Q, restored);
-      sessionStorage.removeItem('mac_quote');
-    }
-  } catch(e) {}
+  /* Restore any saved quote state before applying the payment result */
+  restoreQuoteState();
+  if (params.get('setup') === 'gocardless-complete') {
+    Q.submitted = true;
+    Q.cardRegistered = true;
+    Q.paymentMethod = 'gocardless';
+    persistQuoteState();
+    window.history.replaceState({}, '', window.location.pathname);
+    return true;
+  }
   const status = params.get('redirect_status');
   if (status === 'succeeded' || params.get('setup') === 'complete') {
     Q.submitted = true;
     Q.cardRegistered = true;
     Q.paymentMethod = 'card';
   }
+  persistQuoteState();
   /* Clean up URL without reload */
   window.history.replaceState({}, '', window.location.pathname);
   return true;
@@ -597,7 +774,7 @@ function handleStripeReturn() {
 /* ─── GOCARDLESS DIRECT DEBIT ────────────── */
 
 /**
- * Create a GoCardless billing request via n8n endpoint.
+ * Create a GoCardless billing request via the MAC backend.
  * Returns { redirectUrl } or null on failure.
  */
 async function createGoCardlessSetup() {
@@ -607,15 +784,20 @@ async function createGoCardlessSetup() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
+        leadToken: Q.leadToken || '',
+        lead_token: Q.leadToken || '',
         name: Q.name,
         email: Q.email,
         phone: Q.phone,
         address: Q.address,
-        postcode: Q.postcode
+        postcode: Q.postcode,
+        source_page: window.location.pathname
       })
     });
     if (!res.ok) throw new Error('GoCardless endpoint returned ' + res.status);
-    return await res.json();
+    const data = await readJsonResponse(res);
+    assignLeadToken(data);
+    return data;
   } catch (err) {
     console.error('[MAC] GoCardless setup failed:', err);
     return null;
@@ -637,7 +819,7 @@ function getSourceData() {
 
 /* ─── PARTIAL LEAD CAPTURE (soft gate) ── */
 /* ─── PARTIAL LEAD CAPTURE ─────────────── */
-function capturePartialLead() {
+async function capturePartialLead() {
   const payload = {
     status: 'partial',
     timestamp: new Date().toISOString(),
@@ -656,17 +838,34 @@ function capturePartialLead() {
   if (typeof gtag === 'function') {
     gtag('event', 'soft_gate_passed', { property: Q.property });
   }
-  /* Send to n8n — n8n writes to Supabase via service_role */
-  const url = LEAD_PARTIAL_URL || N8N_WEBHOOK;
-  if (!url) { console.warn('[MAC] No webhook configured for partial lead.'); return; }
-  fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload)
-  }).then(r => {
-    if (!r.ok) console.error('[MAC] Partial lead webhook error:', r.status);
-    else console.log('[MAC] Partial lead sent to n8n');
-  }).catch(err => console.error('[MAC] Partial lead webhook failed:', err));
+  /* Send to the MAC backend */
+  const url = LEAD_PARTIAL_URL;
+  if (!url) {
+    console.warn('[MAC] No partial lead endpoint configured.');
+    return { ok: false, error: 'No partial lead endpoint configured.' };
+  }
+
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const data = await readJsonResponse(res);
+    if (!res.ok) {
+      return {
+        ok: false,
+        data,
+        error: data?.error || ('Partial lead endpoint returned ' + res.status)
+      };
+    }
+    assignLeadToken(data);
+    console.log('[MAC] Partial lead sent to Worker');
+    return { ok: true, data };
+  } catch (err) {
+    console.error('[MAC] Partial lead webhook failed:', err);
+    return { ok: false, error: err?.message || 'Unable to save your details right now.' };
+  }
 }
 
 /* ─── FULL LEAD PAYLOAD ─────────────────── */
@@ -689,6 +888,11 @@ function buildLeadPayload() {
     /* Source tracking */
     ...getSourceData()
   };
+  if (Q.leadToken) {
+    payload.leadToken = Q.leadToken;
+    payload.lead_token = Q.leadToken;
+    payload.lead_id = Q.leadToken;
+  }
   if (isRegular) {
     payload.frequency = Q.frequency;
     payload.price_per_clean = getPrice(Q.frequency);
@@ -711,7 +915,7 @@ function buildLeadPayload() {
       payload.addons_total = getAddonTotal();
     }
     payload.total = payload.price_per_clean + (payload.addons_total || 0);
-    /* Legacy field names for existing n8n workflow */
+    /* Legacy field names kept for compatibility with older payload readers */
     payload.property = Q.property;
     payload.build = getBuild();
     payload.beds = Q.beds;
@@ -742,7 +946,7 @@ function buildLeadPayload() {
   return payload;
 }
 
-function submitLead() {
+async function submitLead() {
   const payload = buildLeadPayload();
   console.log('[MAC] Lead captured');
   /* Track in GA if available */
@@ -753,17 +957,29 @@ function submitLead() {
       quote_type: payload.type
     });
   }
-  /* Send to n8n — n8n writes to Supabase via service_role */
-  const url = LEAD_COMPLETE_URL || N8N_WEBHOOK;
-  if (!url) return;
-  fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload)
-  }).then(r => {
-    if (!r.ok) console.error('[MAC] Webhook error:', r.status);
-    else console.log('[MAC] Lead sent to n8n');
-  }).catch(err => console.error('[MAC] Webhook failed:', err));
+  /* Send to the MAC backend */
+  const url = LEAD_COMPLETE_URL;
+  if (!url) {
+    return { ok: false, error: 'No quote submission endpoint configured.' };
+  }
+
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const data = await readJsonResponse(res);
+    if (!res.ok) {
+      throw new Error(data?.error || ('Quote endpoint returned ' + res.status));
+    }
+    assignLeadToken(data);
+    console.log('[MAC] Lead sent to Worker');
+    return { ok: true, data };
+  } catch (err) {
+    console.error('[MAC] Quote submission failed:', err);
+    return { ok: false, error: err?.message || 'Unable to save your quote right now.' };
+  }
 }
 
 /* ─── GOOGLE ANALYTICS ──────────────────── */
@@ -1148,6 +1364,7 @@ function renderQuote() {
     } else {
       Q.feedback = null;
     }
+    persistQuoteState();
   }));
   w.querySelectorAll('[data-field]').forEach(el => el.addEventListener('blur', () => {
     /* Skip blur re-render for address field when Google Places dropdown is open */
@@ -1161,6 +1378,7 @@ function renderQuote() {
   }));
   w.querySelectorAll('[data-check="terms"]').forEach(el => el.addEventListener('change', e => {
     Q.termsAccepted = e.target.checked;
+    persistQuoteState();
     renderQuote();
   }));
   /* Card input formatting removed — Stripe Elements handles card input in a secure iframe */
@@ -1176,6 +1394,7 @@ function renderQuote() {
       if (el) el.scrollIntoView({behavior:'smooth', block:'center'});
     });
   }
+  persistQuoteState();
 }
 
 /* ─── ENTRY POINT ────────────────────── */
@@ -1231,7 +1450,7 @@ function renderEntry() {
 }
 
 /* ─── ACTION HANDLER ─────────────────── */
-function handleQuoteClick(e) {
+async function handleQuoteClick(e) {
   const a = e.currentTarget.dataset.act;
   if (a==='sky+' || a==='sky-') e.stopPropagation();
   /* Dismiss Google Places dropdown on any action (prevents bleed-through between steps) */
@@ -1266,7 +1485,29 @@ function handleQuoteClick(e) {
   else if (a==='reveal') {
     const err=validateStep1();
     if(err){Q.feedback={t:'error',m:err.msg,field:err.field}; Q._scrollField=err.field;}
-    else{Q.leadCaptured=true; capturePartialLead(); Q.feedback={t:'success',m: Q.mode==='oneoff' ? "Here are your prices! Review your selection below." : "Here's your price! Tap a frequency below to start booking."};}
+    else{
+      const partial = await capturePartialLead();
+      const coverage = partial?.data?.coverage;
+      if (coverage && coverage.supported === false) {
+        Q.leadCaptured=false;
+        Q.feedback={t:'error',m:coverage.message || partial.error || 'We do not currently cover that postcode.',field:'postcode'};
+      } else if (partial?.ok) {
+        Q.leadCaptured=true;
+        if (coverage?.requiresManualReview) {
+          Q.feedback={
+            t:'info',
+            m:(Q.mode==='oneoff'
+              ? "Here are your prices. "
+              : "Here's your price. ") + (coverage.message || "We’ll confirm availability manually before finalising the job.")
+          };
+        } else {
+          Q.feedback={t:'success',m: Q.mode==='oneoff' ? "Here are your prices! Review your selection below." : "Here's your price! Tap a frequency below to start booking."};
+        }
+      } else {
+        Q.leadCaptured=true;
+        Q.feedback={t:'info',m:(Q.mode==='oneoff' ? "Here are your prices." : "Here's your price.") + " We couldn't save your details yet, but we'll retry when you continue."};
+      }
+    }
   }
 
   /* Frequency selection — regular path (directly advances to step 2) */
@@ -1300,7 +1541,24 @@ function handleQuoteClick(e) {
   /* Accept quote */
   else if (a==='accept') {
     if (!Q.termsAccepted) { Q.feedback={t:'error',m:'Please accept the terms to continue.'}; }
-    else { Q.submitted=true; Q.feedback=null; submitLead(); }
+    else {
+      const btn = e.currentTarget;
+      btn.classList.add('is-loading');
+      btn.style.pointerEvents = 'none';
+      btn.innerHTML = '<span class="btn-spinner"></span>Saving your quote…';
+      Q.feedback={t:'info',m:'Saving your quote and preparing signup…'};
+      const submission = await submitLead();
+      if (submission?.ok) {
+        Q.submitted=true;
+        Q.feedback=null;
+      } else {
+        btn.classList.remove('is-loading');
+        btn.style.pointerEvents = '';
+        btn.innerHTML = 'Accept Quote →';
+        Q.submitted=false;
+        Q.feedback={t:'error',m: submission?.error || 'We could not save your quote. Please try again.'};
+      }
+    }
   }
 
   /* Register card — real Stripe or fallback */
@@ -1345,6 +1603,8 @@ function handleQuoteClick(e) {
     createGoCardlessSetup().then(result => {
       if (result && result.redirectUrl) {
         if (/^https:\/\/(pay\.gocardless\.com|gocardless\.com)\//.test(result.redirectUrl)) {
+          Q.paymentMethod = 'gocardless';
+          persistQuoteState();
           window.location.href = result.redirectUrl;
         } else {
           console.error('[MAC] Invalid GoCardless redirect URL blocked:', result.redirectUrl);
@@ -1384,16 +1644,12 @@ function handleQuoteClick(e) {
   }
 
   /* Cross-sell from one-off to regular */
-  else if (a==='crossSellRegular') {
-    Object.assign(Q,{mode:'regular',step:1,property:'',build:'',beds:'',extras:{conservatory:false,extension:false,porch:false,garage:false,skylights:false},skylightCount:1,commercialType:'',commercialDesc:'',postcode:'',email:'',leadCaptured:false,name:'',phone:'',address:'',frequency:'4-weekly',addons:{gutter:{selected:false,plan:'single'},fascia:{selected:false,plan:'single'},conservatory_roof:{selected:false,plan:'single'}},oneoffServices:{gutter:false,fascia:false,conservatory_roof:false},termsAccepted:false,submitted:false,cardRegistered:false,feedback:null});
-    Q._scroll=true;
-  }
+  else if (a==='crossSellRegular') { resetQuoteState({ mode:'regular', step:1, _scroll:true }); }
 
   /* Restart */
-  else if (a==='restart') {
-    Object.assign(Q,{mode:'',step:1,property:'',build:'',beds:'',extras:{conservatory:false,extension:false,porch:false,garage:false,skylights:false},skylightCount:1,commercialType:'',commercialDesc:'',postcode:'',email:'',leadCaptured:false,name:'',phone:'',address:'',frequency:'4-weekly',addons:{gutter:{selected:false,plan:'single'},fascia:{selected:false,plan:'single'},conservatory_roof:{selected:false,plan:'single'}},oneoffServices:{gutter:false,fascia:false,conservatory_roof:false},termsAccepted:false,submitted:false,cardRegistered:false,feedback:null});
-  }
+  else if (a==='restart') { resetQuoteState(); }
 
+  persistQuoteState();
   renderQuote();
 }
 
@@ -1483,8 +1739,7 @@ function renderStep1() {
     h += '<div class="widget-panel"><h3>Commercial property details</h3>';
     h += '<div class="field"><label>Type of building</label><input data-field="commercialType" value="' + esc(Q.commercialType||'') + '" placeholder="e.g. Office, retail unit, school, restaurant">' + fieldError('commercialType') + '</div>';
     h += '<div class="field"><label>What do you need cleaned?</label><textarea data-field="commercialDesc" rows="4" style="width:100%;border-radius:var(--radius-sm);border:1.5px solid var(--line);padding:0.8rem;font:inherit;resize:vertical" placeholder="Tell us about the job — number of windows, floors, access requirements, how often you need us etc.">' + esc(Q.commercialDesc||'') + '</textarea></div>';
-    h += '<div class="field" style="margin-top:0.8rem"><label>Photos <span style="color:var(--ink-faint);font-weight:400">(optional)</span></label><input type="file" data-field="commercialPhotos" multiple accept="image/*" style="font-size:0.88rem"></div>';
-    h += '<p style="font-size:0.85rem;color:var(--ink-faint);margin-top:0.8rem">We\'ll review your details and get back to you with a custom quote within 24 hours.</p>';
+    h += '<p style="font-size:0.85rem;color:var(--ink-faint);margin-top:0.8rem">We\'ll review your details and get back to you with a custom quote within 24 hours. If photos would help, we\'ll request them after reviewing your enquiry.</p>';
     h += '</div>';
   } else if (Q.property && eb && beds.length) {
     h += `<div class="widget-panel"><h3>Bedrooms</h3><div class="chip-grid">${beds.map(b => chip(b+' bed','','beds:'+b,Q.beds===b)).join('')}</div>${fieldError('beds')}</div>`;
@@ -1497,11 +1752,7 @@ function renderStep1() {
       return `<div class="extra-card ${sel?'selected':''}" data-act="extra:${ex.id}"><strong>${esc(ex.label)}</strong><span>${esc(ex.note)}</span>${extra}</div>`;
     }).join('')}</div></div>`;
 
-    h += `<div class="widget-panel"><h3>Photos <span style="font-weight:400;font-size:0.85rem;color:var(--ink-faint)">(optional — helps us quote accurately)</span></h3>
-        <input type="file" data-field="photos" multiple accept="image/*" style="font-size:0.88rem">
-        <p style="font-size:0.82rem;color:var(--ink-faint);margin-top:0.4rem">Upload photos of your property if you'd like a more accurate quote.</p>
-      </div>
-      <div class="widget-panel"><h3>Check coverage &amp; see your price</h3>
+    h += `<div class="widget-panel"><h3>Check coverage &amp; see your price</h3>
       <div class="field" style="margin-bottom:0.6rem"><label>Your name</label><input data-field="name" value="${esc(Q.name)}" placeholder="e.g. Sarah Thompson" autocomplete="name" class="${fieldHasError('name')?'field-input--error':''}">${fieldError('name')}</div>
       <div class="field-row">
         <div class="field ${fieldHasError('postcode')?'field--error':''}"><label>Postcode</label><input data-field="postcode" value="${esc(Q.postcode)}" placeholder="e.g. LU3 2AB" autocomplete="postal-code" class="${fieldHasError('postcode')?'field-input--error':''}"><div class="field-hint">Check we cover your area</div>${fieldError('postcode')}</div>
@@ -1534,7 +1785,7 @@ function renderStep2() {
     <div class="widget-panel"><h3>Contact details</h3>
       <div class="field-row">
         <div class="field ${fieldHasError('name')?'field--error':''}"><label>Name</label><input data-field="name" value="${esc(Q.name)}" placeholder="Full name" autocomplete="name" class="${fieldHasError('name')?'field-input--error':''}"><div class="field-hint">So we know who to expect</div>${fieldError('name')}</div>
-        <div class="field ${fieldHasError('phone')?'field--error':''}"><label>Phone</label><input data-field="phone" type="tel" value="${esc(Q.phone)}" placeholder="07..." autocomplete="tel" class="${fieldHasError('phone')?'field-input--error':''}"><div class="field-hint">For your night-before text reminders</div>${fieldError('phone')}</div>
+        <div class="field ${fieldHasError('phone')?'field--error':''}"><label>Phone</label><input data-field="phone" type="tel" value="${esc(Q.phone)}" placeholder="07..." autocomplete="tel" class="${fieldHasError('phone')?'field-input--error':''}"><div class="field-hint">For email reminders and service updates</div>${fieldError('phone')}</div>
       </div>
       <div class="field ${fieldHasError('address')?'field--error':''}"><label>Address</label><input data-field="address" value="${esc(Q.address)}" placeholder="House number and street" autocomplete="street-address" class="${fieldHasError('address')?'field-input--error':''}"><div class="field-hint">So we know where to come</div>${fieldError('address')}</div>
     </div>
@@ -1796,25 +2047,25 @@ function renderConfirm() {
     /* Success state after card registration */
     h += '<div class="card-form__success">';
     h += '<div class="card-form__success-check"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>';
-    h += '<p class="card-form__success-title">Signup complete!</p>';
+    h += `<p class="card-form__success-title">${Q.paymentMethod === 'gocardless' ? 'Direct Debit set up!' : 'Signup complete!'}</p>`;
     h += `<p class="stripe-card__note">Confirmation sent to <strong>${esc(Q.email)}</strong></p>`;
     h += '</div>';
   }
 
-  h += '<div class="stripe-card__badge"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>Powered by Stripe · 256-bit encryption</div>';
+  h += `<div class="stripe-card__badge"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>${Q.paymentMethod === 'gocardless' ? 'Powered by GoCardless · Direct Debit Guarantee protected' : 'Powered by Stripe · 256-bit encryption'}</div>`;
   h += '</div></div>';
 
   /* Part C — What happens next */
   if (isRegular) {
     h += `<div class="confirm-steps"><p><strong>What happens next</strong></p><ul>
       <li>Your first clean will be booked within 24 hours</li>
-      <li>You'll receive a text the night before each visit</li>
+      <li>You'll receive an email reminder before each visit</li>
       <li>Payments are taken automatically after each clean</li>
     </ul></div>`;
   } else {
     h += `<div class="confirm-steps"><p><strong>What happens next</strong></p><ul>
       <li>We'll arrange your service within 48 hours</li>
-      <li>You'll receive a text the day before</li>
+      <li>You'll receive an email reminder before the job</li>
       <li>Payment is taken after the job is complete</li>
     </ul></div>`;
     h += `<div class="cross-sell"><p>Did you know we offer regular window cleaning from just <strong>£19/clean</strong>?</p><button class="btn btn-secondary btn-sm" data-act="crossSellRegular">Get a window cleaning quote →</button></div>`;
