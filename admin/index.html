@@ -1873,6 +1873,7 @@ function computeAll() {
   renderAttentionWorkbench(analyticsLeads);
   renderQueueSnapshot(analyticsLeads);
   renderRevenue(analyticsLeads);
+  renderAiSummary(leads, analyticsLeads);
   if (currentTab === 'insights') {
     renderCharts(analyticsLeads);
     renderGeoTable(analyticsLeads);
@@ -3223,65 +3224,111 @@ $('#btnExport').addEventListener('click', exportCSV);
 applyLayoutState();
 setLayoutEditing(false);
 fetchData();
-fetchAiSummary();
 
 // ── AI SUMMARY ─────────────────────────────────────────────
-let aiDebounceTimer = null;
-async function fetchAiSummary() {
+function rangeLabel() {
+  const map = {
+    7: 'last 7 days',
+    30: 'last 30 days',
+    90: 'last quarter',
+    180: 'last 6 months',
+    365: 'last year',
+    0: 'all time'
+  };
+  return map[currentRange] || 'current view';
+}
+
+function renderAiSummary(filteredLeads, analyticsLeads) {
   const el = $('#aiSummary');
   const body = $('#aiBody');
   const status = $('#aiStatus');
-  el.classList.add('loading');
-  status.textContent = 'Analysing...';
+  if (!el || !body || !status) return;
 
-  try {
-    const res = await fetch(SUPABASE_URL + '/functions/v1/ai-leads-summary', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + SUPABASE_KEY,
-      },
-    });
-    const data = await res.json();
-    const text = data.summary || 'No summary available.';
-    // Convert bullet points to HTML list
-    const lines = text.split('\n').filter(l => l.trim());
-    const hasBullets = lines.some(l => /^[-*•]/.test(l.trim()));
-    if (hasBullets) {
-      body.innerHTML = '<ul>' + lines.map(l => {
-        const clean = l.replace(/^[-*•]\s*/, '').trim();
-        return clean ? '<li>' + clean + '</li>' : '';
-      }).join('') + '</ul>';
-    } else {
-      body.textContent = text;
-    }
-    status.textContent = 'Updated just now';
-  } catch (err) {
-    body.textContent = 'Summary temporarily unavailable.';
-    status.textContent = 'Error';
-    console.error('AI summary error:', err);
-  } finally {
+  const visibleLeads = Array.isArray(filteredLeads) ? filteredLeads : [];
+  const leads = Array.isArray(analyticsLeads) ? analyticsLeads : [];
+  const excludedTests = Math.max(0, visibleLeads.length - leads.length);
+  const bullets = [];
+
+  if (!visibleLeads.length) {
+    body.textContent = 'Waiting for enough lead activity to generate useful operating insight for this view.';
+    status.textContent = 'No leads in view';
     el.classList.remove('loading');
+    return;
   }
-}
 
-function debouncedAiSummary() {
-  clearTimeout(aiDebounceTimer);
-  aiDebounceTimer = setTimeout(fetchAiSummary, 3000);
+  if (!leads.length) {
+    body.innerHTML = `<ul><li>All visible leads in this view are marked as test, so analytics and revenue are intentionally suppressed.</li></ul>`;
+    status.textContent = 'Test-only view';
+    el.classList.remove('loading');
+    return;
+  }
+
+  const partial = leads.filter(l => l.status === 'partial').length;
+  const quoted = leads.filter(l => l.status !== 'partial').length;
+  const signedUp = leads.filter(l => isWonStatus(l.status)).length;
+  const manualReview = leads.filter(hasManualReview).length;
+  const paymentPending = leads.filter(l =>
+    (l.payment_link || l.gocardless_link || l.status === 'payment_pending' || l.status === 'quote_sent') &&
+    !['signed_up', 'confirmed', 'dead', 'cancelled'].includes(l.status)
+  ).length;
+  const oneoffQuotedValue = leads
+    .filter(l => getLeadQuoteKind(l) === 'oneoff' && isOpenPipelineStatus(l.status))
+    .reduce((sum, lead) => sum + (getLeadTotal(lead) || 0), 0);
+  const areaCounts = {};
+  leads.forEach(lead => {
+    const area = postcodeArea(lead.postcode);
+    areaCounts[area] = (areaCounts[area] || 0) + 1;
+  });
+  const topArea = Object.entries(areaCounts).sort((a, b) => b[1] - a[1])[0];
+  const conversion = quoted > 0 ? Math.round((signedUp / quoted) * 100) : 0;
+
+  if (excludedTests) {
+    bullets.push(`${excludedTests} test lead${excludedTests === 1 ? '' : 's'} ${excludedTests === 1 ? 'is' : 'are'} excluded from the analytics in this ${rangeLabel()} view.`);
+  }
+
+  if (partial > 0) {
+    bullets.push(`${partial} partial lead${partial === 1 ? '' : 's'} still need follow-up or a completed quote, so there is still recoverable demand sitting above the pipeline.`);
+  } else {
+    bullets.push(`There are no unfinished quotes in this ${rangeLabel()} view, so the queue is currently weighted toward quoted or converted work.`);
+  }
+
+  if (paymentPending > 0) {
+    bullets.push(`${paymentPending} lead${paymentPending === 1 ? '' : 's'} ${paymentPending === 1 ? 'is' : 'are'} already at payment or mandate setup, which makes ${paymentPending === 1 ? 'it your quickest win' : 'them your quickest wins'} right now.`);
+  }
+
+  if (quoted > 0) {
+    bullets.push(`Current conversion is ${conversion}% from ${quoted} quoted lead${quoted === 1 ? '' : 's'}, with ${signedUp} already converted into signed-up or live work.`);
+  } else {
+    bullets.push('No quoted leads are visible in this view yet, so conversion is still waiting on quote delivery rather than follow-up.');
+  }
+
+  if (manualReview > 0) {
+    bullets.push(`${manualReview} lead${manualReview === 1 ? '' : 's'} ${manualReview === 1 ? 'needs' : 'need'} manual review, so service-fit checks are still a meaningful source of operational drag.`);
+  }
+
+  if (topArea) {
+    bullets.push(`${topArea[0]} is your strongest area in this view with ${topArea[1]} lead${topArea[1] === 1 ? '' : 's'}, making it the clearest density cluster to optimise around.`);
+  }
+
+  if (oneoffQuotedValue > 0) {
+    bullets.push(`One-off work currently adds ${formatCurrencyFull(Math.round(oneoffQuotedValue))} of quoted value on top of the recurring pipeline without inflating MRR or ARR.`);
+  }
+
+  body.innerHTML = '<ul>' + bullets.slice(0, 5).map(line => `<li>${esc(line)}</li>`).join('') + '</ul>';
+  status.textContent = `Updated for ${rangeLabel()}`;
+  el.classList.remove('loading');
 }
 
 // ── REALTIME SUBSCRIPTION ──────────────────────────────────
 sb.channel('leads-realtime')
   .on('postgres_changes', { event: '*', schema: 'public', table: 'leads' }, () => {
     fetchData();
-    debouncedAiSummary();
   })
   .subscribe();
 
 sb.channel('events-realtime')
   .on('postgres_changes', { event: '*', schema: 'public', table: 'lead_events' }, () => {
     fetchData();
-    debouncedAiSummary();
   })
   .subscribe();
 </script>
