@@ -464,6 +464,55 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 /* ── HERO POSTCODE INPUT ─────────────────── */
+let _quoteArrivalTimer = null;
+
+function pulseQuoteSurface() {
+  const widget = document.getElementById('quoteWidget');
+  if (!widget) return;
+  widget.classList.remove('quote-widget--arrival');
+  void widget.offsetWidth;
+  widget.classList.add('quote-widget--arrival');
+  clearTimeout(_quoteArrivalTimer);
+  _quoteArrivalTimer = setTimeout(() => {
+    widget.classList.remove('quote-widget--arrival');
+  }, 1500);
+}
+
+function scrollToQuoteSurface() {
+  const target = document.getElementById('quote') || document.getElementById('quoteWidget');
+  if (!target) return;
+  const y = target.getBoundingClientRect().top + window.scrollY - 96;
+  window.scrollTo({ top: Math.max(0, y), behavior: 'smooth' });
+  pulseQuoteSurface();
+}
+
+function setHeroPostcodeError(input, message) {
+  const bar = input?.closest('.hero-postcode-bar');
+  const inner = input?.closest('.hero-postcode-inner');
+  if (!bar || !inner || !input) return;
+  let error = document.getElementById('heroPostcodeError');
+  if (!error) {
+    error = document.createElement('div');
+    error.id = 'heroPostcodeError';
+    error.className = 'hero-postcode-error';
+    error.setAttribute('aria-live', 'polite');
+    bar.appendChild(error);
+  }
+  error.textContent = message || '';
+  error.hidden = !message;
+  inner.classList.toggle('has-error', !!message);
+  input.setAttribute('aria-invalid', message ? 'true' : 'false');
+  if (message) input.setAttribute('aria-describedby', 'heroPostcodeError');
+  else input.removeAttribute('aria-describedby');
+}
+
+function getQuoteLinkMode(link) {
+  const explicitMode = link?.dataset?.quoteMode;
+  if (explicitMode === 'regular' || explicitMode === 'oneoff') return explicitMode;
+  const widgetMode = document.getElementById('quoteWidget')?.dataset?.quoteMode;
+  return widgetMode === 'oneoff' ? 'oneoff' : 'regular';
+}
+
 function initHeroPostcode() {
   const input = document.getElementById('heroPostcode');
   const btn = document.getElementById('heroPostcodeBtn');
@@ -471,18 +520,26 @@ function initHeroPostcode() {
 
   function submitPostcode() {
     const val = input.value.trim();
-    if (!val) { input.focus(); return; }
+    if (!val) {
+      setHeroPostcodeError(input, 'Enter your postcode to start your quote.');
+      input.focus();
+      return;
+    }
+    setHeroPostcodeError(input, '');
     /* Set the quote state */
-    if (!Q.mode) { Q.mode = 'regular'; Q.step = 1; Q.feedback = null; }
+    Q.mode = 'regular';
+    Q.step = 1;
+    Q.feedback = { t: 'info', m: 'We saved your postcode below. Start with your property type to reveal your exact price.' };
     Q.postcode = val.toUpperCase();
     renderQuote();
-    /* Scroll to quote widget */
-    const target = document.getElementById('quoteWidget');
-    if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    scrollToQuoteSurface();
   }
 
   btn.addEventListener('click', submitPostcode);
   input.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); submitPostcode(); } });
+  input.addEventListener('input', () => {
+    if (input.value.trim()) setHeroPostcodeError(input, '');
+  });
 }
 
 /* ── CTA DEEP LINKS ──────────────────────
@@ -495,19 +552,21 @@ function initQuoteDeepLinks() {
     if (!link) return;
     /* Don't interfere if the user has already started a quote or submitted */
     if (Q.submitted) return;
-    /* Auto-select regular window cleaning and go to step 1 */
-    if (!Q.mode) {
-      Q.mode = 'regular';
+    const requestedMode = getQuoteLinkMode(link);
+    /* Auto-select the requested quote path and go to step 1 */
+    if (!Q.mode || link.dataset.quoteMode) {
+      Q.mode = requestedMode;
       Q.step = 1;
-      Q.feedback = null;
+      Q.feedback = {
+        t: 'info',
+        m: requestedMode === 'oneoff'
+          ? 'Select the services you need below and we’ll build your one-off quote.'
+          : 'Start with your property type below and we’ll reveal your exact price.'
+      };
       renderQuote();
     }
-    /* Scroll to the quote widget smoothly */
     e.preventDefault();
-    const target = document.getElementById('quoteWidget');
-    if (target) {
-      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
+    scrollToQuoteSurface();
   });
 }
 

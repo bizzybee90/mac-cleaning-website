@@ -302,6 +302,10 @@ section { padding: var(--section-py) 0; }
   border-color: var(--gold);
   box-shadow: var(--shadow-md), 0 0 0 4px var(--gold-glow);
 }
+.hero-postcode-inner.has-error {
+  border-color: var(--error);
+  box-shadow: var(--shadow-md), 0 0 0 4px rgba(192,57,43,0.12);
+}
 .hero-postcode-icon {
   flex-shrink: 0;
   color: var(--gold);
@@ -320,6 +324,12 @@ section { padding: var(--section-py) 0; }
 }
 .hero-postcode-input::placeholder { color: var(--ink-faint); font-weight: 400; }
 .hero-postcode-btn { padding: 0.75rem 1.4rem; flex-shrink: 0; font-size: 0.9rem; }
+.hero-postcode-error {
+  margin-top: 0.65rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--error);
+}
 
 .hero-actions { display: flex; gap: 0.8rem; flex-wrap: wrap; margin: 0.4rem 0 1.4rem; }
 .hero-proof { display: flex; flex-wrap: wrap; gap: 0.6rem 1.4rem; }
@@ -904,6 +914,7 @@ section { padding: var(--section-py) 0; }
   gap: 2rem;
   align-items: start;
 }
+#quote { scroll-margin-top: calc(var(--nav-h) + 1.25rem); }
 .quote-sidebar { position: sticky; top: calc(var(--nav-h) + 1rem); }
 .quote-sidebar .tag { margin-bottom: 0.8rem; }
 .quote-sidebar h2 { font-size: clamp(1.8rem, 3vw, 2.4rem); }
@@ -923,11 +934,29 @@ section { padding: var(--section-py) 0; }
 .quote-shell.entry-mode { grid-template-columns: 1fr; }
 .quote-shell.entry-mode .quote-summary { display: none; }
 .quote-widget { padding: 1.3rem; border-radius: var(--radius-md); }
+.quote-widget--arrival {
+  animation: quote-arrival-pulse 1.4s var(--ease);
+}
 .quote-summary {
   padding: 1.3rem;
   border-radius: var(--radius-md);
   position: sticky;
   top: calc(var(--nav-h) + 1rem);
+}
+
+@keyframes quote-arrival-pulse {
+  0% {
+    transform: translateY(8px);
+    box-shadow: 0 16px 44px rgba(28,36,52,0.08), 0 0 0 0 rgba(184,134,11,0);
+  }
+  40% {
+    transform: translateY(0);
+    box-shadow: 0 22px 52px rgba(28,36,52,0.12), 0 0 0 6px rgba(184,134,11,0.14);
+  }
+  100% {
+    transform: translateY(0);
+    box-shadow: var(--shadow-md);
+  }
 }
 
 /* Quote form elements */
@@ -1910,6 +1939,7 @@ section { padding: var(--section-py) 0; }
     border-radius: var(--radius-pill);
   }
   .hero-postcode-btn { width: 100%; padding: 0.95rem 1.2rem; font-size: 1rem; }
+  .hero-postcode-error { text-align: center; }
 
   /* Hide secondary CTAs on mobile — single CTA (postcode) per article best practice */
   .hero-actions { display: none !important; }

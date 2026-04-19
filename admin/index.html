@@ -191,13 +191,13 @@ body.layout-editing .hidden-modules.has-hidden{display:flex}
 .overview-shell{margin-bottom:0}
 .overview-board{
   background:linear-gradient(135deg,#1f2738 0%, #2d3546 100%);
-  border-radius:24px;padding:22px 22px 18px;color:#fff;
+  border-radius:24px;padding:18px 18px 14px;color:#fff;
   box-shadow:0 8px 28px rgba(28,36,52,0.16);
 }
-.overview-main{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(320px,.82fr);gap:18px}
+.overview-main{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(320px,.9fr);gap:14px}
 .overview-command{
-  margin-bottom:0;padding:6px 4px 6px 2px;
-  display:flex;flex-direction:column;gap:18px;min-height:100%;
+  margin-bottom:0;padding:4px 2px 4px 0;
+  display:flex;flex-direction:column;gap:14px;min-height:100%;
 }
 .overview-board .ai-summary{
   background:transparent;box-shadow:none;padding:0;margin-bottom:0;border-radius:0;
@@ -209,9 +209,7 @@ body.layout-editing .hidden-modules.has-hidden{display:flex}
   color:var(--gold-light);margin-bottom:8px;
 }
 .overview-title{font-size:1.65rem;font-weight:800;line-height:1.05;letter-spacing:-.03em;max-width:16ch}
-.overview-copy{
-  font-size:.9rem;line-height:1.65;color:rgba(255,255,255,0.78);max-width:52ch;margin-top:10px;
-}
+.overview-copy{font-size:.88rem;line-height:1.58;color:rgba(255,255,255,0.78);max-width:48ch;margin-top:8px}
 .overview-command .date-range{margin:0;justify-content:flex-end}
 .overview-command .range-select{
   background:rgba(255,255,255,0.08);border-color:rgba(255,255,255,0.12);color:var(--white);
@@ -219,11 +217,11 @@ body.layout-editing .hidden-modules.has-hidden{display:flex}
 .overview-command .range-select:hover,
 .overview-command .range-select:focus{border-color:rgba(211,161,52,0.7)}
 .overview-command .range-wrap::after{color:rgba(255,255,255,0.72)}
-.overview-bottom{display:grid;grid-template-columns:minmax(0,1fr);gap:14px;margin-top:16px}
+.overview-bottom{display:grid;grid-template-columns:minmax(0,1fr);gap:12px;margin-top:12px}
 .overview-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
 .overview-side{
-  display:grid;gap:12px;align-content:start;
-  background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);border-radius:20px;padding:16px;
+  display:grid;gap:10px;align-content:start;
+  background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);border-radius:20px;padding:14px;
 }
 .overview-side-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
 .overview-side-title{font-size:.8rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,0.72)}
@@ -239,17 +237,18 @@ body.layout-editing .hidden-modules.has-hidden{display:flex}
 }
 .pulse-highlight-value{font-size:1.35rem;font-weight:800;letter-spacing:-.03em;color:#fff}
 .pulse-highlight-sub{font-size:.72rem;line-height:1.5;color:rgba(255,255,255,0.56);margin-top:6px}
-.overview-side-grid{display:grid;gap:8px}
+.overview-side-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
 .overview-side-row{
-  display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px;align-items:end;
-  padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.08);
+  display:grid;grid-template-columns:minmax(0,1fr);gap:6px;align-items:start;
+  padding:10px 12px;border:1px solid rgba(255,255,255,0.08);border-radius:14px;
+  background:rgba(255,255,255,0.04);
 }
-.overview-side-row:last-child{border-bottom:none;padding-bottom:0}
+.overview-side-row:last-child{padding-bottom:10px}
 .overview-side-row .stat-label{
   margin-bottom:3px;color:rgba(255,255,255,0.52);font-size:.68rem;
 }
-.overview-side-row .stat-value{font-size:1.1rem;color:#fff}
-.overview-side-row .stat-sub{margin-top:0;color:rgba(255,255,255,0.44);font-size:.72rem}
+.overview-side-row .stat-value{font-size:1.02rem;color:#fff;line-height:1.15}
+.overview-side-row .stat-sub{margin-top:0;color:rgba(255,255,255,0.44);font-size:.71rem;line-height:1.45}
 .stat-card-compact{padding:16px 16px 14px;border-top-width:3px}
 .stat-card-compact .stat-label{margin-bottom:6px}
 .stat-card-compact .stat-value{font-size:1.55rem}
@@ -574,8 +573,20 @@ tbody tr:has(.badge-commercial_pending){border-left-color:#8e44ad}
 .panel-hero{padding:18px 18px 16px}
 .panel-card{padding:16px 16px 15px}
 .panel-name{font-size:1.55rem;font-weight:800;line-height:1.05;letter-spacing:-.03em;margin-bottom:6px;padding-right:40px}
-.panel-contact{font-size:.86rem;color:var(--ink);line-height:1.6}
+.panel-contact{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;font-size:.86rem;color:var(--ink);line-height:1.6}
 .panel-contact a{color:var(--info);text-decoration:underline}
+.panel-contact-sep{color:var(--ink-faint)}
+.panel-copy-number{
+  appearance:none;border:1px solid var(--line);background:var(--white);color:var(--charcoal);
+  border-radius:999px;padding:7px 12px;font:inherit;font-size:.84rem;font-weight:700;cursor:pointer;
+  transition:border-color .2s ease, box-shadow .2s ease, color .2s ease, background .2s ease;
+}
+.panel-copy-number:hover,.panel-copy-number:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(211,161,52,0.12)}
+.panel-copy-number.is-copied{border-color:var(--success);color:var(--success);background:rgba(29,139,81,0.06)}
+.panel-call-link{
+  display:inline-flex;align-items:center;justify-content:center;padding:7px 12px;border-radius:999px;
+  background:rgba(42,107,197,0.08);border:1px solid rgba(42,107,197,0.14);text-decoration:none;font-size:.8rem;font-weight:700;
+}
 .panel-meta-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:14px}
 .panel-meta-tag{
   display:inline-flex;align-items:center;padding:4px 10px;border-radius:var(--radius-pill);
@@ -698,6 +709,7 @@ canvas{border-radius:8px}
   .overview-command .date-range{justify-content:flex-start}
   .overview-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
   .pulse-highlights{grid-template-columns:1fr}
+  .overview-side-grid{grid-template-columns:1fr}
   .view-tabs{flex-wrap:wrap}
   .layout-canvas[data-tab="dashboard"]{grid-template-columns:1fr}
   .layout-canvas[data-tab="dashboard"] .layout-module{grid-column:span 1}
@@ -1136,17 +1148,17 @@ let layoutEditing = false;
 let activeResize = null;
 let currentTab = 'dashboard';
 
-const LAYOUT_STORAGE_KEY = 'mac-cleaning-dashboard-layout-v5';
+const LAYOUT_STORAGE_KEY = 'mac-cleaning-dashboard-layout-v6';
 const DEFAULT_TAB_LAYOUTS = {
   dashboard: {
     order: ['overview', 'needs_attention', 'queue_snapshot', 'working_queue', 'revenue'],
     hidden: [],
     modules: {
-      overview: { minHeight: '420px', chartHeight: '280px', span: 4 },
-      needs_attention: { minHeight: '320px', chartHeight: '280px', span: 3 },
-      queue_snapshot: { minHeight: '320px', chartHeight: '280px', span: 1 },
-      working_queue: { minHeight: '460px', chartHeight: '280px', span: 4 },
-      revenue: { minHeight: '220px', chartHeight: '280px', span: 4 }
+      overview: { minHeight: '360px', chartHeight: '280px', span: 4 },
+      needs_attention: { minHeight: '280px', chartHeight: '280px', span: 3 },
+      queue_snapshot: { minHeight: '260px', chartHeight: '280px', span: 1 },
+      working_queue: { minHeight: '420px', chartHeight: '280px', span: 4 },
+      revenue: { minHeight: '200px', chartHeight: '280px', span: 4 }
     }
   },
   insights: {
@@ -2337,8 +2349,8 @@ function openPanel(leadId) {
         <div class="panel-name">${esc(lead.name || 'Unnamed Lead')}</div>
         <div class="panel-contact">
           ${lead.email ? `<a href="mailto:${esc(lead.email)}">${esc(lead.email)}</a>` : ''}
-          ${lead.email && lead.phone ? ' &middot; ' : ''}
-          ${lead.phone ? `<a href="tel:${esc(lead.phone)}">${esc(lead.phone)}</a>` : ''}
+          ${lead.email && lead.phone ? '<span class="panel-contact-sep">&middot;</span>' : ''}
+          ${lead.phone ? `<button type="button" class="panel-copy-number" id="panelCopyPhone" data-phone="${esc(lead.phone)}" aria-label="Copy phone number">${esc(lead.phone)}</button><a class="panel-call-link" href="tel:${esc(lead.phone)}" aria-label="Call ${esc(lead.phone)}">Call</a>` : ''}
         </div>
         <div class="panel-meta-row">
           <span class="badge badge-${lead.status || 'partial'}">${statusLabel(lead.status || 'partial')}</span>
@@ -2416,6 +2428,27 @@ function openPanel(leadId) {
 
   $('#detailPanel').classList.add('open');
   $('#panelOverlay').classList.add('open');
+
+  const copyPhoneBtn = $('#panelCopyPhone');
+  if (copyPhoneBtn) {
+    let copyResetTimer;
+    copyPhoneBtn.onclick = async () => {
+      const rawPhone = String(copyPhoneBtn.dataset.phone || '').replace(/^tel:/i, '').trim();
+      if (!rawPhone) return;
+      clearTimeout(copyResetTimer);
+      try {
+        await navigator.clipboard.writeText(rawPhone);
+        copyPhoneBtn.classList.add('is-copied');
+        copyPhoneBtn.textContent = `${rawPhone} Copied`;
+      } catch (error) {
+        copyPhoneBtn.textContent = `${rawPhone} Copy failed`;
+      }
+      copyResetTimer = window.setTimeout(() => {
+        copyPhoneBtn.classList.remove('is-copied');
+        copyPhoneBtn.textContent = rawPhone;
+      }, 1400);
+    };
+  }
 
   // Bind actions
   $('#btnSaveNotes').onclick = () => saveNotes(lead.id);
