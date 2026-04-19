@@ -50,8 +50,9 @@ input,select,textarea{font-family:inherit;font-size:inherit}
   font-size:.72rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;
   background:var(--gold);color:var(--white);padding:3px 10px;border-radius:var(--radius-pill);
 }
+.topbar-actions{display:flex;align-items:center;gap:10px;margin-left:auto}
 .topbar-search{
-  flex:1;max-width:360px;margin-left:auto;
+  flex:1;max-width:360px;
   padding:8px 14px;border:1px solid var(--line);border-radius:var(--radius-pill);
   background:var(--white);outline:none;transition:border var(--transition);
 }
@@ -65,6 +66,14 @@ input,select,textarea{font-family:inherit;font-size:inherit}
 }
 .btn-refresh:hover{border-color:var(--gold);color:var(--gold)}
 .btn-refresh svg{width:16px;height:16px}
+.btn-layout{
+  display:flex;align-items:center;gap:8px;padding:8px 16px;
+  border:1px solid var(--line);border-radius:var(--radius-pill);
+  background:var(--white);font-weight:600;font-size:.84rem;color:var(--charcoal);
+  transition:all var(--transition);
+}
+.btn-layout:hover{border-color:var(--gold);color:var(--gold)}
+.btn-layout.active{background:var(--charcoal);color:var(--white);border-color:var(--charcoal)}
 @keyframes spin{to{transform:rotate(360deg)}}
 .btn-refresh.spinning svg{animation:spin .8s linear infinite}
 
@@ -81,13 +90,292 @@ input,select,textarea{font-family:inherit;font-size:inherit}
 
 /* ── DATE RANGE ──────────────────────────────────────────── */
 .date-range{display:flex;gap:6px;margin-bottom:24px;flex-wrap:wrap}
-.date-pill{
-  padding:7px 18px;border-radius:var(--radius-pill);font-size:.85rem;font-weight:500;
-  border:1px solid var(--line);background:var(--white);color:var(--ink);
-  transition:all var(--transition);
+.range-wrap{position:relative;display:inline-flex;align-items:center}
+.range-select{
+  appearance:none;-webkit-appearance:none;
+  padding:9px 42px 9px 14px;border-radius:var(--radius-pill);font-size:.84rem;font-weight:700;
+  border:1px solid var(--line);background:var(--white);color:var(--charcoal);
+  outline:none;transition:all var(--transition);min-width:168px;
 }
-.date-pill:hover{border-color:var(--gold);color:var(--gold)}
-.date-pill.active{background:var(--charcoal);color:var(--white);border-color:var(--charcoal)}
+.range-select:hover,.range-select:focus{border-color:var(--gold)}
+.range-wrap::after{
+  content:'▾';position:absolute;right:14px;top:50%;transform:translateY(-52%);
+  color:var(--ink-faint);font-size:.78rem;pointer-events:none;
+}
+
+/* ── LAYOUT MODE ─────────────────────────────────────────── */
+.layout-canvas{display:grid;gap:20px}
+.layout-module{
+  position:relative;transition:box-shadow var(--transition),transform var(--transition),border-color var(--transition);
+  --module-chart-height:280px;
+}
+.module-surface{min-height:var(--module-min-height, auto)}
+.layout-module-toolbar,.module-resize{display:none}
+.layout-mode-hint{
+  display:none;align-items:center;justify-content:space-between;gap:16px;
+  padding:12px 16px;border:1px dashed rgba(184,134,11,0.35);border-radius:16px;
+  background:rgba(255,255,255,0.8);color:var(--ink);font-size:.84rem;line-height:1.55;
+}
+.layout-mode-hint strong{color:var(--charcoal)}
+.layout-grip{
+  display:inline-flex;align-items:center;gap:8px;font-size:.78rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;
+  color:var(--ink);cursor:grab;
+}
+.layout-toolbar-title{font-size:.86rem;font-weight:800;color:var(--charcoal)}
+.layout-toolbar-actions{display:flex;align-items:center;gap:8px}
+.layout-size-pill{
+  padding:5px 10px;border-radius:var(--radius-pill);background:#fff7e6;color:#8b6508;
+  font-size:.72rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;
+}
+body.layout-editing .layout-mode-hint{display:flex}
+body.layout-editing .layout-module{
+  padding:44px 0 0;border:1px dashed rgba(184,134,11,0.28);border-radius:20px;background:rgba(255,255,255,0.42);
+}
+body.layout-editing .layout-module-toolbar{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  position:absolute;top:0;left:0;right:0;padding:10px 12px;
+}
+body.layout-editing .layout-module .module-surface{pointer-events:none}
+body.layout-editing .layout-module.dragging{opacity:.45;transform:scale(.995)}
+body.layout-editing .layout-module.drag-target-before{box-shadow:inset 0 3px 0 var(--gold)}
+body.layout-editing .layout-module.drag-target-after{box-shadow:inset 0 -3px 0 var(--gold)}
+body.layout-editing .module-resize{
+  display:block;position:absolute;right:10px;bottom:10px;width:18px;height:18px;
+  border-radius:6px;border:1px solid rgba(28,36,52,0.14);background:#fff;
+  box-shadow:var(--shadow);cursor:nwse-resize;
+}
+body.layout-editing .module-resize::before{
+  content:'';position:absolute;right:4px;bottom:4px;width:8px;height:8px;
+  border-right:2px solid var(--ink-faint);border-bottom:2px solid var(--ink-faint);
+}
+.view-tabs{display:flex;align-items:center;gap:10px;margin:4px 0 16px}
+.view-tab{
+  display:inline-flex;align-items:center;gap:8px;padding:10px 16px;border-radius:var(--radius-pill);
+  border:1px solid var(--line);background:rgba(255,255,255,0.85);color:var(--ink);
+  font-size:.84rem;font-weight:700;transition:all var(--transition);
+}
+.view-tab:hover{border-color:var(--gold);color:var(--gold)}
+.view-tab.active{background:var(--charcoal);color:var(--white);border-color:var(--charcoal)}
+.layout-tab{display:none}
+.layout-tab.active{display:block}
+.hidden-modules{
+  display:none;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:14px;
+  padding:12px 14px;border-radius:16px;border:1px dashed rgba(28,36,52,0.14);background:rgba(255,255,255,0.75);
+}
+.hidden-modules.has-hidden{display:flex}
+body.layout-editing .hidden-modules.has-hidden{display:flex}
+.hidden-modules-label{font-size:.78rem;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-faint)}
+.hidden-module-chip{
+  display:inline-flex;align-items:center;gap:8px;padding:7px 10px;border-radius:var(--radius-pill);
+  background:#fff;color:var(--charcoal);font-size:.78rem;font-weight:700;border:1px solid rgba(28,36,52,0.08);
+}
+.hidden-module-chip button{
+  padding:4px 8px;border-radius:999px;background:var(--cream-2);color:var(--charcoal);font-size:.72rem;font-weight:700;
+}
+.module-hide-btn{
+  padding:6px 10px;border-radius:var(--radius-pill);background:#fff;color:var(--ink);
+  font-size:.72rem;font-weight:800;letter-spacing:.04em;text-transform:uppercase;border:1px solid rgba(28,36,52,0.08);
+}
+.module-hide-btn:hover{border-color:var(--gold);color:var(--gold)}
+.layout-module.is-hidden{display:none}
+.layout-canvas[data-tab="dashboard"]{grid-template-columns:repeat(4,minmax(0,1fr))}
+.layout-canvas[data-tab="dashboard"] .layout-module[data-span="1"]{grid-column:span 1}
+.layout-canvas[data-tab="dashboard"] .layout-module[data-span="2"]{grid-column:span 2}
+.layout-canvas[data-tab="dashboard"] .layout-module[data-span="3"]{grid-column:span 3}
+.layout-canvas[data-tab="dashboard"] .layout-module[data-span="4"]{grid-column:span 4}
+.layout-canvas[data-tab="insights"]{grid-template-columns:repeat(2,minmax(0,1fr))}
+.layout-canvas[data-tab="insights"] .layout-module[data-span="1"]{grid-column:span 1}
+.layout-canvas[data-tab="insights"] .layout-module[data-span="2"]{grid-column:span 2}
+
+/* ── OVERVIEW SHELL ──────────────────────────────────────── */
+.overview-shell{margin-bottom:0}
+.overview-board{
+  background:linear-gradient(135deg,#1f2738 0%, #2d3546 100%);
+  border-radius:24px;padding:22px 22px 18px;color:#fff;
+  box-shadow:0 8px 28px rgba(28,36,52,0.16);
+}
+.overview-main{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(320px,.82fr);gap:18px}
+.overview-command{
+  margin-bottom:0;padding:6px 4px 6px 2px;
+  display:flex;flex-direction:column;gap:18px;min-height:100%;
+}
+.overview-board .ai-summary{
+  background:transparent;box-shadow:none;padding:0;margin-bottom:0;border-radius:0;
+}
+.overview-board .ai-summary::before{display:none}
+.overview-command-top{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.overview-kicker{
+  font-size:.74rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--gold-light);margin-bottom:8px;
+}
+.overview-title{font-size:1.65rem;font-weight:800;line-height:1.05;letter-spacing:-.03em;max-width:16ch}
+.overview-copy{
+  font-size:.9rem;line-height:1.65;color:rgba(255,255,255,0.78);max-width:52ch;margin-top:10px;
+}
+.overview-command .date-range{margin:0;justify-content:flex-end}
+.overview-command .range-select{
+  background:rgba(255,255,255,0.08);border-color:rgba(255,255,255,0.12);color:var(--white);
+}
+.overview-command .range-select:hover,
+.overview-command .range-select:focus{border-color:rgba(211,161,52,0.7)}
+.overview-command .range-wrap::after{color:rgba(255,255,255,0.72)}
+.overview-bottom{display:grid;grid-template-columns:minmax(0,1fr);gap:14px;margin-top:16px}
+.overview-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.overview-side{
+  display:grid;gap:12px;align-content:start;
+  background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);border-radius:20px;padding:16px;
+}
+.overview-side-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.overview-side-title{font-size:.8rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,0.72)}
+.overview-side-copy{font-size:.8rem;line-height:1.55;color:rgba(255,255,255,0.62);max-width:28ch;margin-top:6px}
+.pulse-highlights{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:2px}
+.pulse-highlight{
+  padding:14px 14px 12px;border-radius:18px;
+  background:linear-gradient(180deg,rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.06) 100%);
+  border:1px solid rgba(255,255,255,0.08);
+}
+.pulse-highlight-label{
+  font-size:.68rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,0.54);margin-bottom:8px;
+}
+.pulse-highlight-value{font-size:1.35rem;font-weight:800;letter-spacing:-.03em;color:#fff}
+.pulse-highlight-sub{font-size:.72rem;line-height:1.5;color:rgba(255,255,255,0.56);margin-top:6px}
+.overview-side-grid{display:grid;gap:8px}
+.overview-side-row{
+  display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px;align-items:end;
+  padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.08);
+}
+.overview-side-row:last-child{border-bottom:none;padding-bottom:0}
+.overview-side-row .stat-label{
+  margin-bottom:3px;color:rgba(255,255,255,0.52);font-size:.68rem;
+}
+.overview-side-row .stat-value{font-size:1.1rem;color:#fff}
+.overview-side-row .stat-sub{margin-top:0;color:rgba(255,255,255,0.44);font-size:.72rem}
+.stat-card-compact{padding:16px 16px 14px;border-top-width:3px}
+.stat-card-compact .stat-label{margin-bottom:6px}
+.stat-card-compact .stat-value{font-size:1.55rem}
+.stat-card-compact .stat-sub{font-size:.72rem}
+
+.insights-shell{
+  background:linear-gradient(135deg,#1f2738 0%, #283246 55%, #32405a 100%);
+  border-radius:24px;padding:24px;color:#fff;box-shadow:0 8px 28px rgba(28,36,52,0.18);
+}
+.insights-shell::before{
+  content:'';position:absolute;display:none;
+}
+.insights-kicker{font-size:.74rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--gold-light);margin-bottom:10px}
+.insights-title{font-size:1.8rem;font-weight:800;letter-spacing:-.03em;line-height:1.02;max-width:14ch}
+.insights-copy{font-size:.92rem;line-height:1.7;color:rgba(255,255,255,0.76);max-width:54ch;margin-top:12px}
+.insights-strip{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:18px}
+.insight-chip{
+  padding:14px 16px;border-radius:18px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.08);
+}
+.insight-chip-label{font-size:.7rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,0.56);margin-bottom:8px}
+.insight-chip-value{font-size:1.3rem;font-weight:800;color:#fff}
+.insight-chip-copy{font-size:.76rem;line-height:1.55;color:rgba(255,255,255,0.58);margin-top:6px}
+
+.section-head{
+  display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin:32px 0 14px;
+}
+.section-copy{font-size:.88rem;line-height:1.6;color:var(--ink);max-width:54ch}
+
+.workspace-card,.rail-card{margin-bottom:0}
+.workspace-card:hover,.rail-card:hover{transform:none}
+.rail-header{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:14px}
+.rail-copy{font-size:.84rem;line-height:1.55;color:var(--ink)}
+.rail-count{
+  display:inline-flex;align-items:center;justify-content:center;min-width:34px;height:34px;padding:0 10px;
+  border-radius:var(--radius-pill);background:var(--charcoal);color:var(--white);font-size:.82rem;font-weight:700;
+}
+.attention-workbench{display:grid;gap:10px}
+.attention-item{
+  border:1px solid var(--line);border-radius:14px;background:linear-gradient(180deg,var(--white) 0%,#fbf9f4 100%);
+  padding:12px 14px;cursor:pointer;transition:all var(--transition);
+}
+.attention-item:hover{border-color:rgba(184,134,11,0.28);box-shadow:var(--shadow)}
+.attention-item-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:8px}
+.attention-item-name{font-size:.92rem;font-weight:700;color:var(--charcoal)}
+.attention-item-meta{font-size:.76rem;color:var(--ink-faint);margin-top:3px}
+.attention-item-time{font-size:.74rem;color:var(--ink-faint);white-space:nowrap}
+.attention-item-tags{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.attention-empty{
+  padding:16px;border:1px dashed var(--line);border-radius:14px;
+  color:var(--ink-faint);font-size:.84rem;line-height:1.6;background:rgba(255,255,255,0.55);
+}
+.snapshot-list{display:grid;gap:10px}
+.snapshot-row{
+  display:flex;align-items:flex-start;justify-content:space-between;gap:14px;
+  padding:12px 0;border-bottom:1px solid var(--line);
+}
+.snapshot-row:last-child{border-bottom:none;padding-bottom:0}
+.snapshot-label{font-size:.82rem;font-weight:700;color:var(--charcoal)}
+.snapshot-sub{font-size:.75rem;color:var(--ink-faint);margin-top:3px}
+.snapshot-value{font-size:1rem;font-weight:800;color:var(--charcoal);white-space:nowrap}
+
+.flow-shell{display:grid;gap:12px}
+.flow-stage{
+  display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;
+  padding:14px 16px;border:1px solid var(--line);border-radius:14px;background:linear-gradient(180deg,var(--white) 0%,#fbf9f4 100%);
+}
+.flow-stage-main{display:grid;gap:8px}
+.flow-stage-label{font-size:.82rem;font-weight:700;color:var(--charcoal)}
+.flow-stage-sub{font-size:.74rem;color:var(--ink-faint)}
+.flow-stage-value{font-size:1.35rem;font-weight:800;color:var(--charcoal);align-self:center}
+.flow-track{
+  position:relative;height:8px;border-radius:999px;background:rgba(28,36,52,0.08);overflow:hidden;
+}
+.flow-fill{
+  position:absolute;left:0;top:0;bottom:0;border-radius:999px;
+  background:linear-gradient(90deg,var(--gold) 0%, var(--gold-light) 100%);
+}
+
+.signal-list{display:grid;gap:12px}
+.signal-row{
+  display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px;align-items:center;
+  padding:10px 0;border-bottom:1px solid var(--line);
+}
+.signal-row:last-child{border-bottom:none;padding-bottom:0}
+.signal-main{display:grid;gap:8px}
+.signal-label-row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.signal-label{font-size:.82rem;font-weight:700;color:var(--charcoal)}
+.signal-sub{font-size:.74rem;color:var(--ink-faint)}
+.signal-value{font-size:.9rem;font-weight:800;color:var(--charcoal);white-space:nowrap}
+.signal-track{
+  position:relative;height:8px;border-radius:999px;background:rgba(28,36,52,0.08);overflow:hidden;
+}
+.signal-fill{
+  position:absolute;left:0;top:0;bottom:0;border-radius:999px;
+  background:linear-gradient(90deg, rgba(184,134,11,0.88) 0%, rgba(211,161,52,0.92) 100%);
+}
+.signal-fill-alt{
+  background:linear-gradient(90deg, rgba(41,128,185,0.82) 0%, rgba(78,156,214,0.9) 100%);
+}
+.signal-fill-soft{
+  background:linear-gradient(90deg, rgba(28,36,52,0.75) 0%, rgba(91,100,115,0.78) 100%);
+}
+.signal-callout{
+  padding:14px 16px;border:1px dashed var(--line);border-radius:14px;background:rgba(255,255,255,0.55);
+  font-size:.84rem;line-height:1.6;color:var(--ink-faint);
+}
+
+.panel-inline-actions{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center;margin-top:10px}
+.panel-status-select{
+  width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:var(--radius-pill);
+  background:var(--white);color:var(--charcoal);outline:none;transition:border var(--transition);
+}
+.panel-status-select:focus{border-color:var(--gold)}
+.btn-apply-status{
+  padding:10px 14px;border-radius:var(--radius-pill);background:var(--charcoal);color:var(--white);
+  font-weight:700;font-size:.8rem;transition:all var(--transition);
+}
+.btn-apply-status:hover{background:var(--gold)}
+.panel-link-list{display:grid;gap:8px}
+.panel-link-button{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:10px 12px;border-radius:14px;border:1px solid rgba(28,36,52,0.08);background:#fbfaf6;
+  font-size:.82rem;font-weight:700;color:var(--charcoal);
+}
+.panel-link-button small{display:block;color:var(--ink-faint);font-size:.72rem;font-weight:600;margin-top:3px}
+.panel-empty{font-size:.83rem;line-height:1.6;color:var(--ink-faint)}
 
 /* ── STATS GRID ──────────────────────────────────────────── */
 .stats-row{display:grid;grid-template-columns:repeat(6,1fr);gap:16px;margin-bottom:16px}
@@ -152,7 +440,7 @@ input,select,textarea{font-family:inherit;font-size:inherit}
 
 /* ── FILTERS + TABLE ─────────────────────────────────────── */
 .filters-bar{
-  display:flex;align-items:center;gap:10px;flex-wrap:nowrap;margin-bottom:16px;
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:16px;
 }
 .queue-pills{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .queue-pill{
@@ -210,11 +498,14 @@ tbody td{padding:8px 14px;white-space:nowrap}
 /* Status-coloured left border on table rows */
 tbody tr:has(.badge-partial){border-left-color:#f39c12}
 tbody tr:has(.badge-quoted){border-left-color:#2980b9}
+tbody tr:has(.badge-quote_sent){border-left-color:#4e9cd6}
+tbody tr:has(.badge-payment_pending){border-left-color:#7f8c8d}
 tbody tr:has(.badge-chased_1){border-left-color:#e67e22}
 tbody tr:has(.badge-chased_2){border-left-color:#d35400}
 tbody tr:has(.badge-chased_3){border-left-color:#c0392b}
 tbody tr:has(.badge-signed_up){border-left-color:#27ae60}
 tbody tr:has(.badge-confirmed){border-left-color:#1d8b51}
+tbody tr:has(.badge-active){border-left-color:#16a085}
 tbody tr:has(.badge-dead){border-left-color:#8a92a1}
 tbody tr:has(.badge-cancelled){border-left-color:#c0392b}
 tbody tr:has(.badge-commercial_pending){border-left-color:#8e44ad}
@@ -226,11 +517,14 @@ tbody tr:has(.badge-commercial_pending){border-left-color:#8e44ad}
 }
 .badge-partial{background:#fef3cd;color:#7d5000}
 .badge-quoted{background:#d6eaf8;color:#1a5276}
+.badge-quote_sent{background:#dff1ff;color:#1f5f8a}
+.badge-payment_pending{background:#eef1f3;color:#566573}
 .badge-chased_1{background:#fdebd0;color:#935116}
 .badge-chased_2{background:#f6c9a8;color:#7e3a0a}
 .badge-chased_3{background:#f5b7b1;color:#78281f}
 .badge-signed_up{background:#d5f5e3;color:#1a6b3c}
 .badge-confirmed{background:#abebc6;color:#145a2e}
+.badge-active{background:#d1f2eb;color:#0e6655}
 .badge-dead{background:#e5e8ec;color:#5b6473}
 .badge-cancelled{background:#f5b7b1;color:#78281f}
 .badge-commercial_pending{background:#e8daef;color:#6c3483}
@@ -253,47 +547,80 @@ tbody tr:has(.badge-commercial_pending){border-left-color:#8e44ad}
 }
 .panel-overlay.open{opacity:1;pointer-events:auto}
 .detail-panel{
-  position:fixed;top:0;right:0;bottom:0;width:420px;z-index:210;
-  background:var(--white);box-shadow:-4px 0 24px rgba(0,0,0,0.1);
+  position:fixed;top:12px;right:12px;bottom:12px;width:min(448px, calc(100vw - 24px));z-index:210;
+  max-height:calc(100dvh - 24px);
+  background:linear-gradient(180deg,#fcfbf8 0%, #f6f2ea 100%);box-shadow:-8px 0 32px rgba(0,0,0,0.12);
+  border-radius:24px;border:1px solid rgba(28,36,52,0.08);
   transform:translateX(100%);transition:transform var(--transition);
-  overflow-y:auto;padding:24px;
+  overflow:hidden;display:flex;flex-direction:column;
 }
 .detail-panel.open{transform:translateX(0)}
+#panelContent{
+  flex:1;min-height:0;overflow-y:auto;
+  padding:24px 22px 28px;
+}
 .panel-close{
-  position:absolute;top:16px;right:16px;width:32px;height:32px;
+  position:absolute;top:16px;right:16px;width:32px;height:32px;z-index:2;
   display:flex;align-items:center;justify-content:center;
-  border-radius:50%;background:var(--cream);font-size:1.1rem;color:var(--ink);
+  border-radius:50%;background:rgba(255,255,255,0.82);font-size:1.1rem;color:var(--ink);
   transition:all var(--transition);
 }
 .panel-close:hover{background:var(--error);color:var(--white)}
-.panel-name{font-size:1.3rem;font-weight:700;margin-bottom:4px}
-.panel-contact{font-size:.85rem;color:var(--ink);margin-bottom:4px}
+.panel-stack{display:grid;gap:14px;padding-top:22px}
+.panel-hero,.panel-card{
+  background:rgba(255,255,255,0.94);border:1px solid rgba(28,36,52,0.08);border-radius:18px;
+  box-shadow:0 6px 24px rgba(28,36,52,0.05);
+}
+.panel-hero{padding:18px 18px 16px}
+.panel-card{padding:16px 16px 15px}
+.panel-name{font-size:1.55rem;font-weight:800;line-height:1.05;letter-spacing:-.03em;margin-bottom:6px;padding-right:40px}
+.panel-contact{font-size:.86rem;color:var(--ink);line-height:1.6}
 .panel-contact a{color:var(--info);text-decoration:underline}
-.panel-section{margin-top:20px}
-.panel-section-title{font-size:.78rem;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-faint);margin-bottom:8px}
+.panel-meta-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:14px}
+.panel-meta-tag{
+  display:inline-flex;align-items:center;padding:4px 10px;border-radius:var(--radius-pill);
+  font-size:.71rem;font-weight:700;letter-spacing:.03em;text-transform:uppercase;
+  background:var(--cream-2);color:var(--ink);
+}
+.panel-hero-copy{font-size:.84rem;line-height:1.6;color:var(--ink);margin-top:12px}
+.panel-metric-strip{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:16px}
+.panel-metric{
+  padding:12px;border-radius:14px;background:linear-gradient(180deg,#fff 0%, #faf7f1 100%);
+  border:1px solid rgba(28,36,52,0.07);
+}
+.panel-metric-label{font-size:.7rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:6px}
+.panel-metric-value{font-size:1rem;font-weight:800;color:var(--charcoal);line-height:1.2}
+.panel-metric-sub{font-size:.73rem;color:var(--ink-faint);margin-top:4px}
+.panel-section{margin-top:0}
+.panel-section-title{font-size:.74rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-faint);margin-bottom:10px}
 .attention-list{display:flex;flex-wrap:wrap;gap:8px}
 .attention-chip{
   display:inline-flex;align-items:center;padding:6px 10px;border-radius:var(--radius-pill);
   font-size:.76rem;font-weight:700;background:#fff0d9;color:#935116;border:1px solid rgba(230,126,34,0.16);
 }
-.panel-detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.panel-detail-item{font-size:.85rem}
-.panel-detail-label{color:var(--ink-faint);font-size:.75rem}
+.panel-detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.panel-detail-item{
+  font-size:.86rem;padding:12px;border-radius:14px;background:#fbfaf6;border:1px solid rgba(28,36,52,0.06);
+}
+.panel-detail-item.wide{grid-column:span 2}
+.panel-detail-label{color:var(--ink-faint);font-size:.72rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;margin-bottom:5px}
+.panel-detail-value{color:var(--charcoal);font-weight:700;line-height:1.4}
+.panel-detail-sub{font-size:.73rem;color:var(--ink-faint);margin-top:5px}
 .panel-notes{
-  width:100%;min-height:80px;padding:10px;border:1px solid var(--line);
+  width:100%;min-height:110px;padding:12px;border:1px solid var(--line);
   border-radius:var(--radius-sm);resize:vertical;outline:none;
-  transition:border var(--transition);
+  transition:border var(--transition);background:#fff;
 }
 .panel-notes:focus{border-color:var(--gold)}
 .btn-save-notes{
-  margin-top:8px;padding:8px 20px;border-radius:var(--radius-sm);
+  margin-top:10px;padding:9px 18px;border-radius:var(--radius-pill);
   font-weight:600;font-size:.82rem;background:var(--gold);color:var(--white);
   transition:all var(--transition);
 }
 .btn-save-notes:hover{background:var(--gold-light)}
-.panel-actions{display:flex;gap:8px;margin-top:16px}
+.panel-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
 .btn-action{
-  flex:1;padding:10px;border-radius:var(--radius-sm);font-weight:600;
+  flex:1;padding:11px 12px;border-radius:var(--radius-pill);font-weight:700;
   font-size:.82rem;color:var(--white);transition:all var(--transition);
 }
 .btn-confirm{background:var(--success)}
@@ -302,7 +629,7 @@ tbody tr:has(.badge-commercial_pending){border-left-color:#8e44ad}
 .btn-dead:hover{background:var(--error)}
 .timeline{margin-top:12px}
 .timeline-item{
-  position:relative;padding:0 0 16px 20px;border-left:2px solid var(--line);font-size:.82rem;
+  position:relative;padding:0 0 14px 18px;border-left:2px solid rgba(28,36,52,0.08);font-size:.82rem;
 }
 .timeline-item::before{
   content:'';position:absolute;left:-5px;top:2px;width:8px;height:8px;
@@ -310,10 +637,10 @@ tbody tr:has(.badge-commercial_pending){border-left-color:#8e44ad}
 }
 .timeline-item:last-child{border-left-color:transparent}
 .timeline-date{color:var(--ink-faint);font-size:.72rem;margin-bottom:2px}
-.timeline-text{color:var(--charcoal)}
+.timeline-text{color:var(--charcoal);line-height:1.55}
 
 /* ── CHART CONTAINERS ────────────────────────────────────── */
-.chart-wrap{position:relative;height:280px}
+.chart-wrap{position:relative;height:var(--module-chart-height, 280px)}
 .chart-empty{
   position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
   color:var(--ink-faint);font-size:.9rem;font-style:italic;
@@ -336,31 +663,53 @@ canvas{border-radius:8px}
 .revenue-card{
   background:linear-gradient(135deg, var(--charcoal) 0%, var(--charcoal-2) 100%);
   color:var(--white);border-radius:var(--radius);
-  padding:28px;text-align:center;
+  padding:26px 24px;text-align:left;
   transition:transform var(--transition),box-shadow var(--transition);
 }
 .revenue-card:hover{transform:translateY(-3px);box-shadow:0 12px 32px rgba(28,36,52,0.25)}
 .revenue-label{font-size:.72rem;font-weight:600;color:rgba(255,255,255,0.55);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
 .revenue-value{font-size:2.2rem;font-weight:800;letter-spacing:-.02em}
+.revenue-copy{font-size:.8rem;line-height:1.55;color:rgba(255,255,255,0.68);margin-top:8px}
+.revenue-note{font-size:.72rem;line-height:1.5;color:rgba(255,255,255,0.46);margin-top:10px}
 
 /* ── RESPONSIVE ──────────────────────────────────────────── */
 @media(max-width:1100px){
+  .overview-main{grid-template-columns:1fr}
+  .overview-stats{grid-template-columns:repeat(2,1fr)}
+  .overview-side{grid-template-columns:1fr}
+  .pulse-highlights{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .layout-canvas[data-tab="dashboard"]{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .layout-canvas[data-tab="dashboard"] .layout-module[data-span="1"]{grid-column:span 1}
+  .layout-canvas[data-tab="dashboard"] .layout-module[data-span="2"],
+  .layout-canvas[data-tab="dashboard"] .layout-module[data-span="3"],
+  .layout-canvas[data-tab="dashboard"] .layout-module[data-span="4"]{grid-column:span 2}
+  .layout-canvas[data-tab="insights"]{grid-template-columns:1fr}
+  .layout-canvas[data-tab="insights"] .layout-module[data-span="2"]{grid-column:auto}
+  .insights-strip{grid-template-columns:1fr}
   .stats-row{grid-template-columns:repeat(3,1fr)}
   .revenue-row{grid-template-columns:repeat(3,1fr)}
 }
 @media(max-width:768px){
   .topbar{padding:10px 16px;gap:10px}
-  .topbar-search{max-width:200px}
+  .topbar-actions{width:100%;margin-left:0;flex-wrap:wrap}
+  .topbar-search{max-width:none;min-width:220px}
   .main{padding:70px 16px 32px}
+  .overview-command-top{flex-direction:column;align-items:flex-start}
+  .overview-command .date-range{justify-content:flex-start}
+  .overview-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .pulse-highlights{grid-template-columns:1fr}
+  .view-tabs{flex-wrap:wrap}
+  .layout-canvas[data-tab="dashboard"]{grid-template-columns:1fr}
+  .layout-canvas[data-tab="dashboard"] .layout-module{grid-column:span 1}
   .stats-row{grid-template-columns:repeat(2,1fr);gap:10px}
   .two-col{grid-template-columns:1fr}
   .revenue-row{grid-template-columns:1fr}
-  .detail-panel{width:100%}
+  .detail-panel{top:0;right:0;bottom:0;width:100%;max-height:100dvh;border-radius:0;border:none}
   .filters-bar{flex-direction:column;align-items:stretch}
   .lead-count{margin-left:0}
 }
 @media(max-width:480px){
-  .stats-row{grid-template-columns:repeat(2,1fr)}
+  .overview-stats,.stats-row{grid-template-columns:repeat(2,1fr)}
   .topbar-brand span:first-child{display:none}
 }
 </style>
@@ -373,11 +722,14 @@ canvas{border-radius:8px}
     <span>MAC Cleaning</span>
     <span class="topbar-pill">Leads Dashboard</span>
   </div>
-  <input type="text" class="topbar-search" id="searchInput" placeholder="Search leads by name, email, postcode...">
-  <button class="btn-refresh" id="btnRefresh" title="Refresh data">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
-    Refresh
-  </button>
+  <div class="topbar-actions">
+    <input type="text" class="topbar-search" id="searchInput" placeholder="Search leads by name, email, postcode...">
+    <button class="btn-layout" id="btnLayoutMode" title="Arrange layout">Arrange layout</button>
+    <button class="btn-refresh" id="btnRefresh" title="Refresh data">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+      Refresh
+    </button>
+  </div>
 </header>
 
 <!-- ── OVERLAY + DETAIL PANEL ─────────────────────────────── -->
@@ -394,159 +746,339 @@ canvas{border-radius:8px}
     <span id="errorText"></span>
   </div>
 
-  <!-- AI Summary -->
-  <div class="ai-summary" id="aiSummary">
-    <div class="ai-summary-header">
-      <span class="ai-summary-label">AI Insights</span>
-      <span class="ai-summary-status" id="aiStatus">Analysing...</span>
-    </div>
-    <div class="ai-summary-body" id="aiBody">Loading lead analysis...</div>
+  <div class="layout-mode-hint" id="layoutModeHint">
+    <span><strong>Arrange layout mode:</strong> drag panes around, pull the corner handle to resize them, and hide anything you don’t want in this tab.</span>
+    <span>Changes save automatically on this browser.</span>
   </div>
 
-  <!-- Date Range -->
-  <div class="date-range" id="dateRange">
-    <button class="date-pill" data-days="7">7d</button>
-    <button class="date-pill active" data-days="30">30d</button>
-    <button class="date-pill" data-days="90">90d</button>
-    <button class="date-pill" data-days="0">All time</button>
+  <div class="view-tabs" id="viewTabs">
+    <button class="view-tab active" data-tab="dashboard">Dashboard</button>
+    <button class="view-tab" data-tab="insights">Insights</button>
   </div>
 
-  <!-- Stats Row 1: Volume -->
-  <div class="stats-row loading" id="statsVolume">
-    <div class="stat-card"><div class="stat-label">New Leads</div><div class="stat-value" id="statNewLeads">--</div></div>
-    <div class="stat-card"><div class="stat-label">Total Quoted</div><div class="stat-value" id="statQuoted">--</div></div>
-    <div class="stat-card"><div class="stat-label">Total Signed Up</div><div class="stat-value" id="statSignedUp">--</div></div>
-    <div class="stat-card"><div class="stat-label">Conversion Rate</div><div class="stat-value" id="statConversion">--</div></div>
-    <div class="stat-card"><div class="stat-label">Avg Response Time</div><div class="stat-value" id="statResponseTime">--</div></div>
-    <div class="stat-card"><div class="stat-label">Leads Today</div><div class="stat-value" id="statToday">--</div></div>
-  </div>
-
-  <!-- Stats Row 2: Revenue -->
-  <div class="stats-row loading" id="statsRevenue">
-    <div class="stat-card"><div class="stat-label">Revenue Pipeline</div><div class="stat-value" id="statPipeline">--</div></div>
-    <div class="stat-card"><div class="stat-label">Avg Quote Value</div><div class="stat-value" id="statAvgQuote">--</div></div>
-    <div class="stat-card"><div class="stat-label">Avg Signup Value</div><div class="stat-value" id="statAvgSignup">--</div></div>
-    <div class="stat-card"><div class="stat-label">In Chase</div><div class="stat-value" id="statInChase">--</div></div>
-    <div class="stat-card"><div class="stat-label">Chase Conversion</div><div class="stat-value" id="statChaseConv">--</div></div>
-    <div class="stat-card"><div class="stat-label">Top Area</div><div class="stat-value" id="statTopArea">--</div></div>
-  </div>
-
-  <!-- Filters + Table -->
-  <div class="card" style="margin-bottom:20px">
-    <div class="filters-bar">
-      <div class="queue-pills" id="queuePills">
-        <button class="queue-pill active" data-queue="all">All leads</button>
-        <button class="queue-pill" data-queue="attention">Needs attention</button>
-        <button class="queue-pill" data-queue="manual_review">Manual review</button>
+  <section class="layout-tab active" data-tab="dashboard">
+    <div class="hidden-modules" id="dashboardHiddenModules"></div>
+    <div class="layout-canvas" id="dashboardCanvas" data-tab="dashboard">
+      <section class="layout-module" data-tab="dashboard" data-module="overview" data-title="Overview" data-min-span="2" data-max-span="4" data-span="4">
+      <div class="layout-module-toolbar">
+        <div class="layout-grip">⋮⋮ <span class="layout-toolbar-title">Overview</span></div>
+        <div class="layout-toolbar-actions"><span class="layout-size-pill">Resizable</span><button class="module-hide-btn" data-hide-module="overview">Hide</button></div>
       </div>
-      <select class="filter-select" id="filterStatus"><option value="">All Statuses</option></select>
-      <select class="filter-select" id="filterProperty"><option value="">All Properties</option></select>
-      <select class="filter-select" id="filterFrequency"><option value="">All Frequencies</option></select>
-      <span class="lead-count" id="leadCount">0 leads</span>
-      <button class="btn-export" id="btnExport">Export CSV</button>
-    </div>
-    <div class="table-wrap">
-      <table>
-        <thead id="tableHead">
-          <tr>
-            <th data-sort="name">Name <span class="sort-arrow">&#9650;</span></th>
-            <th data-sort="property_type">Property <span class="sort-arrow">&#9650;</span></th>
-            <th data-sort="price_per_clean">Price <span class="sort-arrow">&#9650;</span></th>
-            <th data-sort="status">Status <span class="sort-arrow">&#9650;</span></th>
-            <th data-sort="postcode">Area <span class="sort-arrow">&#9650;</span></th>
-            <th data-sort="source_page">Source <span class="sort-arrow">&#9650;</span></th>
-            <th data-sort="updated_at">Updated <span class="sort-arrow">&#9650;</span></th>
-          </tr>
-        </thead>
-        <tbody id="tableBody"></tbody>
-      </table>
-    </div>
-    <div class="pagination" id="pagination"></div>
-  </div>
+      <div class="module-surface">
+        <section class="overview-shell">
+          <div class="overview-board">
+            <div class="overview-main">
+              <div class="overview-command ai-summary" id="aiSummary">
+                <div class="overview-command-top">
+                  <div>
+                    <div class="overview-kicker">Lead Desk</div>
+                    <div class="overview-title">Work the queue without losing the bigger picture.</div>
+                    <div class="overview-copy">Keep the active lead pipeline front and centre, while AI context and operating pressure stay visible in the same glance.</div>
+                  </div>
+                  <div class="date-range">
+                    <div class="range-wrap">
+                      <select class="range-select" id="rangeSelect" aria-label="Choose date range">
+                        <option value="7">Last 7 days</option>
+                        <option value="30" selected>Last 30 days</option>
+                        <option value="91">Last quarter</option>
+                        <option value="180">Last 6 months</option>
+                        <option value="365">Last year</option>
+                        <option value="0">All time</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <div class="ai-summary-header">
+                    <span class="ai-summary-label">AI Insights</span>
+                    <span class="ai-summary-status" id="aiStatus">Analysing...</span>
+                  </div>
+                  <div class="ai-summary-body" id="aiBody">Loading lead analysis...</div>
+                </div>
+              </div>
 
-  <!-- Charts Row 1: Leads Over Time + Conversion Funnel -->
-  <div class="two-col">
-    <div class="card">
-      <div class="card-title">Leads Over Time</div>
-      <div class="chart-wrap"><canvas id="chartLeadsOverTime"></canvas></div>
-    </div>
-    <div class="card">
-      <div class="card-title">Conversion Funnel</div>
-      <div class="chart-wrap"><canvas id="chartFunnel"></canvas></div>
-    </div>
-  </div>
+              <div class="overview-side loading" id="statsRevenue">
+                <div class="overview-side-head">
+                  <div>
+                    <div class="overview-side-title">Operational Pulse</div>
+                    <div class="overview-side-copy">The metrics that explain whether the queue is healthy, converting, and worth immediate attention.</div>
+                  </div>
+                </div>
+                <div class="pulse-highlights">
+                  <div class="pulse-highlight">
+                    <div class="pulse-highlight-label">Live MRR</div>
+                    <div class="pulse-highlight-value" id="pulseMrr">--</div>
+                    <div class="pulse-highlight-sub">Recurring monthly value from signed-up live customers in this view.</div>
+                  </div>
+                  <div class="pulse-highlight">
+                    <div class="pulse-highlight-label">Live ARR</div>
+                    <div class="pulse-highlight-value" id="pulseArr">--</div>
+                    <div class="pulse-highlight-sub">Annualised recurring value from confirmed and signed-up work.</div>
+                  </div>
+                  <div class="pulse-highlight">
+                    <div class="pulse-highlight-label">Open Annual Pipeline</div>
+                    <div class="pulse-highlight-value" id="pulsePipeline">--</div>
+                    <div class="pulse-highlight-sub">Annualised quote value still in play, excluding dead, cancelled, and partial leads.</div>
+                  </div>
+                </div>
+                <div class="overview-side-grid">
+                  <div class="overview-side-row"><div><div class="stat-label">Total Quoted</div><div class="stat-sub">Quotes sent in this view.</div></div><div class="stat-value" id="statQuoted">--</div></div>
+                  <div class="overview-side-row"><div><div class="stat-label">Conversion Rate</div><div class="stat-sub">Quoted leads turning into signups.</div></div><div class="stat-value" id="statConversion">--</div></div>
+                  <div class="overview-side-row"><div><div class="stat-label">Avg Recurring Quote</div><div class="stat-sub">Average per-clean value for recurring quotes in this view.</div></div><div class="stat-value" id="statAvgQuote">--</div></div>
+                  <div class="overview-side-row"><div><div class="stat-label">Avg Live Clean</div><div class="stat-sub">Average per-clean value for recurring customers already won.</div></div><div class="stat-value" id="statAvgSignup">--</div></div>
+                  <div class="overview-side-row"><div><div class="stat-label">One-Off Quoted</div><div class="stat-sub">Standalone quoted value for one-off jobs in this view.</div></div><div class="stat-value" id="statOneoffQuoted">--</div></div>
+                  <div class="overview-side-row"><div><div class="stat-label">One-Off Booked</div><div class="stat-sub">One-off value that has already converted.</div></div><div class="stat-value" id="statOneoffBooked">--</div></div>
+                  <div class="overview-side-row"><div><div class="stat-label">Avg Response Time</div><div class="stat-sub">How quickly leads get handled.</div></div><div class="stat-value" id="statResponseTime">--</div></div>
+                  <div class="overview-side-row"><div><div class="stat-label">In Chase</div><div class="stat-sub">Leads currently sitting in follow-up.</div></div><div class="stat-value" id="statInChase">--</div></div>
+                  <div class="overview-side-row"><div><div class="stat-label">Chase Conversion</div><div class="stat-sub">Follow-up effectiveness once chasing starts.</div></div><div class="stat-value" id="statChaseConv">--</div></div>
+                  <div class="overview-side-row"><div><div class="stat-label">Top Area</div><div class="stat-sub" id="statTopAreaSub">Highest lead concentration.</div></div><div class="stat-value" id="statTopArea">--</div></div>
+                </div>
+              </div>
+            </div>
+            <div class="overview-bottom">
+              <div class="overview-stats loading" id="statsVolume">
+                <div class="stat-card stat-card-compact"><div class="stat-label">Leads Today</div><div class="stat-value" id="statToday">--</div></div>
+                <div class="stat-card stat-card-compact"><div class="stat-label">New Leads</div><div class="stat-value" id="statNewLeads">--</div></div>
+                <div class="stat-card stat-card-compact"><div class="stat-label">Signed Up</div><div class="stat-value" id="statSignedUp">--</div></div>
+                <div class="stat-card stat-card-compact"><div class="stat-label">Open Annual Pipeline</div><div class="stat-value" id="statPipeline">--</div><div class="stat-sub">Annualised quoted value still active.</div></div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+      <button class="module-resize" type="button" aria-label="Resize overview section"></button>
+    </section>
 
-  <!-- Charts Row 2: Service Breakdown + One-Off Services -->
-  <div class="two-col">
-    <div class="card">
-      <div class="card-title">Service Breakdown</div>
-      <div id="serviceBreakdown">
-        <div class="chart-wrap" style="height:220px"><canvas id="chartFrequency"></canvas></div>
-        <div style="margin-top:16px;display:grid;grid-template-columns:1fr 1fr;gap:12px">
-          <div><div class="stat-label">Property Types</div><div id="propertyTypeCounts" style="font-size:.85rem;margin-top:4px"></div></div>
-          <div><div class="stat-label">Bedrooms</div><div id="bedroomCounts" style="font-size:.85rem;margin-top:4px"></div></div>
-          <div style="grid-column:span 2"><div class="stat-label">Build Types</div><div id="buildTypeCounts" style="font-size:.85rem;margin-top:4px"></div></div>
+    <section class="layout-module" data-tab="dashboard" data-module="needs_attention" data-title="Needs Attention" data-min-span="1" data-max-span="4" data-span="3">
+      <div class="layout-module-toolbar">
+        <div class="layout-grip">⋮⋮ <span class="layout-toolbar-title">Needs Attention</span></div>
+        <div class="layout-toolbar-actions"><span class="layout-size-pill">Resizable</span><button class="module-hide-btn" data-hide-module="needs_attention">Hide</button></div>
+      </div>
+      <div class="module-surface">
+        <div class="card rail-card">
+          <div class="rail-header">
+            <div>
+              <div class="card-title">Needs Attention</div>
+              <div class="rail-copy">The leads most likely to need manual intervention next, with manual-review and stalled quotes kept front and centre.</div>
+            </div>
+            <span class="rail-count" id="attentionCount">0</span>
+          </div>
+          <div class="attention-workbench" id="attentionWorkbench"></div>
         </div>
       </div>
-    </div>
-    <div class="card">
-      <div class="card-title">One-Off Services</div>
-      <div class="chart-wrap"><canvas id="chartExtras"></canvas></div>
-    </div>
-  </div>
+      <button class="module-resize" type="button" aria-label="Resize needs attention section"></button>
+    </section>
 
-  <!-- Charts Row 3: Geographic + Source -->
-  <div class="two-col">
-    <div class="card">
-      <div class="card-title">Geographic Insights</div>
-      <div style="overflow-x:auto">
-        <table class="data-table" id="geoTable">
-          <thead><tr><th>Area</th><th>Leads</th><th>Quoted</th><th>Signed Up</th><th>Conversion</th><th>Avg Price</th></tr></thead>
-          <tbody></tbody>
-        </table>
+    <section class="layout-module" data-tab="dashboard" data-module="queue_snapshot" data-title="Queue Snapshot" data-min-span="1" data-max-span="4" data-span="1">
+      <div class="layout-module-toolbar">
+        <div class="layout-grip">⋮⋮ <span class="layout-toolbar-title">Queue Snapshot</span></div>
+        <div class="layout-toolbar-actions"><span class="layout-size-pill">Resizable</span><button class="module-hide-btn" data-hide-module="queue_snapshot">Hide</button></div>
       </div>
-    </div>
-    <div class="card">
-      <div class="card-title">Lead Source Performance</div>
-      <div style="overflow-x:auto">
-        <table class="data-table" id="sourceTable">
-          <thead><tr><th>Source</th><th>Leads</th><th>Conversion</th><th>Avg Price</th></tr></thead>
-          <tbody></tbody>
-        </table>
+      <div class="module-surface">
+        <div class="card rail-card">
+          <div class="card-title">Queue Snapshot</div>
+          <div class="rail-copy" style="margin:-8px 0 14px">A compact pulse on what kind of work is sitting in the queue right now.</div>
+          <div class="snapshot-list" id="queueSnapshot"></div>
+        </div>
       </div>
-    </div>
-  </div>
+      <button class="module-resize" type="button" aria-label="Resize queue snapshot section"></button>
+    </section>
 
-  <!-- Charts Row 4: Chase Sequence + Payment Method -->
-  <div class="two-col">
-    <div class="card">
-      <div class="card-title">Chase Sequence</div>
-      <div class="chart-wrap"><canvas id="chartChase"></canvas></div>
-    </div>
-    <div class="card">
-      <div class="card-title">Payment Method</div>
-      <div class="chart-wrap"><canvas id="chartPayment"></canvas></div>
-    </div>
-  </div>
+    <section class="layout-module" data-tab="dashboard" data-module="working_queue" data-title="Working Queue" data-min-span="2" data-max-span="4" data-span="4">
+      <div class="layout-module-toolbar">
+        <div class="layout-grip">⋮⋮ <span class="layout-toolbar-title">Working Queue</span></div>
+        <div class="layout-toolbar-actions"><span class="layout-size-pill">Resizable</span><button class="module-hide-btn" data-hide-module="working_queue">Hide</button></div>
+      </div>
+      <div class="module-surface">
+        <div class="section-head">
+          <div>
+            <div class="section-title" style="margin:0 0 6px">Working Queue</div>
+            <div class="section-copy">The live lead table stays dominant, while filters, export, and manual-review triage stay tightly attached to the queue itself.</div>
+          </div>
+        </div>
 
-  <!-- Charts Row 5: Day of Week + Hour -->
-  <div class="two-col">
-    <div class="card">
-      <div class="card-title">Leads by Day of Week</div>
-      <div class="chart-wrap"><canvas id="chartDayOfWeek"></canvas></div>
-    </div>
-    <div class="card">
-      <div class="card-title">Leads by Hour</div>
-      <div class="chart-wrap"><canvas id="chartHour"></canvas></div>
-    </div>
-  </div>
+        <div class="card workspace-card">
+          <div class="filters-bar">
+            <div class="queue-pills" id="queuePills">
+              <button class="queue-pill active" data-queue="all">All leads</button>
+              <button class="queue-pill" data-queue="attention">Needs attention</button>
+              <button class="queue-pill" data-queue="manual_review">Manual review</button>
+            </div>
+            <select class="filter-select" id="filterStatus"><option value="">All Statuses</option></select>
+            <select class="filter-select" id="filterProperty"><option value="">All Properties</option></select>
+            <select class="filter-select" id="filterFrequency"><option value="">All Frequencies</option></select>
+            <span class="lead-count" id="leadCount">0 leads</span>
+            <button class="btn-export" id="btnExport">Export CSV</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead id="tableHead">
+                <tr>
+                  <th data-sort="name">Name <span class="sort-arrow">&#9650;</span></th>
+                  <th data-sort="property_type">Property <span class="sort-arrow">&#9650;</span></th>
+                  <th data-sort="display_value">Value <span class="sort-arrow">&#9650;</span></th>
+                  <th data-sort="status">Status <span class="sort-arrow">&#9650;</span></th>
+                  <th data-sort="postcode">Area <span class="sort-arrow">&#9650;</span></th>
+                  <th data-sort="source_page">Source <span class="sort-arrow">&#9650;</span></th>
+                  <th data-sort="updated_at">Updated <span class="sort-arrow">&#9650;</span></th>
+                </tr>
+              </thead>
+              <tbody id="tableBody"></tbody>
+            </table>
+          </div>
+          <div class="pagination" id="pagination"></div>
+        </div>
+      </div>
+      <button class="module-resize" type="button" aria-label="Resize working queue section"></button>
+    </section>
 
-  <!-- Revenue Card -->
-  <div class="revenue-row" id="revenueRow">
-    <div class="revenue-card"><div class="revenue-label">Monthly Recurring Revenue</div><div class="revenue-value" id="revMRR">&pound;0</div></div>
-    <div class="revenue-card"><div class="revenue-label">Annual Recurring Revenue</div><div class="revenue-value" id="revARR">&pound;0</div></div>
-    <div class="revenue-card"><div class="revenue-label">Pipeline Value</div><div class="revenue-value" id="revPipeline">&pound;0</div></div>
+    <section class="layout-module" data-tab="dashboard" data-module="revenue" data-title="Revenue" data-min-span="1" data-max-span="4" data-span="4">
+      <div class="layout-module-toolbar">
+        <div class="layout-grip">⋮⋮ <span class="layout-toolbar-title">Revenue</span></div>
+        <div class="layout-toolbar-actions"><span class="layout-size-pill">Resizable</span><button class="module-hide-btn" data-hide-module="revenue">Hide</button></div>
+      </div>
+      <div class="module-surface">
+        <div class="revenue-row" id="revenueRow">
+          <div class="revenue-card">
+            <div class="revenue-label">Live MRR</div>
+            <div class="revenue-value" id="revMRR">&pound;0</div>
+            <div class="revenue-copy">Recurring monthly value from customers already signed up or confirmed in this view.</div>
+            <div class="revenue-note">Use this as the closest thing to live recurring revenue, not quote value.</div>
+          </div>
+          <div class="revenue-card">
+            <div class="revenue-label">Live ARR</div>
+            <div class="revenue-value" id="revARR">&pound;0</div>
+            <div class="revenue-copy">The same live recurring work expressed as an annualised value.</div>
+            <div class="revenue-note">Useful for understanding the long-term size of the customer base you’ve already won.</div>
+          </div>
+          <div class="revenue-card">
+            <div class="revenue-label">Open Annual Pipeline</div>
+            <div class="revenue-value" id="revPipeline">&pound;0</div>
+            <div class="revenue-copy">Annualised quote value still in play across open, quoted, payment-pending, and chased leads.</div>
+            <div class="revenue-note">This is pipeline value, not live revenue, and it excludes dead, cancelled, and unfinished quotes.</div>
+          </div>
+          <div class="revenue-card">
+            <div class="revenue-label">One-Off Quoted</div>
+            <div class="revenue-value" id="revOneoffQuoted">&pound;0</div>
+            <div class="revenue-copy">Standalone quoted value from one-off jobs in the current view.</div>
+            <div class="revenue-note">Kept separate so one-off work never muddies recurring revenue reporting.</div>
+          </div>
+          <div class="revenue-card">
+            <div class="revenue-label">One-Off Booked</div>
+            <div class="revenue-value" id="revOneoffBooked">&pound;0</div>
+            <div class="revenue-copy">One-off value that has already converted into booked work.</div>
+            <div class="revenue-note">Useful for seeing how much non-recurring demand is closing without inflating MRR or ARR.</div>
+          </div>
+        </div>
+      </div>
+      <button class="module-resize" type="button" aria-label="Resize revenue section"></button>
+    </section>
+    </div>
+  </section>
+
+  <section class="layout-tab" data-tab="insights">
+    <div class="hidden-modules" id="insightsHiddenModules"></div>
+    <div class="layout-canvas" id="insightsCanvas" data-tab="insights">
+      <section class="layout-module" data-tab="insights" data-module="insights_story" data-title="Insights Introduction" data-min-span="2" data-max-span="2" data-span="2">
+        <div class="layout-module-toolbar">
+          <div class="layout-grip">⋮⋮ <span class="layout-toolbar-title">Insights Introduction</span></div>
+          <div class="layout-toolbar-actions"><span class="layout-size-pill">Pinned</span><button class="module-hide-btn" data-hide-module="insights_story">Hide</button></div>
+        </div>
+        <div class="module-surface">
+          <div class="insights-shell">
+            <div class="insights-kicker">Insights</div>
+            <div class="insights-title">Patterns, source quality, and conversion behaviour in one surface.</div>
+            <div class="insights-copy">This view is for diagnosing what’s really happening across the lead engine: when demand lands, where it comes from, what mix of jobs you’re attracting, and where conversion begins to weaken. Think Monzo clarity, but for operational growth.</div>
+            <div class="insights-strip">
+              <div class="insight-chip">
+                <div class="insight-chip-label">Demand Timing</div>
+                <div class="insight-chip-value">When leads cluster</div>
+                <div class="insight-chip-copy">Use day and hour patterns to decide when instant follow-up matters most.</div>
+              </div>
+              <div class="insight-chip">
+                <div class="insight-chip-label">Lead Quality</div>
+                <div class="insight-chip-value">Which channels convert</div>
+                <div class="insight-chip-copy">Spot the source and area combinations that produce real signups, not just noise.</div>
+              </div>
+              <div class="insight-chip">
+                <div class="insight-chip-label">Service Mix</div>
+                <div class="insight-chip-value">What customers want</div>
+                <div class="insight-chip-copy">See the recurring frequency and one-off mix shaping the business you’re building.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <button class="module-resize" type="button" aria-label="Resize insights introduction"></button>
+      </section>
+
+      <section class="layout-module" data-tab="insights" data-module="insights_leads_over_time" data-title="Leads Over Time" data-min-span="1" data-max-span="2" data-span="1">
+        <div class="layout-module-toolbar"><div class="layout-grip">⋮⋮ <span class="layout-toolbar-title">Leads Over Time</span></div><div class="layout-toolbar-actions"><span class="layout-size-pill">Chart</span><button class="module-hide-btn" data-hide-module="insights_leads_over_time">Hide</button></div></div>
+        <div class="module-surface"><div class="card"><div class="card-title">Leads Over Time</div><div class="chart-wrap"><canvas id="chartLeadsOverTime"></canvas></div></div></div>
+        <button class="module-resize" type="button" aria-label="Resize leads over time"></button>
+      </section>
+
+      <section class="layout-module" data-tab="insights" data-module="insights_value_trend" data-title="Quote & Signup Value" data-min-span="1" data-max-span="2" data-span="1">
+        <div class="layout-module-toolbar"><div class="layout-grip">⋮⋮ <span class="layout-toolbar-title">Quote & Signup Value</span></div><div class="layout-toolbar-actions"><span class="layout-size-pill">Chart</span><button class="module-hide-btn" data-hide-module="insights_value_trend">Hide</button></div></div>
+        <div class="module-surface"><div class="card"><div class="card-title">Recurring &amp; One-Off Value Over Time</div><div class="chart-wrap"><canvas id="chartValueTrend"></canvas></div></div></div>
+        <button class="module-resize" type="button" aria-label="Resize quote and signup value trend"></button>
+      </section>
+
+      <section class="layout-module" data-tab="insights" data-module="insights_funnel" data-title="Conversion Funnel" data-min-span="1" data-max-span="2" data-span="1">
+        <div class="layout-module-toolbar"><div class="layout-grip">⋮⋮ <span class="layout-toolbar-title">Conversion Funnel</span></div><div class="layout-toolbar-actions"><span class="layout-size-pill">Flow</span><button class="module-hide-btn" data-hide-module="insights_funnel">Hide</button></div></div>
+        <div class="module-surface"><div class="card"><div class="card-title">Conversion Funnel</div><div class="flow-shell" id="funnelFlow"></div></div></div>
+        <button class="module-resize" type="button" aria-label="Resize conversion funnel"></button>
+      </section>
+
+      <section class="layout-module" data-tab="insights" data-module="insights_service_breakdown" data-title="Service Breakdown" data-min-span="1" data-max-span="2" data-span="2">
+        <div class="layout-module-toolbar"><div class="layout-grip">⋮⋮ <span class="layout-toolbar-title">Service Breakdown</span></div><div class="layout-toolbar-actions"><span class="layout-size-pill">Signals</span><button class="module-hide-btn" data-hide-module="insights_service_breakdown">Hide</button></div></div>
+        <div class="module-surface"><div class="card"><div class="card-title">Service Breakdown</div><div id="serviceBreakdown"><div class="signal-list" id="frequencyBreakdown"></div><div style="margin-top:16px;display:grid;grid-template-columns:1fr 1fr;gap:12px"><div><div class="stat-label">Property Types</div><div id="propertyTypeCounts" style="font-size:.85rem;margin-top:4px"></div></div><div><div class="stat-label">Bedrooms</div><div id="bedroomCounts" style="font-size:.85rem;margin-top:4px"></div></div><div style="grid-column:span 2"><div class="stat-label">Build Types</div><div id="buildTypeCounts" style="font-size:.85rem;margin-top:4px"></div></div></div></div></div></div>
+        <button class="module-resize" type="button" aria-label="Resize service breakdown"></button>
+      </section>
+
+      <section class="layout-module" data-tab="insights" data-module="insights_extras" data-title="One-Off Services" data-min-span="1" data-max-span="2" data-span="1">
+        <div class="layout-module-toolbar"><div class="layout-grip">⋮⋮ <span class="layout-toolbar-title">One-Off Services</span></div><div class="layout-toolbar-actions"><span class="layout-size-pill">Signals</span><button class="module-hide-btn" data-hide-module="insights_extras">Hide</button></div></div>
+        <div class="module-surface"><div class="card"><div class="card-title">One-Off Services</div><div class="signal-list" id="extrasBreakdown"></div></div></div>
+        <button class="module-resize" type="button" aria-label="Resize one-off services"></button>
+      </section>
+
+      <section class="layout-module" data-tab="insights" data-module="insights_geography" data-title="Geographic Insights" data-min-span="1" data-max-span="2" data-span="2">
+        <div class="layout-module-toolbar"><div class="layout-grip">⋮⋮ <span class="layout-toolbar-title">Geographic Insights</span></div><div class="layout-toolbar-actions"><span class="layout-size-pill">Table</span><button class="module-hide-btn" data-hide-module="insights_geography">Hide</button></div></div>
+        <div class="module-surface"><div class="card"><div class="card-title">Geographic Insights</div><div style="overflow-x:auto"><table class="data-table" id="geoTable"><thead><tr><th>Area</th><th>Leads</th><th>Quoted</th><th>Signed Up</th><th>Conversion</th><th>Avg Value</th></tr></thead><tbody></tbody></table></div></div></div>
+        <button class="module-resize" type="button" aria-label="Resize geographic insights"></button>
+      </section>
+
+      <section class="layout-module" data-tab="insights" data-module="insights_source" data-title="Lead Source Performance" data-min-span="1" data-max-span="2" data-span="2">
+        <div class="layout-module-toolbar"><div class="layout-grip">⋮⋮ <span class="layout-toolbar-title">Lead Source Performance</span></div><div class="layout-toolbar-actions"><span class="layout-size-pill">Table</span><button class="module-hide-btn" data-hide-module="insights_source">Hide</button></div></div>
+        <div class="module-surface"><div class="card"><div class="card-title">Lead Source Performance</div><div style="overflow-x:auto"><table class="data-table" id="sourceTable"><thead><tr><th>Source</th><th>Leads</th><th>Conversion</th><th>Avg Value</th></tr></thead><tbody></tbody></table></div></div></div>
+        <button class="module-resize" type="button" aria-label="Resize lead source performance"></button>
+      </section>
+
+      <section class="layout-module" data-tab="insights" data-module="insights_chase" data-title="Chase Sequence" data-min-span="1" data-max-span="2" data-span="1">
+        <div class="layout-module-toolbar"><div class="layout-grip">⋮⋮ <span class="layout-toolbar-title">Chase Sequence</span></div><div class="layout-toolbar-actions"><span class="layout-size-pill">Signals</span><button class="module-hide-btn" data-hide-module="insights_chase">Hide</button></div></div>
+        <div class="module-surface"><div class="card"><div class="card-title">Chase Sequence</div><div class="signal-list" id="chaseBreakdown"></div></div></div>
+        <button class="module-resize" type="button" aria-label="Resize chase sequence"></button>
+      </section>
+
+      <section class="layout-module" data-tab="insights" data-module="insights_payment" data-title="Payment Method" data-min-span="1" data-max-span="2" data-span="1">
+        <div class="layout-module-toolbar"><div class="layout-grip">⋮⋮ <span class="layout-toolbar-title">Payment Method</span></div><div class="layout-toolbar-actions"><span class="layout-size-pill">Signals</span><button class="module-hide-btn" data-hide-module="insights_payment">Hide</button></div></div>
+        <div class="module-surface"><div class="card"><div class="card-title">Payment Method</div><div class="signal-list" id="paymentBreakdown"></div></div></div>
+        <button class="module-resize" type="button" aria-label="Resize payment method"></button>
+      </section>
+
+      <section class="layout-module" data-tab="insights" data-module="insights_day" data-title="Leads by Day of Week" data-min-span="1" data-max-span="2" data-span="1">
+        <div class="layout-module-toolbar"><div class="layout-grip">⋮⋮ <span class="layout-toolbar-title">Leads by Day of Week</span></div><div class="layout-toolbar-actions"><span class="layout-size-pill">Chart</span><button class="module-hide-btn" data-hide-module="insights_day">Hide</button></div></div>
+        <div class="module-surface"><div class="card"><div class="card-title">Leads by Day of Week</div><div class="chart-wrap"><canvas id="chartDayOfWeek"></canvas></div></div></div>
+        <button class="module-resize" type="button" aria-label="Resize leads by day of week"></button>
+      </section>
+
+      <section class="layout-module" data-tab="insights" data-module="insights_hour" data-title="Leads by Hour" data-min-span="1" data-max-span="2" data-span="1">
+        <div class="layout-module-toolbar"><div class="layout-grip">⋮⋮ <span class="layout-toolbar-title">Leads by Hour</span></div><div class="layout-toolbar-actions"><span class="layout-size-pill">Chart</span><button class="module-hide-btn" data-hide-module="insights_hour">Hide</button></div></div>
+        <div class="module-surface"><div class="card"><div class="card-title">Leads by Hour</div><div class="chart-wrap"><canvas id="chartHour"></canvas></div></div></div>
+        <button class="module-resize" type="button" aria-label="Resize leads by hour"></button>
+      </section>
+    </div>
   </div>
+  </section>
 
 </main>
 
@@ -600,6 +1132,55 @@ let filterProperty = '';
 let filterFrequency = '';
 let selectedLead = null;
 let charts = {};
+let layoutEditing = false;
+let activeResize = null;
+let currentTab = 'dashboard';
+
+const LAYOUT_STORAGE_KEY = 'mac-cleaning-dashboard-layout-v5';
+const DEFAULT_TAB_LAYOUTS = {
+  dashboard: {
+    order: ['overview', 'needs_attention', 'queue_snapshot', 'working_queue', 'revenue'],
+    hidden: [],
+    modules: {
+      overview: { minHeight: '420px', chartHeight: '280px', span: 4 },
+      needs_attention: { minHeight: '320px', chartHeight: '280px', span: 3 },
+      queue_snapshot: { minHeight: '320px', chartHeight: '280px', span: 1 },
+      working_queue: { minHeight: '460px', chartHeight: '280px', span: 4 },
+      revenue: { minHeight: '220px', chartHeight: '280px', span: 4 }
+    }
+  },
+  insights: {
+    order: [
+      'insights_story',
+      'insights_leads_over_time',
+      'insights_value_trend',
+      'insights_funnel',
+      'insights_service_breakdown',
+      'insights_extras',
+      'insights_geography',
+      'insights_source',
+      'insights_chase',
+      'insights_payment',
+      'insights_day',
+      'insights_hour'
+    ],
+    hidden: [],
+    modules: {
+      insights_story: { minHeight: '0px', chartHeight: '280px', span: 2 },
+      insights_leads_over_time: { minHeight: '0px', chartHeight: '280px', span: 1 },
+      insights_value_trend: { minHeight: '0px', chartHeight: '280px', span: 1 },
+      insights_funnel: { minHeight: '0px', chartHeight: '280px', span: 1 },
+      insights_service_breakdown: { minHeight: '0px', chartHeight: '280px', span: 2 },
+      insights_extras: { minHeight: '0px', chartHeight: '280px', span: 1 },
+      insights_geography: { minHeight: '0px', chartHeight: '280px', span: 2 },
+      insights_source: { minHeight: '0px', chartHeight: '280px', span: 2 },
+      insights_chase: { minHeight: '0px', chartHeight: '280px', span: 1 },
+      insights_payment: { minHeight: '0px', chartHeight: '280px', span: 1 },
+      insights_day: { minHeight: '0px', chartHeight: '280px', span: 1 },
+      insights_hour: { minHeight: '0px', chartHeight: '280px', span: 1 }
+    }
+  }
+};
 
 // ── DOM REFS ────────────────────────────────────────────────
 const $ = (sel) => document.querySelector(sel);
@@ -643,6 +1224,190 @@ function formatCurrency(n) {
 
 function formatCurrencyFull(n) {
   return '\u00A3' + n.toLocaleString('en-GB', {minimumFractionDigits:0, maximumFractionDigits:0});
+}
+
+function annualizedLeadValue(lead) {
+  return getAnnualizedRecurringValue(lead);
+}
+
+function toFiniteNumber(value) {
+  if (value === null || value === undefined || value === '') return null;
+  const num = Number(value);
+  return Number.isFinite(num) ? num : null;
+}
+
+function splitLeadTextList(value) {
+  if (!value) return [];
+  if (Array.isArray(value)) return value.map(item => String(item).trim()).filter(Boolean);
+  return String(value).split(',').map(item => item.trim()).filter(Boolean);
+}
+
+function leadHasServiceSelection(lead) {
+  if (splitLeadTextList(lead?.service_requested).length) return true;
+  if (splitLeadTextList(lead?.services).length) return true;
+  if (lead?.service_detail && typeof lead.service_detail === 'object' && !Array.isArray(lead.service_detail)) {
+    return Object.keys(lead.service_detail).length > 0;
+  }
+  return false;
+}
+
+function getLeadQuoteKind(lead) {
+  const explicit = String(lead?.quote_kind || lead?.type || lead?.job_type || '').trim().toLowerCase();
+  if (explicit === 'commercial') return 'commercial';
+  if (explicit === 'oneoff' || explicit === 'one_off') return 'oneoff';
+  if (explicit === 'regular') return 'regular';
+  if (
+    lead?.commercial_type ||
+    lead?.commercial_desc ||
+    lead?.property_type === 'commercial' ||
+    lead?.property === 'commercial' ||
+    lead?.status === 'commercial_pending'
+  ) {
+    return 'commercial';
+  }
+  const recurringPrice = toFiniteNumber(lead?.price_per_clean);
+  const addonsTotal = toFiniteNumber(lead?.addons_total);
+  if (!lead?.frequency && recurringPrice === null && ((addonsTotal !== null && addonsTotal > 0) || leadHasServiceSelection(lead) || toFiniteNumber(lead?.bundle_discount) !== null)) {
+    return 'oneoff';
+  }
+  return 'regular';
+}
+
+function getLeadTotal(lead) {
+  const explicit = toFiniteNumber(lead?.total);
+  if (explicit !== null) return explicit;
+
+  const recurringPrice = toFiniteNumber(lead?.price_per_clean);
+  const addonsTotal = toFiniteNumber(lead?.addons_total);
+  if (getLeadQuoteKind(lead) === 'oneoff') return addonsTotal;
+  if (recurringPrice === null) return addonsTotal;
+  return recurringPrice + (addonsTotal || 0);
+}
+
+function getAnnualizedRecurringValue(lead) {
+  if (getLeadQuoteKind(lead) !== 'regular') return 0;
+  const price = toFiniteNumber(lead?.price_per_clean) || 0;
+  return price * freqMultiplier(lead?.frequency);
+}
+
+function isWonStatus(status) {
+  return ['signed_up', 'confirmed', 'active'].includes(status || '');
+}
+
+function isOpenPipelineStatus(status) {
+  return !['dead', 'cancelled', 'partial'].includes(status || '');
+}
+
+function getLeadAverageValue(lead) {
+  const kind = getLeadQuoteKind(lead);
+  if (kind === 'commercial') return null;
+  if (kind === 'oneoff') return getLeadTotal(lead);
+  return toFiniteNumber(lead?.price_per_clean);
+}
+
+function getLeadBundleDiscountPercent(lead) {
+  const raw = toFiniteNumber(lead?.bundle_discount);
+  if (raw === null || raw <= 0) return 0;
+  return raw < 1 ? Math.round(raw * 100) : Math.round(raw);
+}
+
+function getLeadSelectedServices(lead) {
+  const requested = splitLeadTextList(lead?.service_requested);
+  if (requested.length) return requested;
+
+  const services = splitLeadTextList(lead?.services).map(item => item.replace(/\s*\(£.*?\)\s*$/i, '').trim()).filter(Boolean);
+  if (services.length) return services;
+
+  if (lead?.service_detail && typeof lead.service_detail === 'object' && !Array.isArray(lead.service_detail)) {
+    return Object.values(lead.service_detail)
+      .map(item => item && typeof item === 'object' && item.label ? String(item.label).trim() : '')
+      .filter(Boolean);
+  }
+
+  return [];
+}
+
+function getLeadAddonLines(lead) {
+  if (typeof lead?.addons_display === 'string' && lead.addons_display.trim()) {
+    return splitLeadTextList(lead.addons_display);
+  }
+
+  const addons = lead?.addons;
+  if (!addons || typeof addons !== 'object' || Array.isArray(addons)) return [];
+
+  return Object.entries(addons)
+    .filter(([, value]) => {
+      if (!value) return false;
+      if (typeof value === 'object') return value.selected !== false;
+      return Boolean(value);
+    })
+    .map(([key, value]) => {
+      if (value && typeof value === 'object' && value.label) return String(value.label);
+      return titleCase(key.replace(/_/g, ' '));
+    });
+}
+
+function getLeadKindLabel(lead) {
+  const kind = getLeadQuoteKind(lead);
+  if (kind === 'oneoff') return 'One-Off Services';
+  if (kind === 'commercial') return 'Commercial Enquiry';
+  return 'Regular Window Cleaning';
+}
+
+function getLeadDisplayValueParts(lead) {
+  const kind = getLeadQuoteKind(lead);
+  const recurringPrice = toFiniteNumber(lead?.price_per_clean);
+  const addonsTotal = toFiniteNumber(lead?.addons_total) || 0;
+  const total = getLeadTotal(lead);
+
+  if (kind === 'commercial') {
+    const enquiryType = lead?.commercial_type
+      ? titleCase(String(lead.commercial_type).replace(/_/g, ' '))
+      : 'Manual review';
+    return {
+      primary: 'Manual review',
+      secondary: enquiryType,
+      sortValue: -1,
+      rawValue: null,
+    };
+  }
+
+  if (kind === 'oneoff') {
+    const services = getLeadSelectedServices(lead);
+    const discount = getLeadBundleDiscountPercent(lead);
+    const serviceLabel = services.length
+      ? `${services.length} service${services.length === 1 ? '' : 's'} selected`
+      : 'Standalone service bundle';
+    return {
+      primary: total !== null ? formatCurrencyFull(Math.round(total)) : '-',
+      secondary: discount ? `${serviceLabel} · ${discount}% bundle saving` : serviceLabel,
+      sortValue: total ?? 0,
+      rawValue: total,
+    };
+  }
+
+  const addonLines = getLeadAddonLines(lead);
+  const addonLabel = addonsTotal > 0
+    ? `+ ${formatCurrencyFull(Math.round(addonsTotal))} first-clean add-ons`
+    : (addonLines.length ? `${addonLines.length} add-on${addonLines.length === 1 ? '' : 's'} selected` : 'Recurring service');
+
+  return {
+    primary: recurringPrice !== null ? formatPrice(recurringPrice, lead?.frequency) : '-',
+    secondary: addonLabel,
+    sortValue: recurringPrice ?? total ?? 0,
+    rawValue: recurringPrice ?? total,
+  };
+}
+
+function normalizeLeadRecord(lead) {
+  const normalized = { ...lead };
+  normalized.quote_kind = getLeadQuoteKind(normalized);
+  normalized.total = getLeadTotal(normalized);
+  const display = getLeadDisplayValueParts(normalized);
+  normalized.display_value = display.primary;
+  normalized.display_value_sort = display.sortValue;
+  normalized.display_value_secondary = display.secondary;
+  return normalized;
 }
 
 function relativeTime(dateStr) {
@@ -700,6 +1465,11 @@ function leadAttentionReasons(lead) {
   const reasons = [];
   const events = leadEvents(lead.id);
 
+  if (getLeadQuoteKind(lead) === 'commercial') {
+    reasons.push('Manual review');
+    reasons.push('Commercial enquiry');
+  }
+
   const manualReviewEvent = events.find(e =>
     e.event_type === 'coverage.manual_review_required' ||
     e.event_type === 'coverage.lookup_unavailable' ||
@@ -743,6 +1513,249 @@ function hideError() {
   $('#errorBanner').classList.remove('visible');
 }
 
+function moduleElements(tab) {
+  if (tab) return [...$$(`.layout-module[data-tab="${tab}"]`)];
+  return [...$$('.layout-module')];
+}
+
+function tabCanvas(tab) {
+  return $(`#${tab}Canvas`);
+}
+
+function hiddenTray(tab) {
+  return $(`#${tab}HiddenModules`);
+}
+
+function cloneDefaultLayouts() {
+  return JSON.parse(JSON.stringify(DEFAULT_TAB_LAYOUTS));
+}
+
+function defaultModuleMetrics(tab, moduleId) {
+  const defaults = DEFAULT_TAB_LAYOUTS[tab]?.modules?.[moduleId];
+  return {
+    minHeight: defaults?.minHeight || '',
+    chartHeight: defaults?.chartHeight || '280px',
+    span: defaults?.span || 1
+  };
+}
+
+function clampSpan(module, requestedSpan) {
+  const min = parseInt(module.dataset.minSpan || '1', 10);
+  const max = parseInt(module.dataset.maxSpan || module.dataset.minSpan || '1', 10);
+  return Math.max(min, Math.min(max, requestedSpan));
+}
+
+function loadLayoutState() {
+  const state = {
+    currentTab: 'dashboard',
+    tabs: cloneDefaultLayouts()
+  };
+
+  try {
+    const parsed = JSON.parse(localStorage.getItem(LAYOUT_STORAGE_KEY) || '{}');
+    if (!parsed || typeof parsed !== 'object') return state;
+
+    if (parsed.currentTab === 'dashboard' || parsed.currentTab === 'insights') {
+      state.currentTab = parsed.currentTab;
+    }
+
+    Object.keys(state.tabs).forEach(tab => {
+      const source = parsed.tabs?.[tab];
+      if (!source || typeof source !== 'object') return;
+
+      const knownIds = new Set(Object.keys(state.tabs[tab].modules));
+      if (Array.isArray(source.order)) {
+        const cleaned = source.order.filter(id => knownIds.has(id));
+        const remainder = [...knownIds].filter(id => !cleaned.includes(id));
+        state.tabs[tab].order = [...cleaned, ...remainder];
+      }
+
+      if (Array.isArray(source.hidden)) {
+        state.tabs[tab].hidden = source.hidden.filter(id => knownIds.has(id));
+      }
+
+      Object.keys(state.tabs[tab].modules).forEach(moduleId => {
+        const savedModule = source.modules?.[moduleId];
+        if (!savedModule || typeof savedModule !== 'object') return;
+        state.tabs[tab].modules[moduleId] = {
+          ...state.tabs[tab].modules[moduleId],
+          minHeight: savedModule.minHeight ?? state.tabs[tab].modules[moduleId].minHeight,
+          chartHeight: savedModule.chartHeight ?? state.tabs[tab].modules[moduleId].chartHeight,
+          span: savedModule.span ?? state.tabs[tab].modules[moduleId].span
+        };
+      });
+    });
+
+    return state;
+  } catch {
+    return state;
+  }
+}
+
+function saveLayoutState() {
+  const state = {
+    currentTab,
+    tabs: {}
+  };
+
+  Object.keys(DEFAULT_TAB_LAYOUTS).forEach(tab => {
+    const modules = moduleElements(tab);
+    state.tabs[tab] = {
+      order: modules.map(module => module.dataset.module),
+      hidden: modules.filter(module => module.classList.contains('is-hidden')).map(module => module.dataset.module),
+      modules: {}
+    };
+
+    modules.forEach(module => {
+      state.tabs[tab].modules[module.dataset.module] = {
+        minHeight: module.style.getPropertyValue('--module-min-height') || '',
+        chartHeight: module.style.getPropertyValue('--module-chart-height') || '',
+        span: parseInt(module.dataset.span || '1', 10)
+      };
+    });
+  });
+
+  localStorage.setItem(LAYOUT_STORAGE_KEY, JSON.stringify(state));
+}
+
+function renderHiddenModules(tab) {
+  const tray = hiddenTray(tab);
+  if (!tray) return;
+
+  const hiddenModules = moduleElements(tab).filter(module => module.classList.contains('is-hidden'));
+  if (!hiddenModules.length) {
+    tray.innerHTML = '';
+    tray.classList.remove('has-hidden');
+    return;
+  }
+
+  tray.classList.add('has-hidden');
+  tray.innerHTML = `
+    <span class="hidden-modules-label">Hidden panes</span>
+    ${hiddenModules.map(module => `
+      <span class="hidden-module-chip">
+        <span>${esc(module.dataset.title || module.dataset.module)}</span>
+        <button type="button" data-restore-module="${module.dataset.module}" data-restore-tab="${tab}">Show</button>
+      </span>
+    `).join('')}
+  `;
+}
+
+function syncModulePresentation(module, savedState) {
+  const tab = module.dataset.tab;
+  const defaults = defaultModuleMetrics(tab, module.dataset.module);
+  const minHeight = savedState?.minHeight || defaults.minHeight;
+  const chartHeight = savedState?.chartHeight || defaults.chartHeight;
+  const requestedSpan = parseInt(String(savedState?.span ?? defaults.span), 10) || defaults.span;
+  const span = clampSpan(module, requestedSpan);
+
+  if (minHeight && minHeight !== '0px') module.style.setProperty('--module-min-height', minHeight);
+  else module.style.removeProperty('--module-min-height');
+
+  module.style.setProperty('--module-chart-height', chartHeight);
+  module.dataset.span = String(span);
+}
+
+function applyLayoutState() {
+  const state = loadLayoutState();
+
+  Object.keys(DEFAULT_TAB_LAYOUTS).forEach(tab => {
+    const canvas = tabCanvas(tab);
+    if (!canvas) return;
+
+    const modules = new Map(moduleElements(tab).map(module => [module.dataset.module, module]));
+    const tabState = state.tabs[tab];
+    const order = Array.isArray(tabState.order) && tabState.order.length
+      ? tabState.order.filter(id => modules.has(id))
+      : [...modules.keys()];
+
+    order.forEach(id => {
+      const module = modules.get(id);
+      if (module) canvas.appendChild(module);
+    });
+
+    modules.forEach((module, id) => {
+      if (!order.includes(id)) canvas.appendChild(module);
+    });
+
+    moduleElements(tab).forEach(module => {
+      syncModulePresentation(module, tabState.modules?.[module.dataset.module]);
+      module.classList.toggle('is-hidden', tabState.hidden.includes(module.dataset.module));
+    });
+
+    renderHiddenModules(tab);
+  });
+
+  setActiveTab(state.currentTab, { skipSave: true, skipRecompute: true });
+}
+
+function updateDraggableState() {
+  moduleElements().forEach(module => {
+    module.draggable = layoutEditing && !module.classList.contains('is-hidden');
+  });
+}
+
+function setLayoutEditing(nextValue) {
+  layoutEditing = nextValue;
+  document.body.classList.toggle('layout-editing', layoutEditing);
+  const button = $('#btnLayoutMode');
+  if (button) {
+    button.classList.toggle('active', layoutEditing);
+    button.textContent = layoutEditing ? 'Done arranging' : 'Arrange layout';
+  }
+  updateDraggableState();
+}
+
+function clearDragTargets() {
+  moduleElements().forEach(module => {
+    module.classList.remove('drag-target-before', 'drag-target-after', 'dragging');
+  });
+}
+
+function reflowVisibleAnalytics() {
+  if (currentTab !== 'insights') return;
+  requestAnimationFrame(() => computeAll());
+}
+
+function setActiveTab(nextTab, options = {}) {
+  const { skipSave = false, skipRecompute = false } = options;
+  currentTab = nextTab === 'insights' ? 'insights' : 'dashboard';
+
+  $$('#viewTabs .view-tab').forEach(button => {
+    button.classList.toggle('active', button.dataset.tab === currentTab);
+  });
+  $$('.layout-tab').forEach(panel => {
+    panel.classList.toggle('active', panel.dataset.tab === currentTab);
+  });
+
+  if (!skipSave) saveLayoutState();
+  if (!skipRecompute) reflowVisibleAnalytics();
+}
+
+function hideModule(moduleId) {
+  const module = document.querySelector(`.layout-module[data-tab="${currentTab}"][data-module="${moduleId}"]`);
+  if (!module) return;
+  const visibleCount = moduleElements(currentTab).filter(item => !item.classList.contains('is-hidden')).length;
+  if (visibleCount <= 1) return;
+
+  module.classList.add('is-hidden');
+  renderHiddenModules(currentTab);
+  updateDraggableState();
+  saveLayoutState();
+  reflowVisibleAnalytics();
+}
+
+function restoreModule(tab, moduleId) {
+  const module = document.querySelector(`.layout-module[data-tab="${tab}"][data-module="${moduleId}"]`);
+  if (!module) return;
+
+  module.classList.remove('is-hidden');
+  renderHiddenModules(tab);
+  updateDraggableState();
+  saveLayoutState();
+  if (tab === currentTab) reflowVisibleAnalytics();
+}
+
 // ── DATA FETCH ──────────────────────────────────────────────
 async function fetchData() {
   const btn = $('#btnRefresh');
@@ -760,7 +1773,7 @@ async function fetchData() {
     if (leadsRes.error) throw leadsRes.error;
     if (eventsRes.error) throw eventsRes.error;
 
-    allLeads = leadsRes.data || [];
+    allLeads = (leadsRes.data || []).map(normalizeLeadRecord);
     allEvents = eventsRes.data || [];
     eventsByLead = new Map();
     allEvents.forEach(event => {
@@ -828,10 +1841,14 @@ function computeAll() {
   const leads = getFilteredLeads();
   computeStats(leads);
   renderTable(leads);
-  renderCharts(leads);
-  renderGeoTable(leads);
-  renderSourceTable(leads);
-  renderRevenue();
+  renderAttentionWorkbench(leads);
+  renderQueueSnapshot(leads);
+  renderRevenue(leads);
+  if (currentTab === 'insights') {
+    renderCharts(leads);
+    renderGeoTable(leads);
+    renderSourceTable(leads);
+  }
 }
 
 // ── STATS ───────────────────────────────────────────────────
@@ -840,7 +1857,7 @@ function computeStats(leads) {
   const newLeads = leads.length;
   const nonPartial = leads.filter(l => l.status !== 'partial');
   const quoted = nonPartial.length;
-  const signedUp = leads.filter(l => l.status === 'signed_up' || l.status === 'confirmed');
+  const signedUp = leads.filter(l => isWonStatus(l.status));
   const convRate = quoted > 0 ? ((signedUp.length / quoted) * 100) : 0;
 
   // Avg response time
@@ -859,17 +1876,27 @@ function computeStats(leads) {
   $('#statToday').textContent = today;
 
   // Revenue
-  const activePipeline = leads.filter(l => !['dead','cancelled','partial'].includes(l.status));
-  const pipeline = activePipeline.reduce((sum, l) => {
-    const price = parseFloat(l.price_per_clean) || 0;
-    return sum + price * freqMultiplier(l.frequency);
-  }, 0);
+  const recurringLeads = leads.filter(l => getLeadQuoteKind(l) === 'regular');
+  const recurringQuoted = recurringLeads.filter(l => l.status !== 'partial' && toFiniteNumber(l.price_per_clean) !== null);
+  const recurringWon = recurringLeads.filter(l => isWonStatus(l.status) && toFiniteNumber(l.price_per_clean) !== null);
+  const oneoffQuoted = leads.filter(l => getLeadQuoteKind(l) === 'oneoff' && isOpenPipelineStatus(l.status));
+  const oneoffBooked = leads.filter(l => getLeadQuoteKind(l) === 'oneoff' && isWonStatus(l.status));
+  const activePipeline = recurringLeads.filter(l => isOpenPipelineStatus(l.status));
+  const pipeline = activePipeline.reduce((sum, l) => sum + annualizedLeadValue(l), 0);
 
-  const quotedLeads = nonPartial.filter(l => l.price_per_clean);
-  const avgQuote = quotedLeads.length > 0 ? quotedLeads.reduce((s,l) => s + (parseFloat(l.price_per_clean)||0), 0) / quotedLeads.length : 0;
+  const avgQuote = recurringQuoted.length > 0
+    ? recurringQuoted.reduce((sum, lead) => sum + (toFiniteNumber(lead.price_per_clean) || 0), 0) / recurringQuoted.length
+    : 0;
 
-  const signupLeads = leads.filter(l => (l.status === 'signed_up' || l.status === 'confirmed') && l.price_per_clean);
-  const avgSignup = signupLeads.length > 0 ? signupLeads.reduce((s,l) => s + (parseFloat(l.price_per_clean)||0), 0) / signupLeads.length : 0;
+  const avgSignup = recurringWon.length > 0
+    ? recurringWon.reduce((sum, lead) => sum + (toFiniteNumber(lead.price_per_clean) || 0), 0) / recurringWon.length
+    : 0;
+
+  const active = recurringLeads.filter(l => isWonStatus(l.status));
+  const arr = active.reduce((sum, l) => sum + annualizedLeadValue(l), 0);
+  const mrr = arr / 12;
+  const oneoffQuotedValue = oneoffQuoted.reduce((sum, lead) => sum + (getLeadTotal(lead) || 0), 0);
+  const oneoffBookedValue = oneoffBooked.reduce((sum, lead) => sum + (getLeadTotal(lead) || 0), 0);
 
   const inChase = leads.filter(l => l.status && l.status.startsWith('chased'));
   const chaseConv = (() => {
@@ -890,23 +1917,18 @@ function computeStats(leads) {
   const topArea = Object.entries(areaCounts).sort((a,b) => b[1]-a[1])[0];
 
   $('#statPipeline').textContent = formatCurrency(pipeline);
-  $('#statPipeline').closest('.stat-card').querySelector('.stat-label').textContent = 'Revenue Pipeline (Annual)';
+  $('#pulseMrr').textContent = formatCurrencyFull(Math.round(mrr));
+  $('#pulseArr').textContent = formatCurrencyFull(Math.round(arr));
+  $('#pulsePipeline').textContent = formatCurrencyFull(Math.round(pipeline));
   $('#statAvgQuote').textContent = formatPrice(avgQuote);
   $('#statAvgSignup').textContent = formatPrice(avgSignup);
+  $('#statOneoffQuoted').textContent = formatCurrencyFull(Math.round(oneoffQuotedValue));
+  $('#statOneoffBooked').textContent = formatCurrencyFull(Math.round(oneoffBookedValue));
   $('#statInChase').textContent = inChase.length;
   $('#statChaseConv').textContent = chaseConv.toFixed(1) + '%';
   $('#statTopArea').textContent = topArea ? topArea[0] : '-';
-  if (topArea) {
-    const sub = $('#statTopArea').closest('.stat-card').querySelector('.stat-sub');
-    if (!sub) {
-      const s = document.createElement('div');
-      s.className = 'stat-sub';
-      s.textContent = topArea[1] + ' leads';
-      $('#statTopArea').parentNode.appendChild(s);
-    } else {
-      sub.textContent = topArea[1] + ' leads';
-    }
-  }
+  const topAreaSub = $('#statTopAreaSub');
+  if (topAreaSub) topAreaSub.textContent = topArea ? `${topArea[1]} leads in the current view.` : 'Highest lead concentration.';
 }
 
 // ── TABLE ───────────────────────────────────────────────────
@@ -915,8 +1937,11 @@ function renderTable(leads) {
   const sorted = [...leads].sort((a, b) => {
     let va = a[sortCol], vb = b[sortCol];
     if (sortCol === 'price_per_clean') {
-      va = parseFloat(va) || 0;
-      vb = parseFloat(vb) || 0;
+      va = toFiniteNumber(va) || 0;
+      vb = toFiniteNumber(vb) || 0;
+    } else if (sortCol === 'display_value') {
+      va = a.display_value_sort ?? 0;
+      vb = b.display_value_sort ?? 0;
     } else if (sortCol === 'created_at' || sortCol === 'updated_at') {
       va = va ? new Date(va).getTime() : 0;
       vb = vb ? new Date(vb).getTime() : 0;
@@ -960,17 +1985,25 @@ function renderTable(leads) {
             <strong>${esc(l.name || '-')}</strong>
             <div class="lead-meta">
               ${leadAttentionReasons(l)[0] ? `<span class="mini-pill mini-pill-attention">${esc(leadAttentionReasons(l)[0])}</span>` : ''}
+              <span class="mini-pill mini-pill-source">${esc(getLeadKindLabel(l))}</span>
               <span class="mini-pill mini-pill-source">${esc(normalizeSourceLabel(l.source_page))}</span>
             </div>
           </div>
         </td>
         <td>${esc(propertyDisplay(l))}</td>
-        <td>${formatPrice(l.price_per_clean, l.frequency)}</td>
+        <td>
+          <div><strong>${esc(getLeadDisplayValueParts(l).primary)}</strong></div>
+          <div class="lead-subtle">${esc(getLeadDisplayValueParts(l).secondary)}</div>
+        </td>
         <td><span class="badge badge-${l.status || 'partial'}">${statusLabel(l.status || 'partial')}</span></td>
         <td>${esc(postcodeArea(l.postcode))}</td>
         <td>
           <div>${esc(normalizeSourceLabel(l.source_page))}</div>
-          ${hasManualReview(l) ? '<div class="lead-subtle">Confirm coverage manually</div>' : ''}
+          ${getLeadQuoteKind(l) === 'commercial'
+            ? '<div class="lead-subtle">Manual commercial follow-up</div>'
+            : hasManualReview(l)
+              ? '<div class="lead-subtle">Confirm coverage manually</div>'
+              : ''}
         </td>
         <td title="${fullDate(l.updated_at || l.created_at)}">${relativeTime(l.updated_at || l.created_at)}</td>
       </tr>
@@ -1000,6 +2033,288 @@ function esc(s) {
   return d.innerHTML;
 }
 
+function attentionPriority(reasons) {
+  let score = 0;
+  if (reasons.includes('Manual review')) score += 4;
+  if (reasons.includes('Error logged')) score += 3;
+  if (reasons.includes('Unfinished quote')) score += 2;
+  return score;
+}
+
+function renderAttentionWorkbench(leads) {
+  const wrap = $('#attentionWorkbench');
+  const count = $('#attentionCount');
+  if (!wrap || !count) return;
+
+  const items = leads
+    .map(lead => ({ lead, reasons: leadAttentionReasons(lead) }))
+    .filter(item => item.reasons.length)
+    .sort((a, b) => {
+      const scoreDiff = attentionPriority(b.reasons) - attentionPriority(a.reasons);
+      if (scoreDiff) return scoreDiff;
+      return new Date(b.lead.updated_at || b.lead.created_at || 0) - new Date(a.lead.updated_at || a.lead.created_at || 0);
+    });
+
+  count.textContent = String(items.length);
+
+  if (items.length === 0) {
+    wrap.innerHTML = `<div class="attention-empty">Nothing urgent in this view right now. The queue is clear enough that you can work straight from the table.</div>`;
+    return;
+  }
+
+  wrap.innerHTML = items.slice(0, 6).map(({ lead, reasons }) => `
+    <div class="attention-item" data-id="${lead.id}">
+      <div class="attention-item-top">
+        <div>
+          <div class="attention-item-name">${esc(lead.name || 'Unnamed lead')}</div>
+          <div class="attention-item-meta">${esc(postcodeArea(lead.postcode))} · ${esc(statusLabel(lead.status || 'partial'))}</div>
+        </div>
+        <div class="attention-item-time">${esc(relativeTime(lead.updated_at || lead.created_at))}</div>
+      </div>
+      <div class="attention-item-tags">
+        ${reasons.map(reason => `<span class="mini-pill mini-pill-attention">${esc(reason)}</span>`).join('')}
+        <span class="mini-pill mini-pill-source">${esc(normalizeSourceLabel(lead.source_page))}</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderQueueSnapshot(leads) {
+  const wrap = $('#queueSnapshot');
+  if (!wrap) return;
+
+  const manualReview = leads.filter(hasManualReview).length;
+  const unfinished = leads.filter(l => l.status === 'partial').length;
+  const inChase = leads.filter(l => l.status && l.status.startsWith('chased')).length;
+  const paymentPending = leads.filter(l =>
+    (l.payment_link || l.gocardless_link || l.status === 'payment_pending' || l.status === 'quote_sent') &&
+    !['signed_up', 'confirmed', 'dead', 'cancelled'].includes(l.status)
+  ).length;
+
+  const snapshotRows = [
+    { label: 'Manual review', sub: 'Valid quotes that need a human check on service fit.', value: manualReview },
+    { label: 'Unfinished quotes', sub: 'Partials still sitting in the quote journey.', value: unfinished },
+    { label: 'In chase', sub: 'Quoted leads currently in a follow-up sequence.', value: inChase },
+    { label: 'Payment pending', sub: 'Leads with payment steps still open or unresolved.', value: paymentPending }
+  ];
+
+  wrap.innerHTML = snapshotRows.map(row => `
+    <div class="snapshot-row">
+      <div>
+        <div class="snapshot-label">${esc(row.label)}</div>
+        <div class="snapshot-sub">${esc(row.sub)}</div>
+      </div>
+      <div class="snapshot-value">${esc(String(row.value))}</div>
+    </div>
+  `).join('');
+}
+
+function renderSignalList(targetId, items, options = {}) {
+  const wrap = $(targetId.startsWith('#') ? targetId : `#${targetId}`);
+  if (!wrap) return;
+  if (!items.length) {
+    wrap.innerHTML = `<div class="signal-callout">${esc(options.emptyText || 'No data yet.')}</div>`;
+    return;
+  }
+  const maxValue = Math.max(...items.map(item => item.value || 0), 1);
+  wrap.innerHTML = items.map(item => {
+    const ratio = Math.max(0, Math.min(100, ((item.value || 0) / maxValue) * 100));
+    const fillClass = item.tone === 'alt' ? 'signal-fill signal-fill-alt' : item.tone === 'soft' ? 'signal-fill signal-fill-soft' : 'signal-fill';
+    return `
+      <div class="signal-row">
+        <div class="signal-main">
+          <div class="signal-label-row">
+            <div class="signal-label">${esc(item.label)}</div>
+            <div class="signal-value">${esc(item.display || String(item.value || 0))}</div>
+          </div>
+          ${item.sub ? `<div class="signal-sub">${esc(item.sub)}</div>` : ''}
+          <div class="signal-track"><div class="${fillClass}" style="width:${ratio}%"></div></div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function defaultStatusOptions() {
+  return [
+    'partial',
+    'quoted',
+    'quote_sent',
+    'payment_pending',
+    'chased_1',
+    'chased_2',
+    'chased_3',
+    'signed_up',
+    'confirmed',
+    'active',
+    'dead',
+    'cancelled',
+    'commercial_pending'
+  ];
+}
+
+function summarizeEventDetails(details) {
+  if (!details) return '';
+  if (typeof details === 'string') return details;
+  if (typeof details !== 'object') return String(details);
+  const entries = Object.entries(details).slice(0, 4).map(([key, value]) => {
+    const label = key.replace(/_/g, ' ');
+    const rendered = typeof value === 'boolean' ? (value ? 'yes' : 'no') : String(value);
+    return `${label}: ${rendered}`;
+  });
+  return entries.join(' · ');
+}
+
+function panelHeroCopy(lead) {
+  const kind = getLeadQuoteKind(lead);
+  if (kind === 'oneoff') {
+    return 'A standalone one-off booking with bundled services kept separate from recurring revenue, so you can see the real job value without muddying the subscription pipeline.';
+  }
+  if (kind === 'commercial') {
+    return 'A manual-review commercial enquiry. Treat this as a tailored follow-up opportunity rather than an instant-priced domestic quote.';
+  }
+  return 'A calm lead inspector for checking service fit, nudging the pipeline forward, and understanding exactly where this recurring quote sits right now.';
+}
+
+function renderPanelMetricStrip(lead, lastUpdated) {
+  const kind = getLeadQuoteKind(lead);
+  const total = getLeadTotal(lead);
+  const recurringPrice = toFiniteNumber(lead.price_per_clean);
+  const paymentValue = lead.payment_method || (kind === 'commercial' ? 'N/A' : 'Pending');
+  const paymentSub = lastUpdated ? `Updated ${relativeTime(lastUpdated)}` : 'Awaiting update';
+
+  if (kind === 'oneoff') {
+    const services = getLeadSelectedServices(lead);
+    const discount = getLeadBundleDiscountPercent(lead);
+    const serviceSummary = services.length ? services.join(', ') : 'Service selection pending';
+    return `
+      <div class="panel-metric-strip">
+        <div class="panel-metric">
+          <div class="panel-metric-label">One-off total</div>
+          <div class="panel-metric-value">${total !== null ? formatCurrencyFull(Math.round(total)) : '-'}</div>
+          <div class="panel-metric-sub">Standalone booking value</div>
+        </div>
+        <div class="panel-metric">
+          <div class="panel-metric-label">Services</div>
+          <div class="panel-metric-value">${services.length ? `${services.length} selected` : 'Pending'}</div>
+          <div class="panel-metric-sub">${esc(discount ? `${serviceSummary} · ${discount}% saving` : serviceSummary)}</div>
+        </div>
+        <div class="panel-metric">
+          <div class="panel-metric-label">Payment</div>
+          <div class="panel-metric-value">${esc(paymentValue)}</div>
+          <div class="panel-metric-sub">${esc(paymentSub)}</div>
+        </div>
+      </div>
+    `;
+  }
+
+  if (kind === 'commercial') {
+    const enquiryType = lead.commercial_type ? titleCase(String(lead.commercial_type).replace(/_/g, ' ')) : 'Commercial';
+    const responseState = lead.status ? statusLabel(lead.status) : 'manual review';
+    const contactState = lead.phone ? 'Phone captured' : (lead.email ? 'Email captured' : 'Contact still incomplete');
+    return `
+      <div class="panel-metric-strip">
+        <div class="panel-metric">
+          <div class="panel-metric-label">Enquiry type</div>
+          <div class="panel-metric-value">${esc(enquiryType)}</div>
+          <div class="panel-metric-sub">${esc(lead.property_type || 'Commercial site')}</div>
+        </div>
+        <div class="panel-metric">
+          <div class="panel-metric-label">Area</div>
+          <div class="panel-metric-value">${esc(postcodeArea(lead.postcode))}</div>
+          <div class="panel-metric-sub">${esc(contactState)}</div>
+        </div>
+        <div class="panel-metric">
+          <div class="panel-metric-label">Response state</div>
+          <div class="panel-metric-value">${esc(responseState)}</div>
+          <div class="panel-metric-sub">${esc(paymentSub)}</div>
+        </div>
+      </div>
+    `;
+  }
+
+  const addonsTotal = toFiniteNumber(lead.addons_total) || 0;
+  const addonLines = getLeadAddonLines(lead);
+  const addonSub = addonsTotal > 0
+    ? `${formatCurrencyFull(Math.round(addonsTotal))} in one-off add-ons`
+    : (addonLines.length ? `${addonLines.length} add-on${addonLines.length === 1 ? '' : 's'} selected` : 'No one-off add-ons attached');
+  return `
+    <div class="panel-metric-strip">
+      <div class="panel-metric">
+        <div class="panel-metric-label">Recurring clean</div>
+        <div class="panel-metric-value">${recurringPrice !== null ? formatPrice(recurringPrice, lead.frequency) : '-'}</div>
+        <div class="panel-metric-sub">Regular window cleaning value</div>
+      </div>
+      <div class="panel-metric">
+        <div class="panel-metric-label">First clean total</div>
+        <div class="panel-metric-value">${total !== null ? formatCurrencyFull(Math.round(total)) : '-'}</div>
+        <div class="panel-metric-sub">${esc(addonSub)}</div>
+      </div>
+      <div class="panel-metric">
+        <div class="panel-metric-label">Payment</div>
+        <div class="panel-metric-value">${esc(paymentValue)}</div>
+        <div class="panel-metric-sub">${esc(paymentSub)}</div>
+      </div>
+    </div>
+  `;
+}
+
+function renderPanelSnapshot(lead, lastUpdated) {
+  const kind = getLeadQuoteKind(lead);
+  const total = getLeadTotal(lead);
+  const recurringPrice = toFiniteNumber(lead.price_per_clean);
+  const detailItems = [];
+
+  if (kind === 'oneoff') {
+    const services = getLeadSelectedServices(lead);
+    const discount = getLeadBundleDiscountPercent(lead);
+    detailItems.push(
+      ['Property', lead.property_type || '-'],
+      ['Build', lead.build_type || '-'],
+      ['Bedrooms', lead.bedrooms || '-'],
+      ['Bundle discount', discount ? `${discount}%` : 'No bundle saving'],
+      ['One-off total', total !== null ? formatCurrencyFull(Math.round(total)) : '-'],
+      ['Payment', lead.payment_method || '-'],
+      ['Services', services.length ? services.join(', ') : 'Selection pending', true],
+      ['Address', lead.address || '-', true],
+      ['Postcode', lead.postcode || '-'],
+      ['Last activity', fullDate(lastUpdated) || '-']
+    );
+  } else if (kind === 'commercial') {
+    detailItems.push(
+      ['Enquiry type', lead.commercial_type ? titleCase(String(lead.commercial_type).replace(/_/g, ' ')) : 'Commercial'],
+      ['Building type', lead.property_type || 'Commercial'],
+      ['Phone', lead.phone || '-'],
+      ['Postcode', lead.postcode || '-'],
+      ['Address', lead.address || '-', true],
+      ['Requirements', lead.commercial_desc || 'Awaiting service notes', true],
+      ['Last activity', fullDate(lastUpdated) || '-']
+    );
+  } else {
+    const addonLines = getLeadAddonLines(lead);
+    detailItems.push(
+      ['Property', lead.property_type || '-'],
+      ['Build', lead.build_type || '-'],
+      ['Bedrooms', lead.bedrooms || '-'],
+      ['Frequency', lead.frequency || '-'],
+      ['Recurring clean', recurringPrice !== null ? formatPrice(recurringPrice, lead.frequency) : '-'],
+      ['First clean total', total !== null ? formatCurrencyFull(Math.round(total)) : '-'],
+      ['Add-ons', addonLines.length ? addonLines.join(', ') : 'None selected', true],
+      ['Address', lead.address || '-', true],
+      ['Postcode', lead.postcode || '-'],
+      ['Payment', lead.payment_method || '-'],
+      ['Last activity', fullDate(lastUpdated) || '-']
+    );
+  }
+
+  return detailItems.map(([label, value, wide]) => `
+    <div class="panel-detail-item ${wide ? 'wide' : ''}">
+      <div class="panel-detail-label">${esc(label)}</div>
+      <div class="panel-detail-value">${esc(String(value))}</div>
+    </div>
+  `).join('');
+}
+
 // ── DETAIL PANEL ────────────────────────────────────────────
 function openPanel(leadId) {
   const lead = allLeads.find(l => l.id === leadId);
@@ -1008,72 +2323,93 @@ function openPanel(leadId) {
 
   const events = allEvents.filter(e => e.lead_id === leadId).sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
   const attentionReasons = leadAttentionReasons(lead);
+  const availableStatuses = [...new Set([...defaultStatusOptions(), ...allLeads.map(l => l.status).filter(Boolean), lead.status || 'partial'])];
+  const quoteKind = getLeadQuoteKind(lead);
+  const quoteKindLabel = getLeadKindLabel(lead);
+  const sourceLabel = normalizeSourceLabel(lead.source_page);
+  const lastUpdated = lead.updated_at || lead.created_at;
+  const snapshotTitle = quoteKind === 'commercial' ? 'Enquiry Snapshot' : 'Quote Snapshot';
 
   const panel = $('#panelContent');
   panel.innerHTML = `
-    <div class="panel-name">${esc(lead.name || 'Unnamed Lead')}</div>
-    <div class="panel-contact">
-      ${lead.email ? `<a href="mailto:${esc(lead.email)}">${esc(lead.email)}</a>` : ''}
-      ${lead.email && lead.phone ? ' &middot; ' : ''}
-      ${lead.phone ? `<a href="tel:${esc(lead.phone)}">${esc(lead.phone)}</a>` : ''}
-    </div>
-
-    <div class="panel-section">
-      <div class="panel-section-title">Property Details</div>
-      <div class="panel-detail-grid">
-        <div class="panel-detail-item"><div class="panel-detail-label">Type</div>${esc(lead.property_type || '-')}</div>
-        <div class="panel-detail-item"><div class="panel-detail-label">Build</div>${esc(lead.build_type || '-')}</div>
-        <div class="panel-detail-item"><div class="panel-detail-label">Bedrooms</div>${lead.bedrooms || '-'}</div>
-        <div class="panel-detail-item"><div class="panel-detail-label">Frequency</div>${esc(lead.frequency || '-')}</div>
-        <div class="panel-detail-item"><div class="panel-detail-label">Price</div>${formatPrice(lead.price_per_clean, lead.frequency)}</div>
-        <div class="panel-detail-item"><div class="panel-detail-label">Status</div><span class="badge badge-${lead.status || 'partial'}">${statusLabel(lead.status || 'partial')}</span></div>
-        <div class="panel-detail-item" style="grid-column:span 2"><div class="panel-detail-label">Address</div>${esc(lead.address || '-')}</div>
-        <div class="panel-detail-item"><div class="panel-detail-label">Postcode</div>${esc(lead.postcode || '-')}</div>
-        <div class="panel-detail-item"><div class="panel-detail-label">Payment</div>${esc(lead.payment_method || '-')}</div>
+    <div class="panel-stack">
+      <div class="panel-hero">
+        <div class="panel-name">${esc(lead.name || 'Unnamed Lead')}</div>
+        <div class="panel-contact">
+          ${lead.email ? `<a href="mailto:${esc(lead.email)}">${esc(lead.email)}</a>` : ''}
+          ${lead.email && lead.phone ? ' &middot; ' : ''}
+          ${lead.phone ? `<a href="tel:${esc(lead.phone)}">${esc(lead.phone)}</a>` : ''}
+        </div>
+        <div class="panel-meta-row">
+          <span class="badge badge-${lead.status || 'partial'}">${statusLabel(lead.status || 'partial')}</span>
+          <span class="panel-meta-tag">${esc(quoteKindLabel)}</span>
+          <span class="panel-meta-tag">${esc(sourceLabel)}</span>
+          <span class="panel-meta-tag">${esc(postcodeArea(lead.postcode))}</span>
+          <span class="panel-meta-tag">${esc(relativeTime(lastUpdated))}</span>
+        </div>
+        <div class="panel-hero-copy">${panelHeroCopy(lead)}</div>
+        ${renderPanelMetricStrip(lead, lastUpdated)}
       </div>
-    </div>
 
-    ${(lead.payment_link || lead.gocardless_link) ? `
-    <div class="panel-section">
-      <div class="panel-section-title">Payment Links</div>
-      <div style="font-size:.85rem;display:flex;flex-direction:column;gap:6px">
-        ${lead.payment_link ? `<a href="${esc(lead.payment_link)}" target="_blank" rel="noopener" style="color:var(--info);text-decoration:underline;word-break:break-all">Stripe Payment Link</a>` : ''}
-        ${lead.gocardless_link ? `<a href="${esc(lead.gocardless_link)}" target="_blank" rel="noopener" style="color:var(--success);text-decoration:underline;word-break:break-all">GoCardless Link</a>` : ''}
+      <div class="panel-card panel-section">
+        <div class="panel-section-title">Pipeline Control</div>
+        <div class="panel-empty">Change the live stage for this quote without leaving the drawer. The current state stays visible above while you move it forward.</div>
+        <div class="panel-inline-actions">
+          <select class="panel-status-select" id="panelStatusSelect">
+            ${availableStatuses.map(status => `<option value="${esc(status)}" ${status === (lead.status || 'partial') ? 'selected' : ''}>${esc(statusLabel(status))}</option>`).join('')}
+          </select>
+          <button class="btn-apply-status" id="btnApplyStatus">Apply</button>
+        </div>
+        <div class="panel-actions">
+          <button class="btn-action btn-confirm" id="btnMarkConfirmed">Mark Confirmed</button>
+          <button class="btn-action btn-dead" id="btnMarkDead">Mark Dead</button>
+        </div>
       </div>
-    </div>` : ''}
 
-    ${attentionReasons.length ? `
-    <div class="panel-section">
-      <div class="panel-section-title">Needs Attention</div>
-      <div class="attention-list">
-        ${attentionReasons.map(reason => `<span class="attention-chip">${esc(reason)}</span>`).join('')}
+      ${attentionReasons.length ? `
+      <div class="panel-card panel-section">
+        <div class="panel-section-title">Needs Attention</div>
+        <div class="attention-list">
+          ${attentionReasons.map(reason => `<span class="attention-chip">${esc(reason)}</span>`).join('')}
+        </div>
+      </div>` : ''}
+
+      <div class="panel-card panel-section">
+        <div class="panel-section-title">${snapshotTitle}</div>
+        <div class="panel-detail-grid">
+          ${renderPanelSnapshot(lead, lastUpdated)}
+        </div>
       </div>
-    </div>` : ''}
 
-    ${lead.extras ? `<div class="panel-section"><div class="panel-section-title">Extras</div><div style="font-size:.85rem">${renderExtras(lead.extras)}</div></div>` : ''}
+      ${(lead.payment_link || lead.gocardless_link) ? `
+      <div class="panel-card panel-section">
+        <div class="panel-section-title">Payment Links</div>
+        <div class="panel-link-list">
+          ${lead.payment_link ? `<a class="panel-link-button" href="${esc(lead.payment_link)}" target="_blank" rel="noopener"><span>Stripe payment link<small>Open the hosted payment step for this lead.</small></span><span>&rsaquo;</span></a>` : ''}
+          ${lead.gocardless_link ? `<a class="panel-link-button" href="${esc(lead.gocardless_link)}" target="_blank" rel="noopener"><span>GoCardless mandate link<small>Open the direct debit approval flow.</small></span><span>&rsaquo;</span></a>` : ''}
+        </div>
+      </div>` : ''}
 
-    <div class="panel-section">
-      <div class="panel-section-title">Notes</div>
-      <textarea class="panel-notes" id="panelNotes">${esc(lead.notes || '')}</textarea>
-      <button class="btn-save-notes" id="btnSaveNotes">Save Notes</button>
-    </div>
+      ${lead.extras ? `<div class="panel-card panel-section"><div class="panel-section-title">Extras</div><div style="font-size:.85rem">${renderExtras(lead.extras)}</div></div>` : ''}
 
-    <div class="panel-actions">
-      <button class="btn-action btn-confirm" id="btnMarkConfirmed">Mark Confirmed</button>
-      <button class="btn-action btn-dead" id="btnMarkDead">Mark Dead</button>
-    </div>
+      <div class="panel-card panel-section">
+        <div class="panel-section-title">Notes</div>
+        <textarea class="panel-notes" id="panelNotes">${esc(lead.notes || '')}</textarea>
+        <button class="btn-save-notes" id="btnSaveNotes">Save Notes</button>
+      </div>
 
-    <div class="panel-section">
-      <div class="panel-section-title">Timeline</div>
-      <div class="timeline" id="panelTimeline">
-        ${events.length === 0 ? '<div style="font-size:.85rem;color:var(--ink-faint);font-style:italic">No events yet</div>' :
-          events.map(e => `
-            <div class="timeline-item">
-              <div class="timeline-date">${fullDate(e.created_at)}</div>
-              <div class="timeline-text"><strong>${esc(e.event_type || '')}</strong>${e.channel ? ' via ' + esc(e.channel) : ''}${e.details ? ' &mdash; ' + esc(typeof e.details === 'string' ? e.details : JSON.stringify(e.details)) : ''}</div>
-            </div>
-          `).join('')
-        }
+      <div class="panel-card panel-section">
+        <div class="panel-section-title">Timeline</div>
+        <div class="timeline" id="panelTimeline">
+          ${events.length === 0 ? '<div class="panel-empty">No events yet for this lead.</div>' :
+            events.map(e => `
+              <div class="timeline-item">
+                <div class="timeline-date">${fullDate(e.created_at)}</div>
+                <div class="timeline-text"><strong>${esc((e.event_type || '').replace(/\./g, ' · '))}</strong>${e.channel ? ` via ${esc(e.channel)}` : ''}${e.details ? `<div class="panel-detail-sub">${esc(summarizeEventDetails(e.details))}</div>` : ''}</div>
+              </div>
+            `).join('')
+          }
+        </div>
       </div>
     </div>
   `;
@@ -1085,6 +2421,7 @@ function openPanel(leadId) {
   $('#btnSaveNotes').onclick = () => saveNotes(lead.id);
   $('#btnMarkConfirmed').onclick = () => markStatus(lead.id, 'confirmed');
   $('#btnMarkDead').onclick = () => markStatus(lead.id, 'dead');
+  $('#btnApplyStatus').onclick = () => markStatus(lead.id, $('#panelStatusSelect').value);
 }
 
 function renderExtras(extras) {
@@ -1121,18 +2458,40 @@ async function saveNotes(leadId) {
 }
 
 async function markStatus(leadId, status) {
-  const updates = { status };
-  if (status === 'confirmed') updates.confirmed_at = new Date().toISOString();
+  const lead = allLeads.find(l => l.id === leadId);
+  if (!lead) return;
+
+  const nowIso = new Date().toISOString();
+  const previousStatus = lead.status || 'partial';
+  const updates = { status, updated_at: nowIso };
+  if (status === 'quoted' || status === 'quote_sent') updates.quoted_at = lead.quoted_at || nowIso;
+  if (status === 'signed_up' || status === 'active') updates.signed_up_at = lead.signed_up_at || nowIso;
+  if (status === 'confirmed') updates.confirmed_at = lead.confirmed_at || nowIso;
   try {
     const { error } = await sb.from('leads').update(updates).eq('id', leadId);
     if (error) throw error;
-    const lead = allLeads.find(l => l.id === leadId);
-    if (lead) {
-      lead.status = status;
-      if (status === 'confirmed') lead.confirmed_at = updates.confirmed_at;
+    Object.assign(lead, updates);
+
+    const details = { from_status: previousStatus, to_status: status, source: 'admin_dashboard' };
+    try {
+      const { data: insertedEvents } = await sb.from('lead_events').insert({
+        lead_id: leadId,
+        event_type: 'admin.status_updated',
+        channel: 'admin',
+        details
+      }).select('*');
+      if (insertedEvents && insertedEvents.length) {
+        insertedEvents.forEach(event => allEvents.unshift(event));
+        const list = eventsByLead.get(leadId) || [];
+        insertedEvents.forEach(event => list.unshift(event));
+        eventsByLead.set(leadId, list);
+      }
+    } catch (eventErr) {
+      console.warn('Could not record admin status event:', eventErr);
     }
-    closePanel();
+
     computeAll();
+    openPanel(leadId);
   } catch(err) {
     showError('Failed to update status: ' + err.message);
   }
@@ -1145,6 +2504,7 @@ function destroyChart(key) {
 
 function renderCharts(leads) {
   renderLeadsOverTime(leads);
+  renderValueTrendChart(leads);
   renderFunnel(leads);
   renderFrequencyChart(leads);
   renderExtrasChart(leads);
@@ -1208,56 +2568,181 @@ function renderLeadsOverTime(leads) {
   }
 }
 
-function renderFunnel(leads) {
-  destroyChart('funnel');
-  const ctx = $('#chartFunnel').getContext('2d');
+function renderValueTrendChart(leads) {
+  destroyChart('valueTrend');
+  const canvas = $('#chartValueTrend');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
 
-  const total = leads.length;
-  const quoted = leads.filter(l => l.status !== 'partial').length;
-  const chased = leads.filter(l => l.chase_1_sent_at || (l.status && l.status.startsWith('chased'))).length;
-  const signedUp = leads.filter(l => l.status === 'signed_up' || l.status === 'confirmed').length;
-  const confirmed = leads.filter(l => l.status === 'confirmed').length;
+  const recurringQuotedByDate = {};
+  const recurringBookedByDate = {};
+  const oneoffQuotedByDate = {};
+  const oneoffBookedByDate = {};
 
-  charts.funnel = new Chart(ctx, {
+  leads.forEach(lead => {
+    const kind = getLeadQuoteKind(lead);
+    const recurringValue = annualizedLeadValue(lead);
+    const oneoffValue = kind === 'oneoff' ? (getLeadTotal(lead) || 0) : 0;
+
+    const quotedDate = lead.quoted_at || (lead.status !== 'partial' ? lead.created_at : null);
+    if (quotedDate) {
+      const key = new Date(quotedDate).toISOString().split('T')[0];
+      if (kind === 'regular' && recurringValue) {
+        recurringQuotedByDate[key] = (recurringQuotedByDate[key] || 0) + recurringValue;
+      }
+      if (kind === 'oneoff' && oneoffValue) {
+        oneoffQuotedByDate[key] = (oneoffQuotedByDate[key] || 0) + oneoffValue;
+      }
+    }
+
+    const signupDate = lead.signed_up_at || lead.confirmed_at;
+    if (signupDate && isWonStatus(lead.status)) {
+      const key = new Date(signupDate).toISOString().split('T')[0];
+      if (kind === 'regular' && recurringValue) {
+        recurringBookedByDate[key] = (recurringBookedByDate[key] || 0) + recurringValue;
+      }
+      if (kind === 'oneoff' && oneoffValue) {
+        oneoffBookedByDate[key] = (oneoffBookedByDate[key] || 0) + oneoffValue;
+      }
+    }
+  });
+
+  const keys = [
+    ...new Set([
+      ...Object.keys(recurringQuotedByDate),
+      ...Object.keys(recurringBookedByDate),
+      ...Object.keys(oneoffQuotedByDate),
+      ...Object.keys(oneoffBookedByDate),
+    ]),
+  ].sort();
+  if (!keys.length) {
+    charts.valueTrend = new Chart(ctx, { type:'bar', data:{labels:[],datasets:[]}, options:{plugins:{title:{display:true,text:'No value movement yet',color:'#8a92a1'}}} });
+    return;
+  }
+
+  const start = new Date(keys[0]);
+  const end = new Date(keys[keys.length - 1]);
+  const filledKeys = [];
+  for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+    filledKeys.push(d.toISOString().split('T')[0]);
+  }
+
+  charts.valueTrend = new Chart(ctx, {
     type: 'bar',
     data: {
-      labels: ['All Leads', 'Quoted', 'Chased', 'Signed Up', 'Confirmed'],
-      datasets: [{
-        data: [total, quoted, chased, signedUp, confirmed],
-        backgroundColor: ['rgba(138,146,161,0.7)', 'rgba(41,128,185,0.7)', 'rgba(230,126,34,0.7)', 'rgba(39,174,96,0.7)', 'rgba(29,139,81,0.7)'],
-        borderRadius: 8
-      }]
+      labels: filledKeys.map(key => new Date(key).toLocaleDateString('en-GB', { day:'numeric', month:'short' })),
+      datasets: [
+        {
+          label: 'Recurring quoted annual value',
+          data: filledKeys.map(key => recurringQuotedByDate[key] || 0),
+          backgroundColor: 'rgba(184,134,11,0.72)',
+          hoverBackgroundColor: 'rgba(184,134,11,0.9)'
+        },
+        {
+          label: 'Recurring booked annual value',
+          data: filledKeys.map(key => recurringBookedByDate[key] || 0),
+          backgroundColor: 'rgba(39,174,96,0.78)',
+          hoverBackgroundColor: 'rgba(39,174,96,0.92)'
+        },
+        {
+          type: 'line',
+          label: 'One-off quoted value',
+          data: filledKeys.map(key => oneoffQuotedByDate[key] || 0),
+          borderColor: 'rgba(52,152,219,0.9)',
+          backgroundColor: 'rgba(52,152,219,0.15)',
+          fill: false,
+          tension: 0.35,
+          pointRadius: 2,
+          pointHoverRadius: 4,
+          borderWidth: 2.25
+        },
+        {
+          type: 'line',
+          label: 'One-off booked value',
+          data: filledKeys.map(key => oneoffBookedByDate[key] || 0),
+          borderColor: 'rgba(155,89,182,0.9)',
+          backgroundColor: 'rgba(155,89,182,0.12)',
+          fill: false,
+          tension: 0.35,
+          pointRadius: 2,
+          pointHoverRadius: 4,
+          borderWidth: 2.25
+        }
+      ]
     },
     options: {
-      indexAxis: 'y', responsive: true, maintainAspectRatio: false,
-      plugins: { legend: {display:false} },
-      scales: { x: {beginAtZero:true,ticks:{stepSize:1},grid:{color:'rgba(28,36,52,0.04)'}}, y:{grid:{display:false}} }
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          display: true,
+          position: 'top',
+          align: 'start'
+        },
+        tooltip: {
+          callbacks: {
+            label: context => `${context.dataset.label}: ${formatCurrencyFull(Math.round(context.raw || 0))}`
+          }
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: {
+            callback: value => formatCurrency(Number(value))
+          },
+          grid: { color:'rgba(28,36,52,0.04)' }
+        },
+        x: {
+          ticks: { maxTicksLimit: 10 },
+          grid: { display:false }
+        }
+      }
     }
   });
 }
 
+function renderFunnel(leads) {
+  const total = leads.length;
+  const quoted = leads.filter(l => l.status !== 'partial').length;
+  const chased = leads.filter(l => l.chase_1_sent_at || (l.status && l.status.startsWith('chased'))).length;
+  const signedUp = leads.filter(l => isWonStatus(l.status)).length;
+  const confirmed = leads.filter(l => l.status === 'confirmed').length;
+  const wrap = $('#funnelFlow');
+  if (!wrap) return;
+
+  const stages = [
+    { label: 'All leads', sub: 'Every lead currently in this view.', value: total },
+    { label: 'Quoted', sub: total ? `${Math.round((quoted / total) * 100)}% of all leads received a quote.` : 'No quote activity yet.', value: quoted },
+    { label: 'Chased', sub: quoted ? `${Math.round((chased / quoted) * 100)}% of quoted leads needed follow-up.` : 'No chase activity yet.', value: chased },
+    { label: 'Signed up', sub: quoted ? `${Math.round((signedUp / quoted) * 100)}% of quoted leads converted.` : 'No conversions yet.', value: signedUp },
+    { label: 'Confirmed', sub: signedUp ? `${Math.round((confirmed / signedUp) * 100)}% of signups are now fully confirmed.` : 'No confirmations yet.', value: confirmed }
+  ];
+  const maxValue = Math.max(...stages.map(stage => stage.value), 1);
+  wrap.innerHTML = stages.map(stage => `
+    <div class="flow-stage">
+      <div class="flow-stage-main">
+        <div class="flow-stage-label">${esc(stage.label)}</div>
+        <div class="flow-stage-sub">${esc(stage.sub)}</div>
+        <div class="flow-track"><div class="flow-fill" style="width:${(stage.value / maxValue) * 100}%"></div></div>
+      </div>
+      <div class="flow-stage-value">${esc(String(stage.value))}</div>
+    </div>
+  `).join('');
+}
+
 function renderFrequencyChart(leads) {
-  destroyChart('frequency');
-  const ctx = $('#chartFrequency').getContext('2d');
   const counts = {};
   leads.forEach(l => { const f = l.frequency || 'Unknown'; counts[f] = (counts[f]||0)+1; });
   const entries = Object.entries(counts).sort((a,b)=>b[1]-a[1]);
-
-  if (entries.length === 0) {
-    charts.frequency = new Chart(ctx, { type:'doughnut', data:{labels:['No data'],datasets:[{data:[1],backgroundColor:['#eee']}]}, options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right'}}} });
-    return;
-  }
-
-  const colors = [COLORS.gold, COLORS.blue, COLORS.green, COLORS.charcoal, COLORS.grey, COLORS.orange, COLORS.purple];
-  const softColors = ['rgba(184,134,11,0.75)', 'rgba(41,128,185,0.7)', 'rgba(39,174,96,0.7)', 'rgba(28,36,52,0.65)', 'rgba(138,146,161,0.6)', 'rgba(230,126,34,0.7)', 'rgba(142,68,173,0.65)'];
-  charts.frequency = new Chart(ctx, {
-    type: 'doughnut',
-    data: {
-      labels: entries.map(e => e[0]),
-      datasets: [{ data: entries.map(e => e[1]), backgroundColor: entries.map((_,i) => softColors[i % softColors.length]), borderWidth: 3, borderColor: '#fff', hoverOffset: 6 }]
-    },
-    options: { responsive:true, maintainAspectRatio:false, cutout:'72%', plugins:{legend:{position:'right',labels:{boxWidth:10,padding:10,usePointStyle:true,pointStyle:'circle'}}} }
-  });
+  const total = entries.reduce((sum, [, value]) => sum + value, 0);
+  renderSignalList('frequencyBreakdown', entries.map(([label, value], index) => ({
+    label,
+    value,
+    display: `${value} · ${total ? Math.round((value / total) * 100) : 0}%`,
+    sub: total ? `${Math.round((value / total) * 100)}% of leads in this view` : '',
+    tone: index === 1 ? 'alt' : index > 2 ? 'soft' : 'default'
+  })), { emptyText: 'Waiting for enough lead mix data to show the service shape.' });
 }
 
 function renderServiceBreakdownText(leads) {
@@ -1281,12 +2766,8 @@ function renderServiceBreakdownText(leads) {
 }
 
 function renderExtrasChart(leads) {
-  destroyChart('extras');
-  const ctx = $('#chartExtras').getContext('2d');
-
   // Gather extras
   const extraCounts = {};
-  const extraPrices = {};
   leads.forEach(l => {
     if (!l.extras) return;
     let extras = l.extras;
@@ -1294,93 +2775,43 @@ function renderExtrasChart(leads) {
     if (typeof extras === 'object' && !Array.isArray(extras)) {
       Object.entries(extras).forEach(([k, v]) => {
         extraCounts[k] = (extraCounts[k]||0) + 1;
-        if (typeof v === 'number' || (typeof v === 'string' && !isNaN(parseFloat(v)))) {
-          if (!extraPrices[k]) extraPrices[k] = [];
-          extraPrices[k].push(parseFloat(v));
-        }
       });
     } else if (Array.isArray(extras)) {
       extras.forEach(e => {
         const name = typeof e === 'string' ? e : (e.name || JSON.stringify(e));
         extraCounts[name] = (extraCounts[name]||0) + 1;
-        if (e.price) {
-          if (!extraPrices[name]) extraPrices[name] = [];
-          extraPrices[name].push(parseFloat(e.price));
-        }
       });
     }
   });
 
   const entries = Object.entries(extraCounts).sort((a,b)=>b[1]-a[1]).slice(0, 10);
-
-  if (entries.length === 0) {
-    charts.extras = new Chart(ctx, {
-      type:'bar', data:{labels:['No data yet'],datasets:[{data:[0],backgroundColor:COLORS.grey}]},
-      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}
-    });
-    return;
-  }
-
-  charts.extras = new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: entries.map(e => e[0]),
-      datasets: [{
-        label: 'Count', data: entries.map(e => e[1]),
-        backgroundColor: 'rgba(184,134,11,0.65)', borderRadius: 8,
-        hoverBackgroundColor: 'rgba(184,134,11,0.85)'
-      }]
-    },
-    options: {
-      responsive:true, maintainAspectRatio:false,
-      plugins:{legend:{display:false}},
-      scales:{y:{beginAtZero:true,ticks:{stepSize:1},grid:{color:'rgba(28,36,52,0.04)'}},x:{ticks:{maxRotation:45},grid:{display:false}}}
-    }
-  });
+  renderSignalList('extrasBreakdown', entries.map(([label, value]) => ({
+    label,
+    value,
+    display: `${value} lead${value === 1 ? '' : 's'}`,
+    sub: 'Selected as an additional one-off or extra service.'
+  })), { emptyText: 'No one-off extras have been selected in this view yet.' });
 }
 
 function renderChaseChart(leads) {
-  destroyChart('chase');
-  const ctx = $('#chartChase').getContext('2d');
-
   const quoted = leads.filter(l => l.status !== 'partial').length;
   const chase1 = leads.filter(l => l.chase_1_sent_at).length;
   const chase2 = leads.filter(l => l.chase_2_sent_at).length;
   const chase3 = leads.filter(l => l.chase_3_sent_at).length;
   const dead = leads.filter(l => l.status === 'dead').length;
   const converted = leads.filter(l => (l.chase_1_sent_at) && (l.status === 'signed_up' || l.status === 'confirmed')).length;
-
-  const labels = ['Quoted', 'Chase 1', 'Chase 2', 'Chase 3', 'Converted', 'Dead'];
-  const data = [quoted, chase1, chase2, chase3, converted, dead];
-  const bg = ['rgba(41,128,185,0.7)', 'rgba(230,126,34,0.7)', 'rgba(211,84,0,0.7)', 'rgba(184,134,11,0.7)', 'rgba(39,174,96,0.7)', 'rgba(138,146,161,0.5)'];
-
-  charts.chase = new Chart(ctx, {
-    type: 'bar',
-    data: { labels, datasets: [{ data, backgroundColor: bg, borderRadius: 8 }] },
-    options: {
-      responsive:true, maintainAspectRatio:false,
-      plugins: {
-        legend:{display:false},
-        tooltip: {
-          callbacks: {
-            afterLabel: function(ctx) {
-              if (ctx.dataIndex > 0 && data[0] > 0) {
-                return ((data[ctx.dataIndex] / data[0]) * 100).toFixed(1) + '% of quoted';
-              }
-              return '';
-            }
-          }
-        }
-      },
-      scales:{y:{beginAtZero:true,ticks:{stepSize:1},grid:{color:'rgba(28,36,52,0.04)'}},x:{grid:{display:false}}}
-    }
-  });
+  const items = [
+    { label: 'Quoted leads', value: quoted, display: String(quoted), sub: 'Baseline for the follow-up sequence.', tone: 'soft' },
+    { label: 'Chase 1', value: chase1, display: `${chase1}${quoted ? ` · ${Math.round((chase1 / quoted) * 100)}%` : ''}`, sub: 'First follow-up after quote delivery.' },
+    { label: 'Chase 2', value: chase2, display: `${chase2}${quoted ? ` · ${Math.round((chase2 / quoted) * 100)}%` : ''}`, sub: 'Second follow-up for leads still unresolved.' },
+    { label: 'Chase 3', value: chase3, display: `${chase3}${quoted ? ` · ${Math.round((chase3 / quoted) * 100)}%` : ''}`, sub: 'Final chase touch before the lead cools.', tone: 'alt' },
+    { label: 'Converted after chase', value: converted, display: `${converted}${chase1 ? ` · ${Math.round((converted / chase1) * 100)}%` : ''}`, sub: 'Leads that converted after entering chase.', tone: 'alt' },
+    { label: 'Marked dead', value: dead, display: String(dead), sub: 'Leads closed out without a signup.', tone: 'soft' }
+  ];
+  renderSignalList('chaseBreakdown', items, { emptyText: 'No chase-sequence data yet in this view.' });
 }
 
 function renderPaymentChart(leads) {
-  destroyChart('payment');
-  const ctx = $('#chartPayment').getContext('2d');
-
   const methods = {};
   leads.forEach(l => {
     if (!l.payment_method) return;
@@ -1397,23 +2828,14 @@ function renderPaymentChart(leads) {
   }
 
   const entries = Object.entries(methods);
-  if (entries.length === 0) {
-    charts.payment = new Chart(ctx, {
-      type:'doughnut', data:{labels:['No data'],datasets:[{data:[1],backgroundColor:['#eee']}]},
-      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right'}}}
-    });
-    return;
-  }
-
-  const payColors = ['rgba(184,134,11,0.75)', 'rgba(41,128,185,0.7)', 'rgba(39,174,96,0.7)', 'rgba(28,36,52,0.65)', 'rgba(138,146,161,0.6)'];
-  charts.payment = new Chart(ctx, {
-    type: 'doughnut',
-    data: {
-      labels: entries.map(e => e[0]),
-      datasets: [{ data: entries.map(e => e[1]), backgroundColor: entries.map((_,i) => payColors[i%payColors.length]), borderWidth: 3, borderColor: '#fff', hoverOffset: 6 }]
-    },
-    options: { responsive:true, maintainAspectRatio:false, cutout:'72%', plugins:{legend:{position:'right',labels:{boxWidth:10,padding:10,usePointStyle:true,pointStyle:'circle'}}} }
-  });
+  const total = entries.reduce((sum, [, value]) => sum + value, 0);
+  renderSignalList('paymentBreakdown', entries.map(([label, value], index) => ({
+    label,
+    value,
+    display: `${value}${total ? ` · ${Math.round((value / total) * 100)}%` : ''}`,
+    sub: 'Chosen payment route from the leads in this view.',
+    tone: index === 0 ? 'alt' : 'soft'
+  })), { emptyText: 'No payment-method data has landed in this view yet.' });
 }
 
 function renderDayOfWeekChart(leads) {
@@ -1461,11 +2883,12 @@ function renderGeoTable(leads) {
   const areas = {};
   leads.forEach(l => {
     const a = postcodeArea(l.postcode);
-    if (!areas[a]) areas[a] = { total:0, quoted:0, signedUp:0, prices:[] };
+    if (!areas[a]) areas[a] = { total:0, quoted:0, signedUp:0, values:[] };
     areas[a].total++;
     if (l.status !== 'partial') areas[a].quoted++;
-    if (l.status === 'signed_up' || l.status === 'confirmed') areas[a].signedUp++;
-    if (l.price_per_clean) areas[a].prices.push(parseFloat(l.price_per_clean));
+    if (isWonStatus(l.status)) areas[a].signedUp++;
+    const value = getLeadAverageValue(l);
+    if (value !== null) areas[a].values.push(value);
   });
 
   const sorted = Object.entries(areas).sort((a,b) => b[1].total - a[1].total).slice(0, 15);
@@ -1476,7 +2899,7 @@ function renderGeoTable(leads) {
   }
   tbody.innerHTML = sorted.map(([area, d]) => {
     const conv = d.quoted > 0 ? ((d.signedUp / d.quoted) * 100).toFixed(0) + '%' : '0%';
-    const avg = d.prices.length > 0 ? formatPrice(d.prices.reduce((a,b)=>a+b,0)/d.prices.length) : '-';
+    const avg = d.values.length > 0 ? formatCurrencyFull(Math.round(d.values.reduce((a,b)=>a+b,0)/d.values.length)) : '-';
     return `<tr><td><strong>${esc(area)}</strong></td><td>${d.total}</td><td>${d.quoted}</td><td>${d.signedUp}</td><td>${conv}</td><td>${avg}</td></tr>`;
   }).join('');
 }
@@ -1486,10 +2909,11 @@ function renderSourceTable(leads) {
   const sources = {};
   leads.forEach(l => {
     const s = normalizeSourceLabel(l.source_page);
-    if (!sources[s]) sources[s] = { total:0, signedUp:0, prices:[] };
+    if (!sources[s]) sources[s] = { total:0, signedUp:0, values:[] };
     sources[s].total++;
-    if (l.status === 'signed_up' || l.status === 'confirmed') sources[s].signedUp++;
-    if (l.price_per_clean) sources[s].prices.push(parseFloat(l.price_per_clean));
+    if (isWonStatus(l.status)) sources[s].signedUp++;
+    const value = getLeadAverageValue(l);
+    if (value !== null) sources[s].values.push(value);
   });
 
   const sorted = Object.entries(sources).sort((a,b) => b[1].total - a[1].total);
@@ -1500,43 +2924,40 @@ function renderSourceTable(leads) {
   }
   tbody.innerHTML = sorted.map(([src, d]) => {
     const conv = d.total > 0 ? ((d.signedUp / d.total) * 100).toFixed(0) + '%' : '0%';
-    const avg = d.prices.length > 0 ? formatPrice(d.prices.reduce((a,b)=>a+b,0)/d.prices.length) : '-';
+    const avg = d.values.length > 0 ? formatCurrencyFull(Math.round(d.values.reduce((a,b)=>a+b,0)/d.values.length)) : '-';
     return `<tr><td><strong>${esc(src)}</strong></td><td>${d.total}</td><td>${conv}</td><td>${avg}</td></tr>`;
   }).join('');
 }
 
 // ── REVENUE ─────────────────────────────────────────────────
-function renderRevenue() {
-  const active = allLeads.filter(l => l.status === 'signed_up' || l.status === 'confirmed');
-  // MRR = sum of (price * annual_multiplier / 12)
-  let mrr = 0;
-  active.forEach(l => {
-    const price = parseFloat(l.price_per_clean) || 0;
-    const annual = price * freqMultiplier(l.frequency);
-    mrr += annual / 12;
-  });
-  const arr = mrr * 12;
+function renderRevenue(leads) {
+  const source = Array.isArray(leads) ? leads : allLeads;
+  const active = source.filter(l => getLeadQuoteKind(l) === 'regular' && isWonStatus(l.status));
+  const arr = active.reduce((sum, lead) => sum + annualizedLeadValue(lead), 0);
+  const mrr = arr / 12;
 
-  // Pipeline = active pipeline (non dead/cancelled/partial)
-  const pipeline = allLeads.filter(l => !['dead','cancelled','partial'].includes(l.status))
-    .reduce((sum, l) => {
-      const price = parseFloat(l.price_per_clean) || 0;
-      return sum + price * freqMultiplier(l.frequency);
-    }, 0);
+  const pipeline = source.filter(l => getLeadQuoteKind(l) === 'regular' && isOpenPipelineStatus(l.status))
+    .reduce((sum, lead) => sum + annualizedLeadValue(lead), 0);
+  const oneoffQuoted = source.filter(l => getLeadQuoteKind(l) === 'oneoff' && isOpenPipelineStatus(l.status))
+    .reduce((sum, lead) => sum + (getLeadTotal(lead) || 0), 0);
+  const oneoffBooked = source.filter(l => getLeadQuoteKind(l) === 'oneoff' && isWonStatus(l.status))
+    .reduce((sum, lead) => sum + (getLeadTotal(lead) || 0), 0);
 
   $('#revMRR').textContent = formatCurrencyFull(Math.round(mrr));
   $('#revARR').textContent = formatCurrencyFull(Math.round(arr));
   $('#revPipeline').textContent = formatCurrencyFull(Math.round(pipeline));
+  $('#revOneoffQuoted').textContent = formatCurrencyFull(Math.round(oneoffQuoted));
+  $('#revOneoffBooked').textContent = formatCurrencyFull(Math.round(oneoffBooked));
 }
 
 // ── CSV EXPORT ──────────────────────────────────────────────
 function exportCSV() {
   const leads = getFilteredLeads();
   if (leads.length === 0) return;
-  const headers = ['Name','Email','Phone','Address','Postcode','Property Type','Build Type','Bedrooms','Frequency','Price','Status','Source','Created At','Quoted At','Signed Up At','Confirmed At','Notes'];
+  const headers = ['Name','Quote Kind','Email','Phone','Address','Postcode','Property Type','Build Type','Bedrooms','Frequency','Recurring Price','Add-ons Total','Total','Display Value','Status','Source','Created At','Quoted At','Signed Up At','Confirmed At','Notes'];
   const rows = leads.map(l => [
-    l.name, l.email, l.phone, l.address, l.postcode, l.property_type, l.build_type,
-    l.bedrooms, l.frequency, l.price_per_clean, l.status, l.source_page,
+    l.name, getLeadQuoteKind(l), l.email, l.phone, l.address, l.postcode, l.property_type, l.build_type,
+    l.bedrooms, l.frequency, toFiniteNumber(l.price_per_clean), toFiniteNumber(l.addons_total), getLeadTotal(l), getLeadDisplayValueParts(l).primary, l.status, normalizeSourceLabel(l.source_page),
     l.created_at, l.quoted_at, l.signed_up_at, l.confirmed_at, l.notes
   ]);
 
@@ -1558,14 +2979,30 @@ function exportCSV() {
 
 // ── EVENT LISTENERS ─────────────────────────────────────────
 $('#btnRefresh').addEventListener('click', fetchData);
+$('#btnLayoutMode').addEventListener('click', () => setLayoutEditing(!layoutEditing));
+
+$('#viewTabs').addEventListener('click', e => {
+  const tabButton = e.target.closest('.view-tab');
+  if (!tabButton) return;
+  setActiveTab(tabButton.dataset.tab);
+});
+
+document.addEventListener('click', e => {
+  const hideButton = e.target.closest('.module-hide-btn');
+  if (hideButton) {
+    hideModule(hideButton.dataset.hideModule);
+    return;
+  }
+
+  const restoreButton = e.target.closest('[data-restore-module]');
+  if (restoreButton) {
+    restoreModule(restoreButton.dataset.restoreTab || currentTab, restoreButton.dataset.restoreModule);
+  }
+});
 
 // Date range
-$('#dateRange').addEventListener('click', e => {
-  const pill = e.target.closest('.date-pill');
-  if (!pill) return;
-  $$('.date-pill').forEach(p => p.classList.remove('active'));
-  pill.classList.add('active');
-  currentRange = parseInt(pill.dataset.days);
+$('#rangeSelect').addEventListener('change', e => {
+  currentRange = parseInt(e.target.value, 10);
   currentPage = 1;
   computeAll();
 });
@@ -1604,7 +3041,7 @@ $('#tableHead').addEventListener('click', e => {
     sortDir = sortDir === 'asc' ? 'desc' : 'asc';
   } else {
     sortCol = col;
-    sortDir = col === 'created_at' || col === 'price_per_clean' ? 'desc' : 'asc';
+    sortDir = col === 'created_at' || col === 'price_per_clean' || col === 'display_value' ? 'desc' : 'asc';
   }
   computeAll();
 });
@@ -1625,6 +3062,104 @@ $('#tableBody').addEventListener('click', e => {
   openPanel(row.dataset.id);
 });
 
+$('#attentionWorkbench').addEventListener('click', e => {
+  const item = e.target.closest('.attention-item[data-id]');
+  if (!item) return;
+  openPanel(item.dataset.id);
+});
+
+$$('.layout-canvas').forEach(canvas => {
+  canvas.addEventListener('dragstart', e => {
+    const module = e.target.closest('.layout-module');
+    if (!layoutEditing || !module || module.classList.contains('is-hidden')) {
+      e.preventDefault();
+      return;
+    }
+    module.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', module.dataset.module);
+    e.dataTransfer.setData('application/x-layout-tab', module.dataset.tab || canvas.dataset.tab || currentTab);
+  });
+
+  canvas.addEventListener('dragover', e => {
+    if (!layoutEditing) return;
+    const draggedId = e.dataTransfer.getData('text/plain');
+    const draggedTab = e.dataTransfer.getData('application/x-layout-tab');
+    if (!draggedId || draggedTab !== canvas.dataset.tab) return;
+
+    const target = e.target.closest('.layout-module');
+    const dragged = document.querySelector(`.layout-module[data-tab="${draggedTab}"][data-module="${draggedId}"]`);
+    if (!target || !dragged || target === dragged || target.classList.contains('is-hidden')) return;
+
+    e.preventDefault();
+    clearDragTargets();
+    const rect = target.getBoundingClientRect();
+    const before = e.clientY < rect.top + (rect.height / 2);
+    target.classList.add(before ? 'drag-target-before' : 'drag-target-after');
+    if (before) canvas.insertBefore(dragged, target);
+    else canvas.insertBefore(dragged, target.nextSibling);
+  });
+
+  canvas.addEventListener('drop', e => {
+    if (!layoutEditing) return;
+    e.preventDefault();
+    clearDragTargets();
+    saveLayoutState();
+  });
+
+  canvas.addEventListener('dragend', () => {
+    clearDragTargets();
+    saveLayoutState();
+  });
+
+  canvas.addEventListener('pointerdown', e => {
+    const handle = e.target.closest('.module-resize');
+    if (!layoutEditing || !handle) return;
+    const module = handle.closest('.layout-module');
+    if (!module || module.classList.contains('is-hidden')) return;
+
+    const defaults = defaultModuleMetrics(module.dataset.tab, module.dataset.module);
+    activeResize = {
+      module,
+      tab: module.dataset.tab,
+      startX: e.clientX,
+      startY: e.clientY,
+      startMinHeight: parseInt(module.style.getPropertyValue('--module-min-height') || defaults.minHeight || module.offsetHeight, 10),
+      startChartHeight: parseInt(module.style.getPropertyValue('--module-chart-height') || defaults.chartHeight || '280', 10),
+      startSpan: parseInt(module.dataset.span || String(defaults.span), 10),
+      minSpan: parseInt(module.dataset.minSpan || '1', 10),
+      maxSpan: parseInt(module.dataset.maxSpan || module.dataset.minSpan || '1', 10)
+    };
+    handle.setPointerCapture(e.pointerId);
+    e.preventDefault();
+  });
+});
+
+window.addEventListener('pointermove', e => {
+  if (!activeResize) return;
+  const deltaY = e.clientY - activeResize.startY;
+  const deltaX = e.clientX - activeResize.startX;
+  const minHeight = Math.max(180, Math.min(1200, activeResize.startMinHeight + deltaY));
+  const chartHeight = Math.max(180, Math.min(520, activeResize.startChartHeight + deltaY));
+  activeResize.module.style.setProperty('--module-min-height', `${minHeight}px`);
+  activeResize.module.style.setProperty('--module-chart-height', `${chartHeight}px`);
+
+  let nextSpan = activeResize.startSpan;
+  if (activeResize.maxSpan > activeResize.minSpan) {
+    if (deltaX >= 140) nextSpan = Math.min(activeResize.maxSpan, activeResize.startSpan + 1);
+    if (deltaX <= -140) nextSpan = Math.max(activeResize.minSpan, activeResize.startSpan - 1);
+  }
+  activeResize.module.dataset.span = String(clampSpan(activeResize.module, nextSpan));
+});
+
+window.addEventListener('pointerup', () => {
+  if (!activeResize) return;
+  const resizedTab = activeResize.tab;
+  saveLayoutState();
+  activeResize = null;
+  if (resizedTab === currentTab) reflowVisibleAnalytics();
+});
+
 // Panel close
 $('#panelClose').addEventListener('click', closePanel);
 $('#panelOverlay').addEventListener('click', closePanel);
@@ -1634,6 +3169,8 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') closePanel()
 $('#btnExport').addEventListener('click', exportCSV);
 
 // ── INIT ────────────────────────────────────────────────────
+applyLayoutState();
+setLayoutEditing(false);
 fetchData();
 fetchAiSummary();
 
