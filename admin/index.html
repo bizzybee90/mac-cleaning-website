@@ -508,6 +508,7 @@ tbody tr:has(.badge-active){border-left-color:#16a085}
 tbody tr:has(.badge-dead){border-left-color:#8a92a1}
 tbody tr:has(.badge-cancelled){border-left-color:#c0392b}
 tbody tr:has(.badge-commercial_pending){border-left-color:#8e44ad}
+tbody tr:has(.badge-test){border-left-color:#9b59b6}
 
 /* ── STATUS BADGES ───────────────────────────────────────── */
 .badge{
@@ -527,6 +528,7 @@ tbody tr:has(.badge-commercial_pending){border-left-color:#8e44ad}
 .badge-dead{background:#e5e8ec;color:#5b6473}
 .badge-cancelled{background:#f5b7b1;color:#78281f}
 .badge-commercial_pending{background:#e8daef;color:#6c3483}
+.badge-test{background:#efe2ff;color:#5b2c83}
 
 /* ── PAGINATION ──────────────────────────────────────────── */
 .pagination{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:16px}
@@ -1302,12 +1304,24 @@ function getAnnualizedRecurringValue(lead) {
   return price * freqMultiplier(lead?.frequency);
 }
 
+function isTestStatus(status) {
+  return (status || '') === 'test';
+}
+
 function isWonStatus(status) {
   return ['signed_up', 'confirmed', 'active'].includes(status || '');
 }
 
 function isOpenPipelineStatus(status) {
-  return !['dead', 'cancelled', 'partial'].includes(status || '');
+  return !['dead', 'cancelled', 'partial', 'test'].includes(status || '');
+}
+
+function isAnalyticsExcludedLead(lead) {
+  return isTestStatus(lead?.status);
+}
+
+function getAnalyticsLeads(leads) {
+  return (Array.isArray(leads) ? leads : []).filter(lead => !isAnalyticsExcludedLead(lead));
 }
 
 function getLeadAverageValue(lead) {
@@ -1474,6 +1488,8 @@ function leadEvents(leadId) {
 }
 
 function leadAttentionReasons(lead) {
+  if (isAnalyticsExcludedLead(lead)) return [];
+
   const reasons = [];
   const events = leadEvents(lead.id);
 
@@ -1851,15 +1867,16 @@ function getFilteredLeads() {
 // ── COMPUTE ALL ─────────────────────────────────────────────
 function computeAll() {
   const leads = getFilteredLeads();
-  computeStats(leads);
+  const analyticsLeads = getAnalyticsLeads(leads);
+  computeStats(analyticsLeads);
   renderTable(leads);
-  renderAttentionWorkbench(leads);
-  renderQueueSnapshot(leads);
-  renderRevenue(leads);
+  renderAttentionWorkbench(analyticsLeads);
+  renderQueueSnapshot(analyticsLeads);
+  renderRevenue(analyticsLeads);
   if (currentTab === 'insights') {
-    renderCharts(leads);
-    renderGeoTable(leads);
-    renderSourceTable(leads);
+    renderCharts(analyticsLeads);
+    renderGeoTable(analyticsLeads);
+    renderSourceTable(analyticsLeads);
   }
 }
 
@@ -2150,6 +2167,7 @@ function renderSignalList(targetId, items, options = {}) {
 function defaultStatusOptions() {
   return [
     'partial',
+    'test',
     'quoted',
     'quote_sent',
     'payment_pending',
