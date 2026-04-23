@@ -1227,9 +1227,9 @@ canvas{border-radius:8px}
                     <div class="business-mini-sub">Customers currently active in the imported jobs snapshot.</div>
                   </div>
                   <div class="business-mini-card">
-                    <div class="business-mini-label">Snapshot MRR</div>
+                    <div class="business-mini-label">Active rounds MRR</div>
                     <div class="business-mini-value" id="businessSnapshotMrr">--</div>
-                    <div class="business-mini-sub">Recurring monthly book implied by the imported active jobs.</div>
+                    <div class="business-mini-sub">Monthly recurring book from active recurring round jobs in the imported snapshot.</div>
                   </div>
                   <div class="business-mini-card">
                     <div class="business-mini-label">Rows imported</div>
@@ -1508,6 +1508,8 @@ function postcodeArea(pc) {
 function freqMultiplier(freq) {
   if (!freq) return 1;
   const f = freq.toLowerCase().replace(/[^a-z0-9]/g, '');
+  if (f.includes('adhoc')) return 0;
+  if (f.includes('12') || f.includes('twelve')) return 52 / 12;
   if (f.includes('4') || f.includes('four') || f.includes('monthly')) return 13;
   if (f.includes('8') || f.includes('eight') || f.includes('bimonthly')) return 6.5;
   if (f.includes('fort') || f.includes('2') || f.includes('two')) return 26;
@@ -1970,6 +1972,29 @@ function jobAnnualOccurrences(frequency) {
   return freqMultiplier(frequency);
 }
 
+function jobMonthlyBookFactor(frequency) {
+  const text = String(frequency || '').trim().toLowerCase();
+  if (!text || text.includes('ad hoc')) return 0;
+  if (text.includes('every 12 weeks')) return 1 / 3;
+  if (text.includes('every 8 weeks')) return 0.5;
+  if (text.includes('every 4 weeks') || text.includes('monthly')) return 1;
+  if (text.includes('every 2 weeks') || text.includes('fortnight')) return 2;
+  if (text.includes('every week')) return 4;
+  return 0;
+}
+
+function jobContributesToRecurringBook(job) {
+  const frequency = String(job?.frequency || '').trim().toLowerCase();
+  return Boolean(
+    job &&
+    job.state === 'active' &&
+    job.round &&
+    !job.isQuote &&
+    !frequency.includes('ad hoc') &&
+    (job.recurringMonthlyValue || 0) > 0
+  );
+}
+
 function parseCsvText(text) {
   const rows = [];
   let row = [];
@@ -2034,6 +2059,7 @@ function normalizeImportedJobRow(row) {
   const annualOccurrences = jobAnnualOccurrences(frequency);
   const recurringMonthlyValue = annualOccurrences ? (price * annualOccurrences) / 12 : 0;
   const recurringAnnualValue = annualOccurrences ? price * annualOccurrences : 0;
+  const monthlyBookValue = price * jobMonthlyBookFactor(frequency);
   const primaryService = services[0] || 'Unknown';
   const isQuote = ['true', 'yes', '1'].includes(String(row['Is Quote'] || '').trim().toLowerCase());
   const isRecurring = Boolean(frequency) && !/quote appointment/i.test(primaryService);
@@ -2066,6 +2092,7 @@ function normalizeImportedJobRow(row) {
     area: outwardCodeFromText(row['Job Address'] || row['Address'] || ''),
     primaryService,
     isRecurring,
+    monthlyBookValue,
     recurringMonthlyValue,
     recurringAnnualValue
   };
@@ -2145,22 +2172,23 @@ function buildBusinessMetrics(leads) {
   const jobs = snapshot.jobs;
   const recurringJobs = jobs.filter(job => job.isRecurring);
   const activeRecurringJobs = recurringJobs.filter(job => job.state === 'active');
+  const activeRecurringBookJobs = jobs.filter(job => jobContributesToRecurringBook(job));
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const dueIn = days => {
     const end = new Date(today);
     end.setDate(end.getDate() + days);
-    return activeRecurringJobs.filter(job => {
+    return activeRecurringBookJobs.filter(job => {
       if (!job.nextDue) return false;
       const due = new Date(job.nextDue);
       return due >= today && due <= end;
     });
   };
-  const overdueJobs = activeRecurringJobs.filter(job => {
+  const overdueJobs = activeRecurringBookJobs.filter(job => {
     if (!job.nextDue) return false;
     return new Date(job.nextDue) < today;
   });
-  const issueRows = activeRecurringJobs.filter(job => job.skipped > 0 || job.notDone > 0);
+  const issueRows = activeRecurringBookJobs.filter(job => job.skipped > 0 || job.notDone > 0);
 
   const customers = new Map();
   jobs.forEach(job => {
@@ -2185,7 +2213,7 @@ function buildBusinessMetrics(leads) {
     existing.state = nextState === 'active' ? 'active' : (existing.state === 'prospect' || job.state === 'prospect' ? 'prospect' : job.state || existing.state);
     existing.balance = Math.max(existing.balance, job.balance || 0);
     existing.rows += 1;
-    if (job.state === 'active' && job.isRecurring) {
+    if (jobContributesToRecurringBook(job)) {
       existing.monthlyValue += job.recurringMonthlyValue || 0;
       existing.annualValue += job.recurringAnnualValue || 0;
     }
@@ -2194,7 +2222,7 @@ function buildBusinessMetrics(leads) {
   });
 
   const customerList = [...customers.values()];
-  const activeCustomers = customerList.filter(customer => customer.state === 'active');
+  const activeCustomers = customerList.filter(customer => customer.state === 'active' && customer.monthlyValue > 0);
   const inactiveCustomers = customerList.filter(customer => customer.state === 'inactive');
   const prospectCustomers = customerList.filter(customer => customer.state === 'prospect');
   const snapshotMrr = activeCustomers.reduce((sum, customer) => sum + customer.monthlyValue, 0);
@@ -2203,14 +2231,14 @@ function buildBusinessMetrics(leads) {
   const avgActiveCustomerValue = activeCustomers.length ? snapshotMrr / activeCustomers.length : 0;
 
   const serviceCounts = {};
-  activeRecurringJobs.forEach(job => {
+  activeRecurringBookJobs.forEach(job => {
     (job.services.length ? job.services : [job.primaryService]).forEach(service => {
       serviceCounts[service] = (serviceCounts[service] || 0) + 1;
     });
   });
 
   const assigneeMap = {};
-  activeRecurringJobs.forEach(job => {
+  activeRecurringBookJobs.forEach(job => {
     (job.assignees.length ? job.assignees : ['Unassigned']).forEach(name => {
       assigneeMap[name] = assigneeMap[name] || { count: 0, monthlyValue: 0 };
       assigneeMap[name].count += 1;
@@ -2269,8 +2297,8 @@ function buildBusinessMetrics(leads) {
         due30: dueIn(30).length,
         overdue: overdueJobs.length,
         issues: issueRows.length,
-        activeRows: activeRecurringJobs.length,
-        activeRounds: new Set(activeRecurringJobs.map(job => job.round).filter(Boolean)).size
+        activeRows: activeRecurringBookJobs.length,
+        activeRounds: new Set(activeRecurringBookJobs.map(job => job.round).filter(Boolean)).size
       },
       services: Object.entries(serviceCounts).sort((a, b) => b[1] - a[1]).slice(0, 8),
       assignees: Object.entries(assigneeMap)
@@ -3901,9 +3929,9 @@ function renderBusinessTab(filteredLeads, analyticsLeads) {
     } else {
       customerGrid.innerHTML = [
         metricCard('Active customers', formatCount(metrics.snapshot.customers.active), 'Customers currently active in the imported jobs snapshot.'),
-        metricCard('Snapshot MRR', formatCurrencyFull(Math.round(metrics.snapshot.recurring.monthly)), 'Recurring monthly book from active imported jobs.'),
-        metricCard('Snapshot ARR', formatCurrencyFull(Math.round(metrics.snapshot.recurring.annual)), 'Annualised recurring value from the imported active jobs.'),
-        metricCard('Avg active customer', formatCurrencyFull(Math.round(metrics.snapshot.recurring.averageCustomer || 0)), 'Average recurring monthly value per active customer.'),
+        metricCard('Active rounds MRR', formatCurrencyFull(Math.round(metrics.snapshot.recurring.monthly)), 'Monthly recurring book from active recurring round jobs.'),
+        metricCard('Active rounds ARR', formatCurrencyFull(Math.round(metrics.snapshot.recurring.annual)), 'Annualised value from that same active recurring round book.'),
+        metricCard('Avg active customer', formatCurrencyFull(Math.round(metrics.snapshot.recurring.averageCustomer || 0)), 'Average monthly recurring book value per active recurring customer.'),
         metricCard('Outstanding active balance', formatCurrencyFull(Math.round(metrics.snapshot.balances || 0)), 'Balances carried by customers who are still active in the imported jobs snapshot.'),
         metricCard('Due in 7 days', formatCount(metrics.snapshot.jobs.due7), 'Active recurring jobs due within the next week.')
       ].join('');
