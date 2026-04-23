@@ -342,6 +342,16 @@ body.layout-editing .hidden-modules.has-hidden{display:flex}
 .business-progress-track{position:relative;height:8px;border-radius:999px;background:rgba(28,36,52,0.08);overflow:hidden;margin-top:12px}
 .business-progress-fill{position:absolute;left:0;top:0;bottom:0;border-radius:999px;background:linear-gradient(90deg,var(--gold) 0%, var(--gold-light) 100%)}
 .business-progress-fill.complete{background:linear-gradient(90deg,var(--success) 0%, #3bc773 100%)}
+.business-forecast-shell{display:grid;gap:16px}
+.business-forecast-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.business-forecast-card{
+  padding:16px;border-radius:16px;background:linear-gradient(180deg,#fff 0%,#f7f2e6 100%);
+  border:1px solid rgba(184,134,11,0.14);
+}
+.business-forecast-label{font-size:.72rem;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-faint)}
+.business-forecast-value{font-size:1.45rem;font-weight:800;color:var(--charcoal);margin-top:8px;letter-spacing:-.03em}
+.business-forecast-sub{font-size:.78rem;line-height:1.55;color:var(--ink);margin-top:6px}
+.business-chart-note{font-size:.76rem;line-height:1.6;color:var(--ink-faint)}
 .business-stat-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
 .business-stat-card{
   padding:16px;border-radius:16px;background:#fbfaf6;border:1px solid rgba(28,36,52,0.06);
@@ -788,7 +798,7 @@ canvas{border-radius:8px}
   .layout-canvas[data-tab="business"]{grid-template-columns:1fr}
   .layout-canvas[data-tab="business"] .layout-module[data-span="2"]{grid-column:auto}
   .insights-strip{grid-template-columns:1fr}
-  .business-top-grid,.business-goal-grid,.business-progress-grid{grid-template-columns:1fr}
+  .business-top-grid,.business-goal-grid,.business-progress-grid,.business-forecast-summary{grid-template-columns:1fr}
   .business-snapshot-strip{grid-template-columns:repeat(2,minmax(0,1fr))}
   .stats-row{grid-template-columns:repeat(3,1fr)}
   .revenue-row{grid-template-columns:repeat(3,1fr)}
@@ -1284,6 +1294,24 @@ canvas{border-radius:8px}
         <button class="module-resize" type="button" aria-label="Resize business goals"></button>
       </section>
 
+      <section class="layout-module" data-tab="business" data-module="business_monthly_goal" data-title="Monthly Goal Track" data-min-span="2" data-max-span="2" data-span="2">
+        <div class="layout-module-toolbar">
+          <div class="layout-grip">⋮⋮ <span class="layout-toolbar-title">Monthly Goal Track</span></div>
+          <div class="layout-toolbar-actions"><span class="layout-size-pill">Chart</span><button class="module-hide-btn" data-hide-module="business_monthly_goal">Hide</button></div>
+        </div>
+        <div class="module-surface">
+          <div class="card">
+            <div class="card-title">Projected Recurring Turnover vs Goal</div>
+            <div class="business-forecast-shell">
+              <div class="business-chart-note" id="businessForecastNote">Import a jobs snapshot to see projected monthly recurring turnover against your saved monthly goal.</div>
+              <div class="business-forecast-summary" id="businessForecastSummary"></div>
+              <div class="chart-wrap"><canvas id="chartBusinessGoalTrack"></canvas></div>
+            </div>
+          </div>
+        </div>
+        <button class="module-resize" type="button" aria-label="Resize monthly goal track"></button>
+      </section>
+
       <section class="layout-module" data-tab="business" data-module="business_customer_base" data-title="Customer Base" data-min-span="1" data-max-span="2" data-span="1">
         <div class="layout-module-toolbar">
           <div class="layout-grip">⋮⋮ <span class="layout-toolbar-title">Customer Base</span></div>
@@ -1341,7 +1369,7 @@ canvas{border-radius:8px}
             <div style="overflow-x:auto">
               <table class="business-data-table" id="businessAreaTable">
                 <thead>
-                  <tr><th>Area</th><th>Active Customers</th><th>Monthly Book</th><th>Due 7d</th></tr>
+                  <tr><th>Area</th><th>Active Customers</th><th>Monthly Book</th><th>Next 7d Jobs</th></tr>
                 </thead>
                 <tbody></tbody>
               </table>
@@ -1477,6 +1505,7 @@ const DEFAULT_TAB_LAYOUTS = {
     order: [
       'business_story',
       'business_goals',
+      'business_monthly_goal',
       'business_customer_base',
       'business_operations',
       'business_service_mix',
@@ -1487,6 +1516,7 @@ const DEFAULT_TAB_LAYOUTS = {
     modules: {
       business_story: { minHeight: '0px', chartHeight: '280px', span: 2 },
       business_goals: { minHeight: '0px', chartHeight: '280px', span: 2 },
+      business_monthly_goal: { minHeight: '0px', chartHeight: '320px', span: 2 },
       business_customer_base: { minHeight: '0px', chartHeight: '280px', span: 1 },
       business_operations: { minHeight: '0px', chartHeight: '280px', span: 1 },
       business_service_mix: { minHeight: '0px', chartHeight: '280px', span: 1 },
@@ -1648,6 +1678,10 @@ function isWonStatus(status) {
 
 function isOpenPipelineStatus(status) {
   return !['dead', 'cancelled', 'partial', 'test'].includes(status || '');
+}
+
+function isAttentionResolvedStatus(status) {
+  return ['dead', 'cancelled', 'test', 'signed_up', 'confirmed', 'active'].includes(status || '');
 }
 
 function isAnalyticsExcludedLead(lead) {
@@ -1841,6 +1875,7 @@ function leadEvents(leadId) {
 
 function leadAttentionReasons(lead) {
   if (isAnalyticsExcludedLead(lead)) return [];
+  if (isAttentionResolvedStatus(lead?.status)) return [];
 
   const reasons = [];
   const events = leadEvents(lead.id);
@@ -2041,6 +2076,17 @@ function jobMonthlyBookFactor(frequency) {
   return 0;
 }
 
+function jobRecurrenceDays(frequency) {
+  const text = String(frequency || '').trim().toLowerCase();
+  if (!text || text.includes('ad hoc')) return 0;
+  if (text.includes('every 12 weeks')) return 84;
+  if (text.includes('every 8 weeks')) return 56;
+  if (text.includes('every 4 weeks') || text.includes('monthly')) return 28;
+  if (text.includes('every 2 weeks') || text.includes('fortnight')) return 14;
+  if (text.includes('every week')) return 7;
+  return 0;
+}
+
 function jobContributesToRecurringBook(job) {
   const frequency = String(job?.frequency || '').trim().toLowerCase();
   return Boolean(
@@ -2051,6 +2097,69 @@ function jobContributesToRecurringBook(job) {
     !frequency.includes('ad hoc') &&
     (job.recurringMonthlyValue || 0) > 0
   );
+}
+
+function jobCountsForOperations(job) {
+  return Boolean(job && job.state === 'active' && !job.isQuote);
+}
+
+function monthKey(date) {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+}
+
+function monthLabel(date) {
+  return date.toLocaleDateString('en-GB', { month: 'short', year: '2-digit' }).replace(' ', ' ');
+}
+
+function projectRecurringMonthlyTurnover(jobs, months = 12, anchorDate = new Date()) {
+  const start = new Date(anchorDate.getFullYear(), anchorDate.getMonth(), 1);
+  const end = new Date(start.getFullYear(), start.getMonth() + months, 1);
+  const labels = [];
+  const values = [];
+  const indexByKey = new Map();
+
+  for (let i = 0; i < months; i += 1) {
+    const date = new Date(start.getFullYear(), start.getMonth() + i, 1);
+    const key = monthKey(date);
+    labels.push(monthLabel(date));
+    values.push(0);
+    indexByKey.set(key, i);
+  }
+
+  jobs.forEach(job => {
+    const intervalDays = jobRecurrenceDays(job.frequency);
+    const price = toFiniteNumber(job.price) || 0;
+    if (!intervalDays || !price || !job.nextDue) return;
+
+    let due = new Date(job.nextDue);
+    if (Number.isNaN(due.getTime())) return;
+
+    let rewindGuard = 0;
+    while (rewindGuard < 120) {
+      const prev = new Date(due);
+      prev.setDate(prev.getDate() - intervalDays);
+      if (prev < start) break;
+      due = prev;
+      rewindGuard += 1;
+    }
+
+    let forwardGuard = 0;
+    while (due < end && forwardGuard < 400) {
+      if (due >= start) {
+        const idx = indexByKey.get(monthKey(due));
+        if (idx !== undefined) values[idx] += price;
+      }
+      const next = new Date(due);
+      next.setDate(next.getDate() + intervalDays);
+      due = next;
+      forwardGuard += 1;
+    }
+  });
+
+  return labels.map((label, index) => ({
+    label,
+    value: Math.round(values[index] || 0)
+  }));
 }
 
 function parseCsvText(text) {
@@ -2228,25 +2337,29 @@ function buildBusinessMetrics(leads) {
   }
 
   const jobs = snapshot.jobs;
-  const recurringJobs = jobs.filter(job => job.isRecurring);
-  const activeRecurringJobs = recurringJobs.filter(job => job.state === 'active');
   const activeRecurringBookJobs = jobs.filter(job => jobContributesToRecurringBook(job));
+  const activeOperationalJobs = jobs.filter(job => jobCountsForOperations(job));
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const dueIn = days => {
     const end = new Date(today);
     end.setDate(end.getDate() + days);
-    return activeRecurringBookJobs.filter(job => {
+    return activeOperationalJobs.filter(job => {
       if (!job.nextDue) return false;
       const due = new Date(job.nextDue);
       return due >= today && due <= end;
     });
   };
-  const overdueJobs = activeRecurringBookJobs.filter(job => {
+  const due7Jobs = dueIn(7);
+  const due30Jobs = dueIn(30);
+  const due7Value = due7Jobs.reduce((sum, job) => sum + (toFiniteNumber(job.price) || 0), 0);
+  const due30Value = due30Jobs.reduce((sum, job) => sum + (toFiniteNumber(job.price) || 0), 0);
+  const overdueJobs = activeOperationalJobs.filter(job => {
     if (!job.nextDue) return false;
     return new Date(job.nextDue) < today;
   });
-  const issueRows = activeRecurringBookJobs.filter(job => job.skipped > 0 || job.notDone > 0);
+  const issueRows = activeOperationalJobs.filter(job => job.skipped > 0 || job.notDone > 0);
+  const recurringProjection = projectRecurringMonthlyTurnover(activeRecurringBookJobs, 12, today);
 
   const customers = new Map();
   jobs.forEach(job => {
@@ -2311,7 +2424,7 @@ function buildBusinessMetrics(leads) {
     areaMap[area].customers += 1;
     areaMap[area].monthlyValue += customer.monthlyValue || 0;
   });
-  dueIn(7).forEach(job => {
+  due7Jobs.forEach(job => {
     const area = job.area || 'Unknown';
     if (!areaMap[area]) areaMap[area] = { customers: 0, monthlyValue: 0, due7: 0 };
     areaMap[area].due7 += 1;
@@ -2350,12 +2463,16 @@ function buildBusinessMetrics(leads) {
         averageCustomer: avgActiveCustomerValue
       },
       balances: outstandingBalance,
+      forecast: recurringProjection,
       jobs: {
-        due7: dueIn(7).length,
-        due30: dueIn(30).length,
+        due7: due7Jobs.length,
+        due7Value,
+        due30: due30Jobs.length,
+        due30Value,
         overdue: overdueJobs.length,
         issues: issueRows.length,
-        activeRows: activeRecurringBookJobs.length,
+        activeRows: activeOperationalJobs.length,
+        activeRecurringRows: activeRecurringBookJobs.length,
         activeRounds: new Set(activeRecurringBookJobs.map(job => job.round).filter(Boolean)).size
       },
       services: Object.entries(serviceCounts).sort((a, b) => b[1] - a[1]).slice(0, 8),
@@ -3907,7 +4024,7 @@ function renderBusinessGoalProgress(metrics) {
       current: metrics.snapshot?.recurring?.monthly || 0,
       target: toFiniteNumber(goals.recurringMrrGoal),
       formatter: value => formatCurrencyFull(Math.round(value || 0)),
-      sub: 'Measured from the imported recurring jobs book.'
+      sub: 'Measured from the active recurring round book in the imported snapshot.'
     },
     {
       label: 'Active Customers',
@@ -3953,6 +4070,132 @@ function renderBusinessGoalProgress(metrics) {
   }).join('');
 }
 
+function renderBusinessForecast(metrics) {
+  const summary = $('#businessForecastSummary');
+  const note = $('#businessForecastNote');
+  destroyChart('businessGoalTrack');
+
+  if (!summary || !note) return;
+
+  const ctx = $('#chartBusinessGoalTrack')?.getContext('2d');
+  if (!ctx) return;
+
+  if (!metrics.hasSnapshot || !metrics.snapshot?.forecast?.length) {
+    summary.innerHTML = '';
+    note.textContent = 'Import a jobs snapshot to see projected monthly recurring turnover against your saved monthly goal.';
+    charts.businessGoalTrack = new Chart(ctx, {
+      type: 'bar',
+      data: { labels: [], datasets: [] },
+      options: { plugins: { title: { display: true, text: 'No projected turnover data yet', color: '#8a92a1' } } }
+    });
+    return;
+  }
+
+  const goal = toFiniteNumber(businessGoals?.recurringMrrGoal) || 0;
+  const projection = metrics.snapshot.forecast;
+  const thisMonth = projection[0]?.value || 0;
+  const bestMonth = projection.reduce((best, month) => month.value > best.value ? month : best, projection[0]);
+  const goalGap = goal > 0 ? (thisMonth - goal) : null;
+
+  summary.innerHTML = [
+    {
+      label: 'This month projected',
+      value: formatCurrencyFull(Math.round(thisMonth)),
+      sub: 'Projected recurring turnover this calendar month from the active imported jobs book.'
+    },
+    {
+      label: 'Monthly goal',
+      value: goal > 0 ? formatCurrencyFull(Math.round(goal)) : 'Not set',
+      sub: goal > 0 ? 'Your saved recurring monthly goal line on the chart below.' : 'Set a monthly goal above to compare projection against target.'
+    },
+    {
+      label: goal > 0 ? (goalGap >= 0 ? 'Ahead of goal' : 'Goal gap') : 'Best month ahead',
+      value: goal > 0
+        ? formatCurrencyFull(Math.round(Math.abs(goalGap || 0)))
+        : formatCurrencyFull(Math.round(bestMonth?.value || 0)),
+      sub: goal > 0
+        ? (goalGap >= 0 ? 'Current month projected above target.' : 'Still needed this month to hit target.')
+        : `${bestMonth?.label || 'Upcoming'} is the strongest projected month in the current imported book.`
+    }
+  ].map(item => `
+    <div class="business-forecast-card">
+      <div class="business-forecast-label">${esc(item.label)}</div>
+      <div class="business-forecast-value">${esc(item.value)}</div>
+      <div class="business-forecast-sub">${esc(item.sub)}</div>
+    </div>
+  `).join('');
+
+  note.textContent = goal > 0
+    ? 'Projected recurring turnover is built from active recurring jobs, their next-due dates, and frequency cadence in the imported snapshot. It is not cash received, but it gives you a clean month-by-month view against your current goal.'
+    : 'Projected recurring turnover is built from active recurring jobs, their next-due dates, and frequency cadence in the imported snapshot. Set a recurring MRR goal above to add the target line.';
+
+  charts.businessGoalTrack = new Chart(ctx, {
+    data: {
+      labels: projection.map(month => month.label),
+      datasets: [
+        {
+          type: 'bar',
+          label: 'Projected recurring turnover',
+          data: projection.map(month => Math.round(month.value || 0)),
+          backgroundColor: 'rgba(211, 161, 52, 0.75)',
+          borderColor: 'rgba(211, 161, 52, 1)',
+          borderWidth: 1,
+          borderRadius: 10,
+          maxBarThickness: 36
+        },
+        ...(goal > 0 ? [{
+          type: 'line',
+          label: 'Monthly goal',
+          data: projection.map(() => Math.round(goal)),
+          borderColor: 'rgba(41, 52, 74, 0.92)',
+          backgroundColor: 'rgba(41, 52, 74, 0.08)',
+          borderDash: [8, 6],
+          borderWidth: 2,
+          pointRadius: 0,
+          pointHoverRadius: 0,
+          tension: 0
+        }] : [])
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      scales: {
+        x: {
+          grid: { display: false },
+          ticks: { color: '#727c90' }
+        },
+        y: {
+          beginAtZero: true,
+          ticks: {
+            color: '#727c90',
+            callback: value => formatCurrency(Number(value))
+          },
+          grid: { color: 'rgba(28, 36, 52, 0.08)' }
+        }
+      },
+      plugins: {
+        legend: {
+          display: true,
+          labels: {
+            usePointStyle: true,
+            boxWidth: 8,
+            color: '#4f596c'
+          }
+        },
+        tooltip: {
+          callbacks: {
+            label(context) {
+              return `${context.dataset.label}: ${formatCurrencyFull(Math.round(context.parsed.y || 0))}`;
+            }
+          }
+        }
+      }
+    }
+  });
+}
+
 function renderBusinessTab(filteredLeads, analyticsLeads) {
   const metrics = buildBusinessMetrics(analyticsLeads);
   const freshness = metrics.freshness;
@@ -3972,13 +4215,14 @@ function renderBusinessTab(filteredLeads, analyticsLeads) {
     }
   }
   if (note) {
-    note.textContent = `${freshness.note} Core business metrics below exclude inactive customers and focus on the active book.`;
+    note.textContent = `${freshness.note} Recurring book metrics below exclude inactive customers and focus on active recurring rounds, while workload counts use active scheduled jobs from the imported snapshot.`;
   }
 
   $('#businessSnapshotCustomers').textContent = metrics.hasSnapshot ? formatCount(metrics.snapshot.customers.active) : '--';
   $('#businessSnapshotMrr').textContent = metrics.hasSnapshot ? formatCurrencyFull(Math.round(metrics.snapshot.recurring.monthly)) : '--';
   $('#businessSnapshotRounds').textContent = metrics.hasSnapshot ? formatCount(metrics.snapshot.jobs.activeRounds) : '--';
   $('#businessSnapshotPipeline').textContent = formatCurrencyFull(Math.round(metrics.live.recurringPipeline || 0));
+  renderBusinessForecast(metrics);
 
   const customerGrid = $('#businessCustomerGrid');
   if (customerGrid) {
@@ -3991,7 +4235,7 @@ function renderBusinessTab(filteredLeads, analyticsLeads) {
         metricCard('Active rounds ARR', formatCurrencyFull(Math.round(metrics.snapshot.recurring.annual)), 'Annualised value from that same active recurring round book.'),
         metricCard('Avg active customer', formatCurrencyFull(Math.round(metrics.snapshot.recurring.averageCustomer || 0)), 'Average monthly recurring book value per active recurring customer.'),
         metricCard('Outstanding active balance', formatCurrencyFull(Math.round(metrics.snapshot.balances || 0)), 'Balances carried by customers who are still active in the imported jobs snapshot.'),
-        metricCard('Due in 7 days', formatCount(metrics.snapshot.jobs.due7), 'Active recurring jobs due within the next week.')
+        metricCard('Next 7 days value', formatCurrencyFull(Math.round(metrics.snapshot.jobs.due7Value || 0)), `${formatCount(metrics.snapshot.jobs.due7)} active scheduled jobs landing in the next week from the imported snapshot.`)
       ].join('');
     }
   }
@@ -4004,10 +4248,12 @@ function renderBusinessTab(filteredLeads, analyticsLeads) {
     if (areaTbody) areaTbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--ink-faint);font-style:italic;padding:20px">Import a jobs snapshot to unlock geographic book insight.</td></tr>';
   } else {
     renderSignalList('businessOperationsList', [
-      { label: 'Due in 7 days', value: metrics.snapshot.jobs.due7, display: formatCount(metrics.snapshot.jobs.due7), sub: 'Active recurring jobs due within the next week.' },
-      { label: 'Due in 30 days', value: metrics.snapshot.jobs.due30, display: formatCount(metrics.snapshot.jobs.due30), sub: 'Active recurring jobs due in the next 30 days.' },
-      { label: 'Overdue jobs', value: metrics.snapshot.jobs.overdue, display: formatCount(metrics.snapshot.jobs.overdue), sub: 'Active recurring jobs with a next-due date already behind today.', tone: 'alt' },
-      { label: 'Issue rows', value: metrics.snapshot.jobs.issues, display: formatCount(metrics.snapshot.jobs.issues), sub: 'Active recurring rows carrying skipped or not-done history.', tone: 'soft' },
+      { label: 'Scheduled next 7 days', value: metrics.snapshot.jobs.due7, display: formatCount(metrics.snapshot.jobs.due7), sub: 'Active imported jobs with a next-due date in the next week.' },
+      { label: 'Next 7 days value', value: metrics.snapshot.jobs.due7Value, display: formatCurrencyFull(Math.round(metrics.snapshot.jobs.due7Value || 0)), sub: 'Projected booked value attached to those next-7-days scheduled jobs.', tone: 'alt' },
+      { label: 'Scheduled next 30 days', value: metrics.snapshot.jobs.due30, display: formatCount(metrics.snapshot.jobs.due30), sub: 'Active imported jobs with a next-due date in the next 30 days.' },
+      { label: 'Next 30 days value', value: metrics.snapshot.jobs.due30Value, display: formatCurrencyFull(Math.round(metrics.snapshot.jobs.due30Value || 0)), sub: 'Projected booked value attached to those next-30-days scheduled jobs.', tone: 'soft' },
+      { label: 'Overdue jobs', value: metrics.snapshot.jobs.overdue, display: formatCount(metrics.snapshot.jobs.overdue), sub: 'Active imported jobs with a next-due date already behind today.', tone: 'alt' },
+      { label: 'Issue rows', value: metrics.snapshot.jobs.issues, display: formatCount(metrics.snapshot.jobs.issues), sub: 'Active imported jobs carrying skipped or not-done history.', tone: 'soft' },
       { label: 'Active rounds', value: metrics.snapshot.jobs.activeRounds, display: formatCount(metrics.snapshot.jobs.activeRounds), sub: 'Distinct recurring rounds seen in the imported jobs snapshot.', tone: 'soft' }
     ], { emptyText: 'No imported operations data available yet.' });
 
