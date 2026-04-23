@@ -186,6 +186,9 @@ body.layout-editing .hidden-modules.has-hidden{display:flex}
 .layout-canvas[data-tab="insights"]{grid-template-columns:repeat(2,minmax(0,1fr))}
 .layout-canvas[data-tab="insights"] .layout-module[data-span="1"]{grid-column:span 1}
 .layout-canvas[data-tab="insights"] .layout-module[data-span="2"]{grid-column:span 2}
+.layout-canvas[data-tab="business"]{grid-template-columns:repeat(2,minmax(0,1fr))}
+.layout-canvas[data-tab="business"] .layout-module[data-span="1"]{grid-column:span 1}
+.layout-canvas[data-tab="business"] .layout-module[data-span="2"]{grid-column:span 2}
 
 /* ── OVERVIEW SHELL ──────────────────────────────────────── */
 .overview-shell{margin-bottom:0}
@@ -271,6 +274,90 @@ body.layout-editing .hidden-modules.has-hidden{display:flex}
 .insight-chip-label{font-size:.7rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,0.56);margin-bottom:8px}
 .insight-chip-value{font-size:1.3rem;font-weight:800;color:#fff}
 .insight-chip-copy{font-size:.76rem;line-height:1.55;color:rgba(255,255,255,0.58);margin-top:6px}
+
+.business-shell{
+  background:linear-gradient(135deg,#1f2738 0%, #283246 55%, #34445f 100%);
+  border-radius:24px;padding:24px;color:#fff;box-shadow:0 8px 28px rgba(28,36,52,0.18);
+}
+.business-kicker{font-size:.74rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--gold-light);margin-bottom:10px}
+.business-title{font-size:1.8rem;font-weight:800;letter-spacing:-.03em;line-height:1.02;max-width:16ch}
+.business-copy{font-size:.92rem;line-height:1.7;color:rgba(255,255,255,0.76);max-width:56ch;margin-top:12px}
+.business-top-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(300px,.85fr);gap:14px;margin-top:18px}
+.business-import-card,.business-context-card{
+  padding:18px;border-radius:20px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.1);
+}
+.business-card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.business-card-title{font-size:.86rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,0.7)}
+.business-card-copy{font-size:.8rem;line-height:1.6;color:rgba(255,255,255,0.62);margin-top:8px;max-width:54ch}
+.business-status-pill{
+  display:inline-flex;align-items:center;padding:6px 11px;border-radius:999px;
+  font-size:.72rem;font-weight:800;letter-spacing:.04em;text-transform:uppercase;
+  background:rgba(255,255,255,0.12);color:#fff;white-space:nowrap;
+}
+.business-status-pill.status-good{background:rgba(39,174,96,0.18);color:#d7f5e2}
+.business-status-pill.status-warn{background:rgba(230,126,34,0.18);color:#ffe7cc}
+.business-status-pill.status-empty{background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.8)}
+.business-import-meta{font-size:.84rem;line-height:1.65;color:#fff;margin-top:14px}
+.business-import-note{font-size:.75rem;line-height:1.6;color:rgba(255,255,255,0.55);margin-top:12px}
+.business-import-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:16px}
+.btn-business-primary,.btn-business-secondary,.btn-business-quiet{
+  display:inline-flex;align-items:center;justify-content:center;padding:10px 16px;border-radius:999px;
+  font-size:.82rem;font-weight:800;letter-spacing:.02em;transition:all var(--transition);
+}
+.btn-business-primary{background:var(--gold);color:var(--white)}
+.btn-business-primary:hover{background:var(--gold-light)}
+.btn-business-secondary{background:rgba(255,255,255,0.12);color:#fff;border:1px solid rgba(255,255,255,0.14)}
+.btn-business-secondary:hover{border-color:rgba(255,255,255,0.3)}
+.btn-business-quiet{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.btn-business-quiet:hover{border-color:var(--gold);color:var(--gold)}
+.business-snapshot-strip{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.business-mini-card{
+  padding:14px 15px;border-radius:18px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.08);
+}
+.business-mini-label{font-size:.68rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,0.56);margin-bottom:8px}
+.business-mini-value{font-size:1.3rem;font-weight:800;color:#fff;letter-spacing:-.03em}
+.business-mini-sub{font-size:.74rem;line-height:1.55;color:rgba(255,255,255,0.58);margin-top:6px}
+.business-empty{
+  padding:16px;border:1px dashed var(--line);border-radius:14px;background:rgba(255,255,255,0.55);
+  font-size:.84rem;line-height:1.6;color:var(--ink-faint);
+}
+.business-goal-form{display:grid;gap:16px}
+.business-goal-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.business-goal-field{display:grid;gap:8px}
+.business-goal-label{font-size:.75rem;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-faint)}
+.business-goal-input{
+  width:100%;padding:11px 14px;border-radius:14px;border:1px solid var(--line);background:#fff;outline:none;
+  font:inherit;color:var(--charcoal);transition:border-color var(--transition),box-shadow var(--transition);
+}
+.business-goal-input:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(211,161,52,0.12)}
+.business-goal-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.business-goal-note{font-size:.76rem;line-height:1.55;color:var(--ink-faint)}
+.business-progress-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.business-progress-card{
+  padding:16px;border-radius:16px;border:1px solid var(--line);background:linear-gradient(180deg,var(--white) 0%,#fbf9f4 100%);
+}
+.business-progress-label{font-size:.74rem;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-faint)}
+.business-progress-value{font-size:1.35rem;font-weight:800;color:var(--charcoal);margin-top:8px}
+.business-progress-sub{font-size:.78rem;line-height:1.55;color:var(--ink);margin-top:6px}
+.business-progress-track{position:relative;height:8px;border-radius:999px;background:rgba(28,36,52,0.08);overflow:hidden;margin-top:12px}
+.business-progress-fill{position:absolute;left:0;top:0;bottom:0;border-radius:999px;background:linear-gradient(90deg,var(--gold) 0%, var(--gold-light) 100%)}
+.business-progress-fill.complete{background:linear-gradient(90deg,var(--success) 0%, #3bc773 100%)}
+.business-stat-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.business-stat-card{
+  padding:16px;border-radius:16px;background:#fbfaf6;border:1px solid rgba(28,36,52,0.06);
+}
+.business-stat-label{font-size:.72rem;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-faint)}
+.business-stat-value{font-size:1.45rem;font-weight:800;color:var(--charcoal);margin-top:8px;letter-spacing:-.03em}
+.business-stat-sub{font-size:.78rem;line-height:1.55;color:var(--ink);margin-top:6px}
+.business-subsection{margin-top:16px}
+.business-subtitle{font-size:.76rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:10px}
+.business-data-table{width:100%;border-collapse:collapse;font-size:.82rem}
+.business-data-table th{
+  text-align:left;padding:8px 10px;font-weight:700;font-size:.71rem;color:var(--ink-faint);
+  text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--line);
+}
+.business-data-table td{padding:8px 10px;border-bottom:1px solid var(--line)}
+.business-data-table tbody tr:hover{background:rgba(184,134,11,0.04)}
 
 .section-head{
   display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin:32px 0 14px;
@@ -698,7 +785,11 @@ canvas{border-radius:8px}
   .layout-canvas[data-tab="dashboard"] .layout-module[data-span="4"]{grid-column:span 2}
   .layout-canvas[data-tab="insights"]{grid-template-columns:1fr}
   .layout-canvas[data-tab="insights"] .layout-module[data-span="2"]{grid-column:auto}
+  .layout-canvas[data-tab="business"]{grid-template-columns:1fr}
+  .layout-canvas[data-tab="business"] .layout-module[data-span="2"]{grid-column:auto}
   .insights-strip{grid-template-columns:1fr}
+  .business-top-grid,.business-goal-grid,.business-progress-grid{grid-template-columns:1fr}
+  .business-snapshot-strip{grid-template-columns:repeat(2,minmax(0,1fr))}
   .stats-row{grid-template-columns:repeat(3,1fr)}
   .revenue-row{grid-template-columns:repeat(3,1fr)}
 }
@@ -718,6 +809,7 @@ canvas{border-radius:8px}
   .stats-row{grid-template-columns:repeat(2,1fr);gap:10px}
   .two-col{grid-template-columns:1fr}
   .revenue-row{grid-template-columns:1fr}
+  .business-snapshot-strip,.business-stat-grid{grid-template-columns:1fr}
   .detail-panel{top:0;right:0;bottom:0;width:100%;max-height:100dvh;border-radius:0;border:none}
   .filters-bar{flex-direction:column;align-items:stretch}
   .lead-count{margin-left:0}
@@ -768,6 +860,7 @@ canvas{border-radius:8px}
   <div class="view-tabs" id="viewTabs">
     <button class="view-tab active" data-tab="dashboard">Dashboard</button>
     <button class="view-tab" data-tab="insights">Insights</button>
+    <button class="view-tab" data-tab="business">Business</button>
   </div>
 
   <section class="layout-tab active" data-tab="dashboard">
@@ -1094,6 +1187,187 @@ canvas{border-radius:8px}
   </div>
   </section>
 
+  <section class="layout-tab" data-tab="business">
+    <div class="hidden-modules" id="businessHiddenModules"></div>
+    <div class="layout-canvas" id="businessCanvas" data-tab="business">
+      <section class="layout-module" data-tab="business" data-module="business_story" data-title="Business Introduction" data-min-span="2" data-max-span="2" data-span="2">
+        <div class="layout-module-toolbar">
+          <div class="layout-grip">⋮⋮ <span class="layout-toolbar-title">Business Introduction</span></div>
+          <div class="layout-toolbar-actions"><span class="layout-size-pill">Pinned</span><button class="module-hide-btn" data-hide-module="business_story">Hide</button></div>
+        </div>
+        <div class="module-surface">
+          <div class="business-shell">
+            <div class="business-kicker">Business</div>
+            <div class="business-title">Your live lead engine, set beside the real jobs book.</div>
+            <div class="business-copy">Lead data stays live through Supabase. Jobs data comes from your manual all-jobs CSV import, so freshness is always shown clearly and never disguised as real-time.</div>
+            <div class="business-top-grid">
+              <div class="business-import-card">
+                <div class="business-card-top">
+                  <div>
+                    <div class="business-card-title">Jobs Snapshot Import</div>
+                    <div class="business-card-copy">Import the latest all-jobs CSV whenever you export it. We keep the latest snapshot on this browser and blend it with the live leads pipeline so you can see the real business, not just today’s quote queue.</div>
+                  </div>
+                  <span class="business-status-pill status-empty" id="businessFreshnessPill">No snapshot</span>
+                </div>
+                <div class="business-import-meta" id="businessImportMeta">No jobs snapshot imported yet. Import your all-jobs CSV to unlock recurring book, customer-base, and operations insight.</div>
+                <div class="business-import-actions">
+                  <input type="file" id="businessFileInput" accept=".csv" hidden>
+                  <button class="btn-business-primary" id="btnBusinessImport" type="button">Import all-jobs CSV</button>
+                  <button class="btn-business-secondary" id="btnBusinessClear" type="button">Clear snapshot</button>
+                </div>
+                <div class="business-import-note" id="businessImportNote">Live lead metrics still update in real time. Imported jobs metrics refresh when you import a new CSV.</div>
+              </div>
+              <div class="business-context-card">
+                <div class="business-card-title">Snapshot at a Glance</div>
+                <div class="business-card-copy">A fast blended read on the customer book, imported workload, and live pipeline. The imported book is all-business; the pipeline figures still respect your current lead dashboard range.</div>
+                <div class="business-snapshot-strip" id="businessSnapshotStrip">
+                  <div class="business-mini-card">
+                    <div class="business-mini-label">Active customers</div>
+                    <div class="business-mini-value" id="businessSnapshotCustomers">--</div>
+                    <div class="business-mini-sub">Customers currently active in the imported jobs snapshot.</div>
+                  </div>
+                  <div class="business-mini-card">
+                    <div class="business-mini-label">Snapshot MRR</div>
+                    <div class="business-mini-value" id="businessSnapshotMrr">--</div>
+                    <div class="business-mini-sub">Recurring monthly book implied by the imported active jobs.</div>
+                  </div>
+                  <div class="business-mini-card">
+                    <div class="business-mini-label">Rows imported</div>
+                    <div class="business-mini-value" id="businessSnapshotRows">--</div>
+                    <div class="business-mini-sub">Job rows currently loaded into this browser snapshot.</div>
+                  </div>
+                  <div class="business-mini-card">
+                    <div class="business-mini-label">Live annual pipeline</div>
+                    <div class="business-mini-value" id="businessSnapshotPipeline">--</div>
+                    <div class="business-mini-sub">Open recurring quote value from the live leads view.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <button class="module-resize" type="button" aria-label="Resize business introduction"></button>
+      </section>
+
+      <section class="layout-module" data-tab="business" data-module="business_goals" data-title="Goals" data-min-span="2" data-max-span="2" data-span="2">
+        <div class="layout-module-toolbar">
+          <div class="layout-grip">⋮⋮ <span class="layout-toolbar-title">Goals</span></div>
+          <div class="layout-toolbar-actions"><span class="layout-size-pill">Resizable</span><button class="module-hide-btn" data-hide-module="business_goals">Hide</button></div>
+        </div>
+        <div class="module-surface">
+          <div class="card">
+            <div class="card-title">Goals & Progress</div>
+            <div class="business-goal-form">
+              <div class="business-goal-note">Set the numbers that matter to you. Snapshot goals compare against the imported jobs book, while pipeline goals compare against the current live leads view.</div>
+              <div class="business-goal-grid">
+                <label class="business-goal-field">
+                  <span class="business-goal-label">Recurring MRR Goal (£/month)</span>
+                  <input class="business-goal-input" id="goalRecurringMrr" type="number" min="0" step="50" placeholder="e.g. 5000">
+                </label>
+                <label class="business-goal-field">
+                  <span class="business-goal-label">Active Customer Goal</span>
+                  <input class="business-goal-input" id="goalActiveCustomers" type="number" min="0" step="1" placeholder="e.g. 250">
+                </label>
+                <label class="business-goal-field">
+                  <span class="business-goal-label">Open Annual Pipeline Goal (£/year)</span>
+                  <input class="business-goal-input" id="goalAnnualPipeline" type="number" min="0" step="100" placeholder="e.g. 25000">
+                </label>
+              </div>
+              <div class="business-goal-actions">
+                <button class="btn-business-primary" id="btnSaveBusinessGoals" type="button">Save goals</button>
+                <button class="btn-business-quiet" id="btnResetBusinessGoals" type="button">Reset goals</button>
+              </div>
+              <div class="business-progress-grid" id="businessGoalProgress"></div>
+            </div>
+          </div>
+        </div>
+        <button class="module-resize" type="button" aria-label="Resize business goals"></button>
+      </section>
+
+      <section class="layout-module" data-tab="business" data-module="business_customer_base" data-title="Customer Base" data-min-span="1" data-max-span="2" data-span="1">
+        <div class="layout-module-toolbar">
+          <div class="layout-grip">⋮⋮ <span class="layout-toolbar-title">Customer Base</span></div>
+          <div class="layout-toolbar-actions"><span class="layout-size-pill">Resizable</span><button class="module-hide-btn" data-hide-module="business_customer_base">Hide</button></div>
+        </div>
+        <div class="module-surface">
+          <div class="card">
+            <div class="card-title">Customer Base</div>
+            <div class="business-stat-grid" id="businessCustomerGrid"></div>
+          </div>
+        </div>
+        <button class="module-resize" type="button" aria-label="Resize business customer base"></button>
+      </section>
+
+      <section class="layout-module" data-tab="business" data-module="business_operations" data-title="Operations Pulse" data-min-span="1" data-max-span="2" data-span="1">
+        <div class="layout-module-toolbar">
+          <div class="layout-grip">⋮⋮ <span class="layout-toolbar-title">Operations Pulse</span></div>
+          <div class="layout-toolbar-actions"><span class="layout-size-pill">Resizable</span><button class="module-hide-btn" data-hide-module="business_operations">Hide</button></div>
+        </div>
+        <div class="module-surface">
+          <div class="card">
+            <div class="card-title">Operations Pulse</div>
+            <div class="signal-list" id="businessOperationsList"></div>
+            <div class="business-subsection">
+              <div class="business-subtitle">Top Assignees</div>
+              <div class="signal-list" id="businessAssigneeList"></div>
+            </div>
+          </div>
+        </div>
+        <button class="module-resize" type="button" aria-label="Resize business operations"></button>
+      </section>
+
+      <section class="layout-module" data-tab="business" data-module="business_service_mix" data-title="Service Mix" data-min-span="1" data-max-span="2" data-span="1">
+        <div class="layout-module-toolbar">
+          <div class="layout-grip">⋮⋮ <span class="layout-toolbar-title">Service Mix</span></div>
+          <div class="layout-toolbar-actions"><span class="layout-size-pill">Resizable</span><button class="module-hide-btn" data-hide-module="business_service_mix">Hide</button></div>
+        </div>
+        <div class="module-surface">
+          <div class="card">
+            <div class="card-title">Service Mix</div>
+            <div class="signal-list" id="businessServiceMix"></div>
+          </div>
+        </div>
+        <button class="module-resize" type="button" aria-label="Resize business service mix"></button>
+      </section>
+
+      <section class="layout-module" data-tab="business" data-module="business_geography" data-title="Geographic Book" data-min-span="1" data-max-span="2" data-span="1">
+        <div class="layout-module-toolbar">
+          <div class="layout-grip">⋮⋮ <span class="layout-toolbar-title">Geographic Book</span></div>
+          <div class="layout-toolbar-actions"><span class="layout-size-pill">Resizable</span><button class="module-hide-btn" data-hide-module="business_geography">Hide</button></div>
+        </div>
+        <div class="module-surface">
+          <div class="card">
+            <div class="card-title">Geographic Book</div>
+            <div style="overflow-x:auto">
+              <table class="business-data-table" id="businessAreaTable">
+                <thead>
+                  <tr><th>Area</th><th>Active Customers</th><th>Monthly Book</th><th>Due 7d</th></tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <button class="module-resize" type="button" aria-label="Resize business geography"></button>
+      </section>
+
+      <section class="layout-module" data-tab="business" data-module="business_pipeline_bridge" data-title="Live Pipeline Bridge" data-min-span="2" data-max-span="2" data-span="2">
+        <div class="layout-module-toolbar">
+          <div class="layout-grip">⋮⋮ <span class="layout-toolbar-title">Live Pipeline Bridge</span></div>
+          <div class="layout-toolbar-actions"><span class="layout-size-pill">Resizable</span><button class="module-hide-btn" data-hide-module="business_pipeline_bridge">Hide</button></div>
+        </div>
+        <div class="module-surface">
+          <div class="card">
+            <div class="card-title">Live Pipeline Bridge</div>
+            <div class="business-goal-note" id="businessBridgeNote">This module keeps the imported jobs snapshot separate from the live lead engine, so you can see what has already made it into the operating book and what is still sitting in the pipeline.</div>
+            <div class="signal-list" id="businessBridgeList" style="margin-top:14px"></div>
+          </div>
+        </div>
+        <button class="module-resize" type="button" aria-label="Resize business pipeline bridge"></button>
+      </section>
+    </div>
+  </section>
+
 </main>
 
 <!-- ── SCRIPTS ────────────────────────────────────────────── -->
@@ -1151,6 +1425,10 @@ let activeResize = null;
 let currentTab = 'dashboard';
 
 const LAYOUT_STORAGE_KEY = 'mac-cleaning-dashboard-layout-v6';
+const BUSINESS_SNAPSHOT_STORAGE_KEY = 'mac-cleaning-business-snapshot-v1';
+const BUSINESS_GOALS_STORAGE_KEY = 'mac-cleaning-business-goals-v1';
+let businessSnapshot = loadBusinessSnapshot();
+let businessGoals = loadBusinessGoals();
 const DEFAULT_TAB_LAYOUTS = {
   dashboard: {
     order: ['overview', 'needs_attention', 'queue_snapshot', 'working_queue', 'revenue'],
@@ -1192,6 +1470,27 @@ const DEFAULT_TAB_LAYOUTS = {
       insights_payment: { minHeight: '0px', chartHeight: '280px', span: 1 },
       insights_day: { minHeight: '0px', chartHeight: '280px', span: 1 },
       insights_hour: { minHeight: '0px', chartHeight: '280px', span: 1 }
+    }
+  },
+  business: {
+    order: [
+      'business_story',
+      'business_goals',
+      'business_customer_base',
+      'business_operations',
+      'business_service_mix',
+      'business_geography',
+      'business_pipeline_bridge'
+    ],
+    hidden: [],
+    modules: {
+      business_story: { minHeight: '0px', chartHeight: '280px', span: 2 },
+      business_goals: { minHeight: '0px', chartHeight: '280px', span: 2 },
+      business_customer_base: { minHeight: '0px', chartHeight: '280px', span: 1 },
+      business_operations: { minHeight: '0px', chartHeight: '280px', span: 1 },
+      business_service_mix: { minHeight: '0px', chartHeight: '280px', span: 1 },
+      business_geography: { minHeight: '0px', chartHeight: '280px', span: 1 },
+      business_pipeline_bridge: { minHeight: '0px', chartHeight: '280px', span: 2 }
     }
   }
 };
@@ -1564,6 +1863,437 @@ function leadAttentionReasons(lead) {
   return [...new Set(reasons)];
 }
 
+function loadBusinessSnapshot() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(BUSINESS_SNAPSHOT_STORAGE_KEY) || 'null');
+    if (!parsed || typeof parsed !== 'object' || !Array.isArray(parsed.jobs)) return null;
+    return {
+      importedAt: parsed.importedAt || null,
+      fileName: parsed.fileName || 'Imported CSV',
+      rowCount: parsed.rowCount || parsed.jobs.length || 0,
+      jobs: parsed.jobs
+    };
+  } catch {
+    return null;
+  }
+}
+
+function saveBusinessSnapshot(snapshot) {
+  if (!snapshot) {
+    localStorage.removeItem(BUSINESS_SNAPSHOT_STORAGE_KEY);
+    businessSnapshot = null;
+    return;
+  }
+  const safeSnapshot = {
+    importedAt: snapshot.importedAt || new Date().toISOString(),
+    fileName: snapshot.fileName || 'Imported CSV',
+    rowCount: snapshot.rowCount || snapshot.jobs?.length || 0,
+    jobs: Array.isArray(snapshot.jobs) ? snapshot.jobs : []
+  };
+  localStorage.setItem(BUSINESS_SNAPSHOT_STORAGE_KEY, JSON.stringify(safeSnapshot));
+  businessSnapshot = safeSnapshot;
+}
+
+function loadBusinessGoals() {
+  const defaults = {
+    recurringMrrGoal: '',
+    activeCustomersGoal: '',
+    annualPipelineGoal: ''
+  };
+  try {
+    const parsed = JSON.parse(localStorage.getItem(BUSINESS_GOALS_STORAGE_KEY) || 'null');
+    if (!parsed || typeof parsed !== 'object') return defaults;
+    return {
+      recurringMrrGoal: parsed.recurringMrrGoal ?? '',
+      activeCustomersGoal: parsed.activeCustomersGoal ?? '',
+      annualPipelineGoal: parsed.annualPipelineGoal ?? ''
+    };
+  } catch {
+    return defaults;
+  }
+}
+
+function saveBusinessGoals(nextGoals) {
+  businessGoals = {
+    recurringMrrGoal: nextGoals?.recurringMrrGoal ?? '',
+    activeCustomersGoal: nextGoals?.activeCustomersGoal ?? '',
+    annualPipelineGoal: nextGoals?.annualPipelineGoal ?? ''
+  };
+  localStorage.setItem(BUSINESS_GOALS_STORAGE_KEY, JSON.stringify(businessGoals));
+}
+
+function parseListField(value) {
+  if (!value) return [];
+  return String(value)
+    .split(',')
+    .map(item => item.trim())
+    .filter(Boolean);
+}
+
+function parseJobNumber(value) {
+  if (value === null || value === undefined || value === '') return 0;
+  const cleaned = String(value).replace(/[^\d.-]/g, '');
+  const num = Number(cleaned);
+  return Number.isFinite(num) ? num : 0;
+}
+
+function parseJobInt(value) {
+  if (value === null || value === undefined || value === '') return 0;
+  const cleaned = String(value).replace(/[^\d-]/g, '');
+  const num = Number.parseInt(cleaned, 10);
+  return Number.isFinite(num) ? num : 0;
+}
+
+function parseJobDate(value) {
+  const text = String(value || '').trim();
+  if (!text) return null;
+  const date = new Date(text);
+  if (Number.isNaN(date.getTime())) return null;
+  return date.toISOString();
+}
+
+function normalizePhoneValue(value) {
+  const raw = String(value || '').replace(/[^\d+]/g, '');
+  if (!raw) return '';
+  if (raw.startsWith('+44')) return '0' + raw.slice(3);
+  return raw;
+}
+
+function outwardCodeFromText(value) {
+  const text = String(value || '').toUpperCase();
+  const match = text.match(/\b([A-Z]{1,2}\d[A-Z\d]?)\s*\d[A-Z]{2}\b/);
+  return match ? match[1] : 'Unknown';
+}
+
+function jobAnnualOccurrences(frequency) {
+  if (!frequency) return 0;
+  return freqMultiplier(frequency);
+}
+
+function parseCsvText(text) {
+  const rows = [];
+  let row = [];
+  let cell = '';
+  let inQuotes = false;
+
+  for (let i = 0; i < text.length; i += 1) {
+    const char = text[i];
+    const next = text[i + 1];
+
+    if (char === '"') {
+      if (inQuotes && next === '"') {
+        cell += '"';
+        i += 1;
+      } else {
+        inQuotes = !inQuotes;
+      }
+      continue;
+    }
+
+    if (char === ',' && !inQuotes) {
+      row.push(cell);
+      cell = '';
+      continue;
+    }
+
+    if ((char === '\n' || char === '\r') && !inQuotes) {
+      if (char === '\r' && next === '\n') i += 1;
+      row.push(cell);
+      cell = '';
+      if (row.some(value => value !== '')) rows.push(row);
+      row = [];
+      continue;
+    }
+
+    cell += char;
+  }
+
+  if (cell !== '' || row.length) {
+    row.push(cell);
+    if (row.some(value => value !== '')) rows.push(row);
+  }
+
+  if (!rows.length) return [];
+  const headers = rows[0].map(header => String(header || '').trim());
+  return rows.slice(1).map(values => {
+    const record = {};
+    headers.forEach((header, index) => {
+      record[header] = values[index] ?? '';
+    });
+    return record;
+  });
+}
+
+function normalizeImportedJobRow(row) {
+  const services = parseListField(row['Services']);
+  const assignees = parseListField(row['Assignee']);
+  const frequency = String(row['Frequency'] || '').trim();
+  const state = String(row['State'] || '').trim().toLowerCase();
+  const price = parseJobNumber(row['Price']);
+  const balance = parseJobNumber(row['Balance']);
+  const annualOccurrences = jobAnnualOccurrences(frequency);
+  const recurringMonthlyValue = annualOccurrences ? (price * annualOccurrences) / 12 : 0;
+  const recurringAnnualValue = annualOccurrences ? price * annualOccurrences : 0;
+  const primaryService = services[0] || 'Unknown';
+  const isQuote = ['true', 'yes', '1'].includes(String(row['Is Quote'] || '').trim().toLowerCase());
+  const isRecurring = Boolean(frequency) && !/quote appointment/i.test(primaryService);
+
+  return {
+    jobRef: String(row['Job Ref'] || '').trim(),
+    customerRef: String(row['Customer Ref'] || '').trim(),
+    name: String(row['Name'] || '').trim(),
+    address: String(row['Job Address'] || row['Address'] || '').trim(),
+    email: String(row['Email'] || '').trim().toLowerCase(),
+    phone: normalizePhoneValue(row['Phone']),
+    altPhone: normalizePhoneValue(row['Alt Phone']),
+    state,
+    balance,
+    jobState: String(row['Job State'] || '').trim(),
+    isQuote,
+    assignees,
+    createdAt: parseJobDate(row['Created']),
+    services,
+    frequency,
+    round: String(row['Round'] || '').trim(),
+    price,
+    duration: String(row['Duration'] || '').trim(),
+    occurrences: parseJobInt(row['Occurrences']),
+    notDone: parseJobInt(row['Not Done']),
+    skipped: parseJobInt(row['Skipped']),
+    done: parseJobInt(row['Done']),
+    lastDone: parseJobDate(row['Last Done']),
+    nextDue: parseJobDate(row['Next Due']),
+    area: outwardCodeFromText(row['Job Address'] || row['Address'] || ''),
+    primaryService,
+    isRecurring,
+    recurringMonthlyValue,
+    recurringAnnualValue
+  };
+}
+
+function formatCount(value) {
+  return Number(value || 0).toLocaleString('en-GB');
+}
+
+function importedCustomerKey(job) {
+  return job.customerRef || job.email || job.phone || job.altPhone || `${job.name.toLowerCase()}|${job.area}`;
+}
+
+function leadIdentityKeys(lead) {
+  const keys = [];
+  const email = String(lead?.email || '').trim().toLowerCase();
+  const phone = normalizePhoneValue(lead?.phone);
+  const nameArea = `${String(lead?.name || '').trim().toLowerCase()}|${postcodeArea(lead?.postcode)}`;
+  if (email) keys.push(`email:${email}`);
+  if (phone) keys.push(`phone:${phone}`);
+  if (lead?.name || lead?.postcode) keys.push(`namearea:${nameArea}`);
+  return keys;
+}
+
+function snapshotAgeDays(snapshot) {
+  if (!snapshot?.importedAt) return null;
+  return Math.floor((Date.now() - new Date(snapshot.importedAt).getTime()) / 86400000);
+}
+
+function businessFreshness(snapshot) {
+  if (!snapshot?.importedAt) {
+    return { label: 'No snapshot', tone: 'status-empty', note: 'Import a CSV to start tracking the real jobs book.' };
+  }
+  const days = snapshotAgeDays(snapshot);
+  if (days === null || days <= 2) {
+    return { label: 'Fresh snapshot', tone: 'status-good', note: `Imported ${fullDate(snapshot.importedAt)}.` };
+  }
+  if (days <= 7) {
+    return { label: `${days}d old`, tone: 'status-warn', note: `Snapshot imported ${days} day${days === 1 ? '' : 's'} ago.` };
+  }
+  return { label: 'Stale snapshot', tone: 'status-warn', note: `Snapshot is ${days} days old. Import a new CSV to keep the business view honest.` };
+}
+
+function buildBusinessMetrics(leads) {
+  const liveLeads = Array.isArray(leads) ? leads : [];
+  const snapshot = businessSnapshot;
+  const liveRecurringPipeline = liveLeads
+    .filter(lead => getLeadQuoteKind(lead) === 'regular' && isOpenPipelineStatus(lead.status))
+    .reduce((sum, lead) => sum + annualizedLeadValue(lead), 0);
+  const livePaymentPending = liveLeads.filter(lead =>
+    (lead.payment_link || lead.gocardless_link || lead.status === 'payment_pending' || lead.status === 'quote_sent') &&
+    !['signed_up', 'confirmed', 'dead', 'cancelled'].includes(lead.status)
+  );
+  const livePartials = liveLeads.filter(lead => lead.status === 'partial');
+  const liveManualReview = liveLeads.filter(hasManualReview);
+  const liveWon = liveLeads.filter(lead => getLeadQuoteKind(lead) === 'regular' && isWonStatus(lead.status));
+  const liveOneoffQuoted = liveLeads
+    .filter(lead => getLeadQuoteKind(lead) === 'oneoff' && isOpenPipelineStatus(lead.status))
+    .reduce((sum, lead) => sum + (getLeadTotal(lead) || 0), 0);
+
+  if (!snapshot?.jobs?.length) {
+    return {
+      hasSnapshot: false,
+      freshness: businessFreshness(snapshot),
+      live: {
+        recurringPipeline: liveRecurringPipeline,
+        paymentPendingCount: livePaymentPending.length,
+        partialCount: livePartials.length,
+        manualReviewCount: liveManualReview.length,
+        oneoffQuotedValue: liveOneoffQuoted,
+        wonAwaitingImportCount: 0,
+        wonAwaitingImportValue: 0
+      }
+    };
+  }
+
+  const jobs = snapshot.jobs;
+  const recurringJobs = jobs.filter(job => job.isRecurring);
+  const activeRecurringJobs = recurringJobs.filter(job => job.state === 'active');
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const dueIn = days => {
+    const end = new Date(today);
+    end.setDate(end.getDate() + days);
+    return activeRecurringJobs.filter(job => {
+      if (!job.nextDue) return false;
+      const due = new Date(job.nextDue);
+      return due >= today && due <= end;
+    });
+  };
+  const overdueJobs = activeRecurringJobs.filter(job => {
+    if (!job.nextDue) return false;
+    return new Date(job.nextDue) < today;
+  });
+  const issueRows = activeRecurringJobs.filter(job => job.skipped > 0 || job.notDone > 0);
+
+  const customers = new Map();
+  jobs.forEach(job => {
+    const key = importedCustomerKey(job);
+    const existing = customers.get(key) || {
+      key,
+      customerRef: job.customerRef,
+      name: job.name,
+      area: job.area,
+      email: job.email,
+      phone: job.phone || job.altPhone,
+      state: job.state || 'inactive',
+      balance: 0,
+      monthlyValue: 0,
+      annualValue: 0,
+      services: new Set(),
+      rows: 0
+    };
+    const nextState = existing.state === 'active' || job.state !== 'active'
+      ? existing.state
+      : 'active';
+    existing.state = nextState === 'active' ? 'active' : (existing.state === 'prospect' || job.state === 'prospect' ? 'prospect' : job.state || existing.state);
+    existing.balance = Math.max(existing.balance, job.balance || 0);
+    existing.rows += 1;
+    if (job.state === 'active' && job.isRecurring) {
+      existing.monthlyValue += job.recurringMonthlyValue || 0;
+      existing.annualValue += job.recurringAnnualValue || 0;
+    }
+    job.services.forEach(service => existing.services.add(service));
+    customers.set(key, existing);
+  });
+
+  const customerList = [...customers.values()];
+  const activeCustomers = customerList.filter(customer => customer.state === 'active');
+  const inactiveCustomers = customerList.filter(customer => customer.state === 'inactive');
+  const prospectCustomers = customerList.filter(customer => customer.state === 'prospect');
+  const snapshotMrr = activeCustomers.reduce((sum, customer) => sum + customer.monthlyValue, 0);
+  const snapshotArr = activeCustomers.reduce((sum, customer) => sum + customer.annualValue, 0);
+  const outstandingBalance = customerList.reduce((sum, customer) => sum + (customer.balance || 0), 0);
+  const avgActiveCustomerValue = activeCustomers.length ? snapshotMrr / activeCustomers.length : 0;
+
+  const serviceCounts = {};
+  activeRecurringJobs.forEach(job => {
+    (job.services.length ? job.services : [job.primaryService]).forEach(service => {
+      serviceCounts[service] = (serviceCounts[service] || 0) + 1;
+    });
+  });
+
+  const assigneeMap = {};
+  activeRecurringJobs.forEach(job => {
+    (job.assignees.length ? job.assignees : ['Unassigned']).forEach(name => {
+      assigneeMap[name] = assigneeMap[name] || { count: 0, monthlyValue: 0 };
+      assigneeMap[name].count += 1;
+      assigneeMap[name].monthlyValue += job.recurringMonthlyValue || 0;
+    });
+  });
+
+  const areaMap = {};
+  activeCustomers.forEach(customer => {
+    const area = customer.area || 'Unknown';
+    if (!areaMap[area]) areaMap[area] = { customers: 0, monthlyValue: 0, due7: 0 };
+    areaMap[area].customers += 1;
+    areaMap[area].monthlyValue += customer.monthlyValue || 0;
+  });
+  dueIn(7).forEach(job => {
+    const area = job.area || 'Unknown';
+    if (!areaMap[area]) areaMap[area] = { customers: 0, monthlyValue: 0, due7: 0 };
+    areaMap[area].due7 += 1;
+  });
+
+  const lookup = { email: new Set(), phone: new Set(), namearea: new Set() };
+  customerList.forEach(customer => {
+    if (customer.email) lookup.email.add(customer.email);
+    if (customer.phone) lookup.phone.add(customer.phone);
+    if (customer.name || customer.area) lookup.namearea.add(`${String(customer.name || '').trim().toLowerCase()}|${customer.area || 'Unknown'}`);
+  });
+
+  const wonAwaitingImport = liveWon.filter(lead => {
+    const keys = leadIdentityKeys(lead);
+    return !keys.some(key => {
+      const [type, value] = key.split(':');
+      return lookup[type]?.has(value);
+    });
+  });
+
+  return {
+    hasSnapshot: true,
+    freshness: businessFreshness(snapshot),
+    snapshot: {
+      importedAt: snapshot.importedAt,
+      fileName: snapshot.fileName,
+      rowCount: snapshot.rowCount || jobs.length,
+      customers: {
+        active: activeCustomers.length,
+        inactive: inactiveCustomers.length,
+        prospect: prospectCustomers.length
+      },
+      recurring: {
+        monthly: snapshotMrr,
+        annual: snapshotArr,
+        averageCustomer: avgActiveCustomerValue
+      },
+      balances: outstandingBalance,
+      jobs: {
+        due7: dueIn(7).length,
+        due30: dueIn(30).length,
+        overdue: overdueJobs.length,
+        issues: issueRows.length,
+        activeRows: activeRecurringJobs.length,
+        activeRounds: new Set(activeRecurringJobs.map(job => job.round).filter(Boolean)).size
+      },
+      services: Object.entries(serviceCounts).sort((a, b) => b[1] - a[1]).slice(0, 8),
+      assignees: Object.entries(assigneeMap)
+        .sort((a, b) => b[1].count - a[1].count)
+        .slice(0, 6)
+        .map(([name, value]) => ({ name, count: value.count, monthlyValue: value.monthlyValue })),
+      areas: Object.entries(areaMap)
+        .sort((a, b) => b[1].customers - a[1].customers)
+        .slice(0, 12)
+        .map(([area, value]) => ({ area, ...value }))
+    },
+    live: {
+      recurringPipeline: liveRecurringPipeline,
+      paymentPendingCount: livePaymentPending.length,
+      partialCount: livePartials.length,
+      manualReviewCount: liveManualReview.length,
+      oneoffQuotedValue: liveOneoffQuoted,
+      wonAwaitingImportCount: wonAwaitingImport.length,
+      wonAwaitingImportValue: wonAwaitingImport.reduce((sum, lead) => sum + annualizedLeadValue(lead), 0)
+    }
+  };
+}
+
 function hasManualReview(lead) {
   return leadAttentionReasons(lead).includes('Manual review');
 }
@@ -1633,7 +2363,7 @@ function loadLayoutState() {
     const parsed = JSON.parse(localStorage.getItem(LAYOUT_STORAGE_KEY) || '{}');
     if (!parsed || typeof parsed !== 'object') return state;
 
-    if (parsed.currentTab === 'dashboard' || parsed.currentTab === 'insights') {
+    if (parsed.currentTab === 'dashboard' || parsed.currentTab === 'insights' || parsed.currentTab === 'business') {
       state.currentTab = parsed.currentTab;
     }
 
@@ -1791,13 +2521,13 @@ function clearDragTargets() {
 }
 
 function reflowVisibleAnalytics() {
-  if (currentTab !== 'insights') return;
+  if (!['insights', 'business'].includes(currentTab)) return;
   requestAnimationFrame(() => computeAll());
 }
 
 function setActiveTab(nextTab, options = {}) {
   const { skipSave = false, skipRecompute = false } = options;
-  currentTab = nextTab === 'insights' ? 'insights' : 'dashboard';
+  currentTab = ['dashboard', 'insights', 'business'].includes(nextTab) ? nextTab : 'dashboard';
 
   $$('#viewTabs .view-tab').forEach(button => {
     button.classList.toggle('active', button.dataset.tab === currentTab);
@@ -1928,6 +2658,9 @@ function computeAll() {
     renderCharts(analyticsLeads);
     renderGeoTable(analyticsLeads);
     renderSourceTable(analyticsLeads);
+  }
+  if (currentTab === 'business') {
+    renderBusinessTab(leads, analyticsLeads);
   }
 }
 
@@ -3066,6 +3799,252 @@ function renderRevenue(leads) {
   $('#revOneoffBooked').textContent = formatCurrencyFull(Math.round(oneoffBooked));
 }
 
+// ── BUSINESS TAB ───────────────────────────────────────────
+function metricCard(label, value, sub) {
+  return `
+    <div class="business-stat-card">
+      <div class="business-stat-label">${esc(label)}</div>
+      <div class="business-stat-value">${esc(value)}</div>
+      <div class="business-stat-sub">${esc(sub)}</div>
+    </div>
+  `;
+}
+
+function renderBusinessGoalProgress(metrics) {
+  const wrap = $('#businessGoalProgress');
+  if (!wrap) return;
+
+  const goals = businessGoals || {};
+  const items = [
+    {
+      label: 'Recurring MRR',
+      current: metrics.snapshot?.recurring?.monthly || 0,
+      target: toFiniteNumber(goals.recurringMrrGoal),
+      formatter: value => formatCurrencyFull(Math.round(value || 0)),
+      sub: 'Measured from the imported recurring jobs book.'
+    },
+    {
+      label: 'Active Customers',
+      current: metrics.snapshot?.customers?.active || 0,
+      target: toFiniteNumber(goals.activeCustomersGoal),
+      formatter: value => formatCount(value || 0),
+      sub: 'Unique active customers in the imported jobs snapshot.'
+    },
+    {
+      label: 'Open Annual Pipeline',
+      current: metrics.live?.recurringPipeline || 0,
+      target: toFiniteNumber(goals.annualPipelineGoal),
+      formatter: value => formatCurrencyFull(Math.round(value || 0)),
+      sub: 'Live recurring pipeline from the current leads view.'
+    }
+  ];
+
+  wrap.innerHTML = items.map(item => {
+    if (!item.target || item.target <= 0) {
+      return `
+        <div class="business-progress-card">
+          <div class="business-progress-label">${esc(item.label)}</div>
+          <div class="business-progress-value">${esc(item.formatter(item.current))}</div>
+          <div class="business-progress-sub">${esc(item.sub)} Add a goal above to track progress here.</div>
+          <div class="business-progress-track"><div class="business-progress-fill" style="width:0%"></div></div>
+        </div>
+      `;
+    }
+
+    const progress = Math.max(0, Math.min(100, (item.current / item.target) * 100));
+    const remaining = Math.max(item.target - item.current, 0);
+    const complete = item.current >= item.target;
+    return `
+      <div class="business-progress-card">
+        <div class="business-progress-label">${esc(item.label)}</div>
+        <div class="business-progress-value">${esc(item.formatter(item.current))}</div>
+        <div class="business-progress-sub">${complete
+          ? `Goal reached against ${item.formatter(item.target)}.`
+          : `${item.formatter(remaining)} still to go against ${item.formatter(item.target)}.`}</div>
+        <div class="business-progress-track"><div class="business-progress-fill ${complete ? 'complete' : ''}" style="width:${progress}%"></div></div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderBusinessTab(filteredLeads, analyticsLeads) {
+  const metrics = buildBusinessMetrics(analyticsLeads);
+  const freshness = metrics.freshness;
+  const pill = $('#businessFreshnessPill');
+  const meta = $('#businessImportMeta');
+  const note = $('#businessImportNote');
+
+  if (pill) {
+    pill.className = `business-status-pill ${freshness.tone}`;
+    pill.textContent = freshness.label;
+  }
+  if (meta) {
+    if (metrics.hasSnapshot) {
+      meta.innerHTML = `<strong>${esc(metrics.snapshot.fileName || 'Imported CSV')}</strong> · ${formatCount(metrics.snapshot.rowCount)} rows · imported ${esc(fullDate(metrics.snapshot.importedAt))}`;
+    } else {
+      meta.textContent = 'No jobs snapshot imported yet. Import your all-jobs CSV to unlock recurring book, customer-base, and operations insight.';
+    }
+  }
+  if (note) {
+    note.textContent = freshness.note;
+  }
+
+  $('#businessSnapshotCustomers').textContent = metrics.hasSnapshot ? formatCount(metrics.snapshot.customers.active) : '--';
+  $('#businessSnapshotMrr').textContent = metrics.hasSnapshot ? formatCurrencyFull(Math.round(metrics.snapshot.recurring.monthly)) : '--';
+  $('#businessSnapshotRows').textContent = metrics.hasSnapshot ? formatCount(metrics.snapshot.rowCount) : '--';
+  $('#businessSnapshotPipeline').textContent = formatCurrencyFull(Math.round(metrics.live.recurringPipeline || 0));
+
+  const customerGrid = $('#businessCustomerGrid');
+  if (customerGrid) {
+    if (!metrics.hasSnapshot) {
+      customerGrid.innerHTML = `<div class="business-empty" style="grid-column:1 / -1">Import your all-jobs CSV to populate the actual customer book. Live pipeline and dashboard metrics will keep updating regardless.</div>`;
+    } else {
+      customerGrid.innerHTML = [
+        metricCard('Active customers', formatCount(metrics.snapshot.customers.active), 'Customers currently active in the imported jobs snapshot.'),
+        metricCard('Inactive customers', formatCount(metrics.snapshot.customers.inactive), 'Customers that appear inactive in the imported jobs snapshot.'),
+        metricCard('Snapshot MRR', formatCurrencyFull(Math.round(metrics.snapshot.recurring.monthly)), 'Recurring monthly book from active imported jobs.'),
+        metricCard('Snapshot ARR', formatCurrencyFull(Math.round(metrics.snapshot.recurring.annual)), 'Annualised recurring value from the imported active jobs.'),
+        metricCard('Avg active customer', formatCurrencyFull(Math.round(metrics.snapshot.recurring.averageCustomer || 0)), 'Average recurring monthly value per active customer.'),
+        metricCard('Outstanding balance', formatCurrencyFull(Math.round(metrics.snapshot.balances || 0)), 'Customer balances carried on the imported jobs snapshot.')
+      ].join('');
+    }
+  }
+
+  if (!metrics.hasSnapshot) {
+    renderSignalList('businessOperationsList', [], { emptyText: 'Import a jobs snapshot to see due work, overdue jobs, skipped/not-done pressure, and active rounds.' });
+    renderSignalList('businessAssigneeList', [], { emptyText: 'Assignee mix will appear here once a jobs snapshot is imported.' });
+    renderSignalList('businessServiceMix', [], { emptyText: 'Service mix will appear here once a jobs snapshot is imported.' });
+    const areaTbody = $('#businessAreaTable tbody');
+    if (areaTbody) areaTbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--ink-faint);font-style:italic;padding:20px">Import a jobs snapshot to unlock geographic book insight.</td></tr>';
+  } else {
+    renderSignalList('businessOperationsList', [
+      { label: 'Due in 7 days', value: metrics.snapshot.jobs.due7, display: formatCount(metrics.snapshot.jobs.due7), sub: 'Active recurring jobs due within the next week.' },
+      { label: 'Due in 30 days', value: metrics.snapshot.jobs.due30, display: formatCount(metrics.snapshot.jobs.due30), sub: 'Active recurring jobs due in the next 30 days.' },
+      { label: 'Overdue jobs', value: metrics.snapshot.jobs.overdue, display: formatCount(metrics.snapshot.jobs.overdue), sub: 'Active recurring jobs with a next-due date already behind today.', tone: 'alt' },
+      { label: 'Issue rows', value: metrics.snapshot.jobs.issues, display: formatCount(metrics.snapshot.jobs.issues), sub: 'Active recurring rows carrying skipped or not-done history.', tone: 'soft' },
+      { label: 'Active rounds', value: metrics.snapshot.jobs.activeRounds, display: formatCount(metrics.snapshot.jobs.activeRounds), sub: 'Distinct recurring rounds seen in the imported jobs snapshot.', tone: 'soft' }
+    ], { emptyText: 'No imported operations data available yet.' });
+
+    renderSignalList('businessAssigneeList', metrics.snapshot.assignees.map((assignee, index) => ({
+      label: assignee.name,
+      value: assignee.count,
+      display: `${formatCount(assignee.count)} rows`,
+      sub: `${formatCurrencyFull(Math.round(assignee.monthlyValue || 0))} monthly book attached`,
+      tone: index === 0 ? 'alt' : 'soft'
+    })), { emptyText: 'No assignee data found in the imported snapshot.' });
+
+    renderSignalList('businessServiceMix', metrics.snapshot.services.map(([label, value], index) => ({
+      label,
+      value,
+      display: `${formatCount(value)} rows`,
+      sub: 'Imported service rows carrying this service.',
+      tone: index === 0 ? 'alt' : 'soft'
+    })), { emptyText: 'No service mix data found in the imported snapshot.' });
+
+    const areaTbody = $('#businessAreaTable tbody');
+    if (areaTbody) {
+      if (!metrics.snapshot.areas.length) {
+        areaTbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--ink-faint);font-style:italic;padding:20px">No area breakdown available yet.</td></tr>';
+      } else {
+        areaTbody.innerHTML = metrics.snapshot.areas.map(area => `
+          <tr>
+            <td><strong>${esc(area.area)}</strong></td>
+            <td>${formatCount(area.customers)}</td>
+            <td>${formatCurrencyFull(Math.round(area.monthlyValue || 0))}</td>
+            <td>${formatCount(area.due7 || 0)}</td>
+          </tr>
+        `).join('');
+      }
+    }
+  }
+
+  const bridgeNote = $('#businessBridgeNote');
+  if (bridgeNote) {
+    bridgeNote.textContent = `Live lead-side figures below respect the current ${rangeLabel()} filter, while the imported jobs snapshot remains a whole-business point-in-time view.`;
+  }
+
+  renderSignalList('businessBridgeList', [
+    {
+      label: 'Open recurring pipeline',
+      value: Math.round(metrics.live.recurringPipeline || 0),
+      display: formatCurrencyFull(Math.round(metrics.live.recurringPipeline || 0)),
+      sub: 'Live annualised recurring quote value still open in the leads dashboard.'
+    },
+    {
+      label: 'Payment pending',
+      value: metrics.live.paymentPendingCount || 0,
+      display: formatCount(metrics.live.paymentPendingCount || 0),
+      sub: 'Leads already sitting at payment or mandate setup.'
+    },
+    {
+      label: 'Won but not in jobs snapshot',
+      value: metrics.live.wonAwaitingImportCount || 0,
+      display: `${formatCount(metrics.live.wonAwaitingImportCount || 0)} · ${formatCurrencyFull(Math.round(metrics.live.wonAwaitingImportValue || 0))}`,
+      sub: metrics.hasSnapshot
+        ? 'Signed-up recurring leads that do not appear to be in the imported jobs book yet.'
+        : 'Import a jobs snapshot to match won leads against the current customer book.'
+    },
+    {
+      label: 'Manual review live',
+      value: metrics.live.manualReviewCount || 0,
+      display: formatCount(metrics.live.manualReviewCount || 0),
+      sub: 'Leads still needing a manual service-fit or coverage check.',
+      tone: 'alt'
+    },
+    {
+      label: 'Partial recovery pool',
+      value: metrics.live.partialCount || 0,
+      display: formatCount(metrics.live.partialCount || 0),
+      sub: 'Leads still sitting unfinished in the quote journey.',
+      tone: 'soft'
+    },
+    {
+      label: 'One-off quoted value',
+      value: Math.round(metrics.live.oneoffQuotedValue || 0),
+      display: formatCurrencyFull(Math.round(metrics.live.oneoffQuotedValue || 0)),
+      sub: 'Standalone one-off quoted value still open in the live leads view.',
+      tone: 'alt'
+    }
+  ], { emptyText: 'No live bridge insight yet.' });
+
+  renderBusinessGoalProgress(metrics);
+}
+
+function populateBusinessGoalInputs() {
+  const goals = businessGoals || {};
+  const recurringField = $('#goalRecurringMrr');
+  const customersField = $('#goalActiveCustomers');
+  const pipelineField = $('#goalAnnualPipeline');
+  if (recurringField) recurringField.value = goals.recurringMrrGoal ?? '';
+  if (customersField) customersField.value = goals.activeCustomersGoal ?? '';
+  if (pipelineField) pipelineField.value = goals.annualPipelineGoal ?? '';
+}
+
+async function importBusinessCsvFile(file) {
+  if (!file) return;
+  try {
+    const text = await file.text();
+    const records = parseCsvText(text);
+    if (!records.length) throw new Error('The CSV appears to be empty.');
+    const jobs = records
+      .map(normalizeImportedJobRow)
+      .filter(job => job.name || job.customerRef || job.address);
+    if (!jobs.length) throw new Error('No valid job rows were found in that CSV.');
+
+    saveBusinessSnapshot({
+      importedAt: new Date().toISOString(),
+      fileName: file.name,
+      rowCount: jobs.length,
+      jobs
+    });
+    hideError();
+    computeAll();
+  } catch (error) {
+    console.error('Business CSV import failed:', error);
+    showError(`Failed to import jobs CSV: ${error.message || 'Unknown error'}`);
+  }
+}
+
 // ── CSV EXPORT ──────────────────────────────────────────────
 function exportCSV() {
   const leads = getFilteredLeads();
@@ -3284,9 +4263,48 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') closePanel()
 // Export
 $('#btnExport').addEventListener('click', exportCSV);
 
+const businessFileInput = $('#businessFileInput');
+if (businessFileInput) {
+  businessFileInput.addEventListener('change', async e => {
+    const file = e.target.files?.[0];
+    await importBusinessCsvFile(file);
+    e.target.value = '';
+  });
+}
+
+$('#btnBusinessImport')?.addEventListener('click', () => {
+  businessFileInput?.click();
+});
+
+$('#btnBusinessClear')?.addEventListener('click', () => {
+  saveBusinessSnapshot(null);
+  hideError();
+  computeAll();
+});
+
+$('#btnSaveBusinessGoals')?.addEventListener('click', () => {
+  saveBusinessGoals({
+    recurringMrrGoal: $('#goalRecurringMrr')?.value ?? '',
+    activeCustomersGoal: $('#goalActiveCustomers')?.value ?? '',
+    annualPipelineGoal: $('#goalAnnualPipeline')?.value ?? ''
+  });
+  computeAll();
+});
+
+$('#btnResetBusinessGoals')?.addEventListener('click', () => {
+  saveBusinessGoals({
+    recurringMrrGoal: '',
+    activeCustomersGoal: '',
+    annualPipelineGoal: ''
+  });
+  populateBusinessGoalInputs();
+  computeAll();
+});
+
 // ── INIT ────────────────────────────────────────────────────
 applyLayoutState();
 setLayoutEditing(false);
+populateBusinessGoalInputs();
 fetchData();
 
 // ── AI SUMMARY ─────────────────────────────────────────────
@@ -3294,7 +4312,7 @@ function rangeLabel() {
   const map = {
     7: 'last 7 days',
     30: 'last 30 days',
-    90: 'last quarter',
+    91: 'last quarter',
     180: 'last 6 months',
     365: 'last year',
     0: 'all time'
