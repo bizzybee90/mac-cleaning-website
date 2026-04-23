@@ -1232,9 +1232,9 @@ canvas{border-radius:8px}
                     <div class="business-mini-sub">Monthly recurring book from active recurring round jobs in the imported snapshot.</div>
                   </div>
                   <div class="business-mini-card">
-                    <div class="business-mini-label">Rows imported</div>
-                    <div class="business-mini-value" id="businessSnapshotRows">--</div>
-                    <div class="business-mini-sub">Job rows currently loaded into this browser snapshot.</div>
+                    <div class="business-mini-label">Active rounds</div>
+                    <div class="business-mini-value" id="businessSnapshotRounds">--</div>
+                    <div class="business-mini-sub">Distinct active recurring rounds in the imported jobs snapshot.</div>
                   </div>
                   <div class="business-mini-card">
                     <div class="business-mini-label">Live annual pipeline</div>
@@ -1427,6 +1427,7 @@ let currentTab = 'dashboard';
 const LAYOUT_STORAGE_KEY = 'mac-cleaning-dashboard-layout-v6';
 const BUSINESS_SNAPSHOT_STORAGE_KEY = 'mac-cleaning-business-snapshot-v1';
 const BUSINESS_GOALS_STORAGE_KEY = 'mac-cleaning-business-goals-v1';
+const BUSINESS_SNAPSHOT_VERSION = 2;
 let businessSnapshot = loadBusinessSnapshot();
 let businessGoals = loadBusinessGoals();
 const DEFAULT_TAB_LAYOUTS = {
@@ -1869,12 +1870,18 @@ function loadBusinessSnapshot() {
   try {
     const parsed = JSON.parse(localStorage.getItem(BUSINESS_SNAPSHOT_STORAGE_KEY) || 'null');
     if (!parsed || typeof parsed !== 'object' || !Array.isArray(parsed.jobs)) return null;
-    return {
+    const rehydratedJobs = parsed.jobs.map(rehydrateStoredBusinessJob).filter(job => job && (job.name || job.customerRef || job.address));
+    const snapshot = {
+      version: BUSINESS_SNAPSHOT_VERSION,
       importedAt: parsed.importedAt || null,
       fileName: parsed.fileName || 'Imported CSV',
-      rowCount: parsed.rowCount || parsed.jobs.length || 0,
-      jobs: parsed.jobs
+      rowCount: rehydratedJobs.length || parsed.rowCount || 0,
+      jobs: rehydratedJobs
     };
+    if ((parsed.version || 0) !== BUSINESS_SNAPSHOT_VERSION) {
+      localStorage.setItem(BUSINESS_SNAPSHOT_STORAGE_KEY, JSON.stringify(snapshot));
+    }
+    return snapshot;
   } catch {
     return null;
   }
@@ -1887,10 +1894,11 @@ function saveBusinessSnapshot(snapshot) {
     return;
   }
   const safeSnapshot = {
+    version: BUSINESS_SNAPSHOT_VERSION,
     importedAt: snapshot.importedAt || new Date().toISOString(),
     fileName: snapshot.fileName || 'Imported CSV',
     rowCount: snapshot.rowCount || snapshot.jobs?.length || 0,
-    jobs: Array.isArray(snapshot.jobs) ? snapshot.jobs : []
+    jobs: Array.isArray(snapshot.jobs) ? snapshot.jobs.map(rehydrateStoredBusinessJob) : []
   };
   localStorage.setItem(BUSINESS_SNAPSHOT_STORAGE_KEY, JSON.stringify(safeSnapshot));
   businessSnapshot = safeSnapshot;
@@ -1952,6 +1960,56 @@ function parseJobDate(value) {
   const date = new Date(text);
   if (Number.isNaN(date.getTime())) return null;
   return date.toISOString();
+}
+
+function rehydrateStoredBusinessJob(job) {
+  if (!job || typeof job !== 'object') return null;
+  const services = Array.isArray(job.services) ? job.services : parseListField(job.services || job.primaryService || '');
+  const assignees = Array.isArray(job.assignees) ? job.assignees : parseListField(job.assignees);
+  const frequency = String(job.frequency || '').trim();
+  const state = String(job.state || '').trim().toLowerCase();
+  const price = parseJobNumber(job.price);
+  const balance = parseJobNumber(job.balance);
+  const annualOccurrences = jobAnnualOccurrences(frequency);
+  const recurringMonthlyValue = annualOccurrences ? (price * annualOccurrences) / 12 : 0;
+  const recurringAnnualValue = annualOccurrences ? price * annualOccurrences : 0;
+  const monthlyBookValue = price * jobMonthlyBookFactor(frequency);
+  const primaryService = job.primaryService || services[0] || 'Unknown';
+  const isQuote = typeof job.isQuote === 'boolean' ? job.isQuote : ['true', 'yes', '1'].includes(String(job.isQuote || '').trim().toLowerCase());
+  const isRecurring = Boolean(frequency) && !/quote appointment/i.test(primaryService);
+
+  return {
+    jobRef: String(job.jobRef || '').trim(),
+    customerRef: String(job.customerRef || '').trim(),
+    name: String(job.name || '').trim(),
+    address: String(job.address || '').trim(),
+    email: String(job.email || '').trim().toLowerCase(),
+    phone: normalizePhoneValue(job.phone),
+    altPhone: normalizePhoneValue(job.altPhone),
+    state,
+    balance,
+    jobState: String(job.jobState || '').trim(),
+    isQuote,
+    assignees,
+    createdAt: parseJobDate(job.createdAt),
+    services,
+    frequency,
+    round: String(job.round || '').trim(),
+    price,
+    duration: String(job.duration || '').trim(),
+    occurrences: parseJobInt(job.occurrences),
+    notDone: parseJobInt(job.notDone),
+    skipped: parseJobInt(job.skipped),
+    done: parseJobInt(job.done),
+    lastDone: parseJobDate(job.lastDone),
+    nextDue: parseJobDate(job.nextDue),
+    area: job.area || outwardCodeFromText(job.address || ''),
+    primaryService,
+    isRecurring,
+    monthlyBookValue,
+    recurringMonthlyValue,
+    recurringAnnualValue
+  };
 }
 
 function normalizePhoneValue(value) {
@@ -3919,7 +3977,7 @@ function renderBusinessTab(filteredLeads, analyticsLeads) {
 
   $('#businessSnapshotCustomers').textContent = metrics.hasSnapshot ? formatCount(metrics.snapshot.customers.active) : '--';
   $('#businessSnapshotMrr').textContent = metrics.hasSnapshot ? formatCurrencyFull(Math.round(metrics.snapshot.recurring.monthly)) : '--';
-  $('#businessSnapshotRows').textContent = metrics.hasSnapshot ? formatCount(metrics.snapshot.rowCount) : '--';
+  $('#businessSnapshotRounds').textContent = metrics.hasSnapshot ? formatCount(metrics.snapshot.jobs.activeRounds) : '--';
   $('#businessSnapshotPipeline').textContent = formatCurrencyFull(Math.round(metrics.live.recurringPipeline || 0));
 
   const customerGrid = $('#businessCustomerGrid');
