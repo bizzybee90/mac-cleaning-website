@@ -1295,16 +1295,16 @@ canvas{border-radius:8px}
         <button class="module-resize" type="button" aria-label="Resize business goals"></button>
       </section>
 
-      <section class="layout-module" data-tab="business" data-module="business_monthly_goal" data-title="Monthly Goal Track" data-min-span="2" data-max-span="2" data-span="2">
+      <section class="layout-module" data-tab="business" data-module="business_monthly_goal" data-title="MRR Goal Track" data-min-span="2" data-max-span="2" data-span="2">
         <div class="layout-module-toolbar">
-          <div class="layout-grip">⋮⋮ <span class="layout-toolbar-title">Monthly Goal Track</span></div>
+          <div class="layout-grip">⋮⋮ <span class="layout-toolbar-title">MRR Goal Track</span></div>
           <div class="layout-toolbar-actions"><span class="layout-size-pill">Chart</span><button class="module-hide-btn" data-hide-module="business_monthly_goal">Hide</button></div>
         </div>
         <div class="module-surface">
           <div class="card">
-            <div class="card-title">Projected Recurring Turnover vs Goal</div>
+            <div class="card-title">Active Recurring MRR vs Goal</div>
             <div class="business-forecast-shell">
-              <div class="business-chart-note" id="businessForecastNote">Import a jobs snapshot to see projected monthly recurring turnover against your saved monthly goal.</div>
+              <div class="business-chart-note" id="businessForecastNote">Import a jobs snapshot to compare active recurring MRR against your saved monthly goal.</div>
               <div class="business-forecast-summary" id="businessForecastSummary"></div>
               <div class="chart-wrap"><canvas id="chartBusinessGoalTrack"></canvas></div>
             </div>
@@ -1327,15 +1327,15 @@ canvas{border-radius:8px}
         <button class="module-resize" type="button" aria-label="Resize business customer base"></button>
       </section>
 
-      <section class="layout-module" data-tab="business" data-module="business_book_growth" data-title="Active Book Growth" data-min-span="1" data-max-span="2" data-span="1">
+      <section class="layout-module" data-tab="business" data-module="business_book_growth" data-title="Active vs Inactive Book" data-min-span="1" data-max-span="2" data-span="1">
         <div class="layout-module-toolbar">
-          <div class="layout-grip">⋮⋮ <span class="layout-toolbar-title">Active Book Growth</span></div>
+          <div class="layout-grip">⋮⋮ <span class="layout-toolbar-title">Active vs Inactive Book</span></div>
           <div class="layout-toolbar-actions"><span class="layout-size-pill">Chart</span><button class="module-hide-btn" data-hide-module="business_book_growth">Hide</button></div>
         </div>
         <div class="module-surface">
           <div class="card">
-            <div class="card-title">Active Book Growth</div>
-            <div class="business-chart-note" id="businessBookGrowthNote">Import a jobs snapshot to see how today’s active recurring book was built over time.</div>
+            <div class="card-title">Active vs Inactive Book</div>
+            <div class="business-chart-note" id="businessBookGrowthNote">Import a jobs snapshot to compare current active recurring value with jobs that are now inactive.</div>
             <div class="business-forecast-summary" id="businessBookGrowthSummary" style="margin-top:14px"></div>
             <div class="chart-wrap" style="margin-top:14px"><canvas id="chartBusinessBookGrowth"></canvas></div>
           </div>
@@ -1451,7 +1451,7 @@ let layoutEditing = false;
 let activeResize = null;
 let currentTab = 'dashboard';
 
-const LAYOUT_STORAGE_KEY = 'mac-cleaning-dashboard-layout-v7';
+const LAYOUT_STORAGE_KEY = 'mac-cleaning-dashboard-layout-v8';
 const BUSINESS_SNAPSHOT_STORAGE_KEY = 'mac-cleaning-business-snapshot-v1';
 const BUSINESS_GOALS_STORAGE_KEY = 'mac-cleaning-business-goals-v1';
 const BUSINESS_SNAPSHOT_VERSION = 2;
@@ -1539,6 +1539,7 @@ function freqMultiplier(freq) {
   if (!freq) return 1;
   const f = freq.toLowerCase().replace(/[^a-z0-9]/g, '');
   if (f.includes('adhoc')) return 0;
+  if (f.includes('6month') || f.includes('sixmonth')) return 2;
   if (f.includes('12') || f.includes('twelve')) return 52 / 12;
   if (f.includes('4') || f.includes('four') || f.includes('monthly')) return 13;
   if (f.includes('8') || f.includes('eight') || f.includes('bimonthly')) return 6.5;
@@ -1563,12 +1564,17 @@ function formatPrice(p, freq) {
 }
 
 function formatCurrency(n) {
-  if (n >= 1000) return '\u00A3' + (n/1000).toFixed(1).replace(/\.0$/,'') + 'k';
-  return '\u00A3' + Math.round(n);
+  const num = Number(n || 0);
+  const sign = num < 0 ? '-' : '';
+  const abs = Math.abs(num);
+  if (abs >= 1000) return sign + '\u00A3' + (abs/1000).toFixed(1).replace(/\.0$/,'') + 'k';
+  return sign + '\u00A3' + Math.round(abs);
 }
 
 function formatCurrencyFull(n) {
-  return '\u00A3' + n.toLocaleString('en-GB', {minimumFractionDigits:0, maximumFractionDigits:0});
+  const num = Number(n || 0);
+  const sign = num < 0 ? '-' : '';
+  return sign + '\u00A3' + Math.abs(num).toLocaleString('en-GB', {minimumFractionDigits:0, maximumFractionDigits:0});
 }
 
 function formatPercent(value, digits = 1) {
@@ -2080,17 +2086,6 @@ function jobMonthlyBookFactor(frequency) {
   return 0;
 }
 
-function jobRecurrenceDays(frequency) {
-  const text = String(frequency || '').trim().toLowerCase();
-  if (!text || text.includes('ad hoc')) return 0;
-  if (text.includes('every 12 weeks')) return 84;
-  if (text.includes('every 8 weeks')) return 56;
-  if (text.includes('every 4 weeks') || text.includes('monthly')) return 28;
-  if (text.includes('every 2 weeks') || text.includes('fortnight')) return 14;
-  if (text.includes('every week')) return 7;
-  return 0;
-}
-
 function jobContributesToRecurringBook(job) {
   const frequency = String(job?.frequency || '').trim().toLowerCase();
   return Boolean(
@@ -2098,6 +2093,18 @@ function jobContributesToRecurringBook(job) {
     job.state === 'active' &&
     job.round &&
     !job.isQuote &&
+    frequency &&
+    !frequency.includes('ad hoc') &&
+    (job.recurringMonthlyValue || 0) > 0
+  );
+}
+
+function jobLooksLikeRecurringBook(job) {
+  const frequency = String(job?.frequency || '').trim().toLowerCase();
+  return Boolean(
+    job &&
+    !job.isQuote &&
+    frequency &&
     !frequency.includes('ad hoc') &&
     (job.recurringMonthlyValue || 0) > 0
   );
@@ -2109,57 +2116,6 @@ function monthKey(date) {
 
 function monthLabel(date) {
   return date.toLocaleDateString('en-GB', { month: 'short', year: '2-digit' }).replace(' ', ' ');
-}
-
-function projectRecurringMonthlyTurnover(jobs, months = 12, anchorDate = new Date()) {
-  const start = new Date(anchorDate.getFullYear(), anchorDate.getMonth(), 1);
-  const end = new Date(start.getFullYear(), start.getMonth() + months, 1);
-  const labels = [];
-  const values = [];
-  const indexByKey = new Map();
-
-  for (let i = 0; i < months; i += 1) {
-    const date = new Date(start.getFullYear(), start.getMonth() + i, 1);
-    const key = monthKey(date);
-    labels.push(monthLabel(date));
-    values.push(0);
-    indexByKey.set(key, i);
-  }
-
-  jobs.forEach(job => {
-    const intervalDays = jobRecurrenceDays(job.frequency);
-    const price = toFiniteNumber(job.price) || 0;
-    if (!intervalDays || !price || !job.nextDue) return;
-
-    let due = new Date(job.nextDue);
-    if (Number.isNaN(due.getTime())) return;
-
-    let rewindGuard = 0;
-    while (rewindGuard < 120) {
-      const prev = new Date(due);
-      prev.setDate(prev.getDate() - intervalDays);
-      if (prev < start) break;
-      due = prev;
-      rewindGuard += 1;
-    }
-
-    let forwardGuard = 0;
-    while (due < end && forwardGuard < 400) {
-      if (due >= start) {
-        const idx = indexByKey.get(monthKey(due));
-        if (idx !== undefined) values[idx] += price;
-      }
-      const next = new Date(due);
-      next.setDate(next.getDate() + intervalDays);
-      due = next;
-      forwardGuard += 1;
-    }
-  });
-
-  return labels.map((label, index) => ({
-    label,
-    value: Math.round(values[index] || 0)
-  }));
 }
 
 function monthlyTrendFromDates(items, dateGetter, months = 12, anchorDate = new Date()) {
@@ -2244,6 +2200,59 @@ function buildActiveBookGrowth(jobs, months = 24, anchorDate = new Date()) {
       label,
       added: Math.round(addedValues[index] || 0),
       cumulative: Math.round(running || 0)
+    };
+  });
+}
+
+function buildBookStateCohorts(activeJobs, inactiveJobs, months = 24, anchorDate = new Date()) {
+  const start = new Date(anchorDate.getFullYear(), anchorDate.getMonth() - (months - 1), 1);
+  const labels = [];
+  const activeAdded = [];
+  const inactiveAdded = [];
+  const indexByKey = new Map();
+  let openingActive = 0;
+  let openingInactive = 0;
+
+  for (let i = 0; i < months; i += 1) {
+    const date = new Date(start.getFullYear(), start.getMonth() + i, 1);
+    labels.push(monthLabel(date));
+    activeAdded.push(0);
+    inactiveAdded.push(0);
+    indexByKey.set(monthKey(date), i);
+  }
+
+  const addJob = (job, bucket) => {
+    const monthly = toFiniteNumber(job.recurringMonthlyValue) || 0;
+    if (!monthly) return;
+    const created = job.createdAt ? new Date(job.createdAt) : null;
+    if (!created || Number.isNaN(created.getTime()) || created < start) {
+      if (bucket === 'active') openingActive += monthly;
+      if (bucket === 'inactive') openingInactive += monthly;
+      return;
+    }
+    const idx = indexByKey.get(monthKey(created));
+    if (idx === undefined) return;
+    if (bucket === 'active') activeAdded[idx] += monthly;
+    if (bucket === 'inactive') inactiveAdded[idx] += monthly;
+  };
+
+  activeJobs.forEach(job => addJob(job, 'active'));
+  inactiveJobs.forEach(job => addJob(job, 'inactive'));
+
+  let activeRunning = openingActive;
+  let inactiveRunning = openingInactive;
+  return labels.map((label, index) => {
+    activeRunning += activeAdded[index] || 0;
+    inactiveRunning += inactiveAdded[index] || 0;
+    const combined = activeRunning + inactiveRunning;
+    return {
+      label,
+      activeAdded: Math.round(activeAdded[index] || 0),
+      inactiveAdded: Math.round(inactiveAdded[index] || 0),
+      activeCumulative: Math.round(activeRunning || 0),
+      inactiveCumulative: Math.round(inactiveRunning || 0),
+      netCumulative: Math.round((activeRunning || 0) - (inactiveRunning || 0)),
+      activeShare: combined > 0 ? (activeRunning / combined) * 100 : 0
     };
   });
 }
@@ -2441,12 +2450,32 @@ function buildBusinessMetrics(leads) {
 
   const jobs = snapshot.jobs;
   const activeRecurringBookJobs = jobs.filter(job => jobContributesToRecurringBook(job));
+  const inactiveRecurringBookJobs = jobs.filter(job =>
+    job?.state === 'inactive' &&
+    jobLooksLikeRecurringBook(job)
+  );
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  const recurringProjection = projectRecurringMonthlyTurnover(activeRecurringBookJobs, 12, today);
   const activeBookGrowth = buildActiveBookGrowth(activeRecurringBookJobs, 24, today);
+  const bookStateCohorts = buildBookStateCohorts(activeRecurringBookJobs, inactiveRecurringBookJobs, 24, today);
   const addedMrr90 = sumRecentMrrAdded(activeRecurringBookJobs, 90, today);
   const addedMrr365 = sumRecentMrrAdded(activeRecurringBookJobs, 365, today);
+  const activeMrrFromJobs = activeRecurringBookJobs.reduce((sum, job) => sum + (toFiniteNumber(job.recurringMonthlyValue) || 0), 0);
+  const inactiveMrr = inactiveRecurringBookJobs.reduce((sum, job) => sum + (toFiniteNumber(job.recurringMonthlyValue) || 0), 0);
+  const inactiveArr = inactiveRecurringBookJobs.reduce((sum, job) => sum + (toFiniteNumber(job.recurringAnnualValue) || 0), 0);
+  const activeInactiveTotalMrr = activeMrrFromJobs + inactiveMrr;
+  const activeShare = activeInactiveTotalMrr > 0
+    ? (activeMrrFromJobs / activeInactiveTotalMrr) * 100
+    : 0;
+  const activeMrrAdded12m = addedMrr365;
+  const recentCreatedCutoff = new Date(today);
+  recentCreatedCutoff.setDate(recentCreatedCutoff.getDate() - 365);
+  const inactiveMrrCreated12m = inactiveRecurringBookJobs.reduce((sum, job) => {
+    if (!job.createdAt) return sum;
+    const created = new Date(job.createdAt);
+    if (Number.isNaN(created.getTime())) return sum;
+    return created >= recentCreatedCutoff ? sum + (toFiniteNumber(job.recurringMonthlyValue) || 0) : sum;
+  }, 0);
 
   const customers = new Map();
   jobs.forEach(job => {
@@ -2549,15 +2578,26 @@ function buildBusinessMetrics(leads) {
         averageCustomer: avgActiveCustomerValue
       },
       balances: outstandingBalance,
-      forecast: recurringProjection,
       customerTrend: monthlyTrendFromDates(activeCustomers, customer => customer.createdAt, 12, today),
       growth: {
         activeBook: activeBookGrowth,
+        bookStateCohorts,
         addedMrr90,
-        addedMrr365
+        addedMrr365,
+        activeMrrAdded12m,
+        inactiveMrrCreated12m,
+        netCreatedMrr12m: activeMrrAdded12m - inactiveMrrCreated12m
+      },
+      inactiveBook: {
+        monthly: inactiveMrr,
+        annual: inactiveArr,
+        rows: inactiveRecurringBookJobs.length,
+        customers: new Set(inactiveRecurringBookJobs.map(job => importedCustomerKey(job)).filter(Boolean)).size,
+        activeShare
       },
       jobs: {
         activeRecurringRows: activeRecurringBookJobs.length,
+        inactiveRecurringRows: inactiveRecurringBookJobs.length,
         activeRounds: new Set(activeRecurringBookJobs.map(job => job.round).filter(Boolean)).size
       },
       services: Object.entries(serviceCounts).sort((a, b) => b[1] - a[1]).slice(0, 8),
@@ -4169,7 +4209,7 @@ function renderBusinessOverview(metrics) {
         badge: 'CSV',
         label: 'Jobs snapshot',
         value: 'Import',
-        sub: 'Add the all-jobs CSV to unlock active customers, MRR, forecast, and growth insight.',
+        sub: 'Add the all-jobs CSV to unlock active customers, MRR, goal progress, and growth insight.',
         empty: true
       }),
       businessOverviewCard({
@@ -4184,12 +4224,19 @@ function renderBusinessOverview(metrics) {
     return;
   }
 
-  const forecast = metrics.snapshot.forecast || [];
-  const thisMonth = forecast[0]?.value || 0;
+  const activeBookSeries = (metrics.snapshot.growth?.activeBook || [])
+    .map(month => ({ label: month.label, value: month.cumulative || 0 }));
+  const mrrGoal = toFiniteNumber(businessGoals?.recurringMrrGoal) || 0;
+  const mrrProgress = mrrGoal > 0
+    ? Math.min(999, ((metrics.snapshot.recurring.monthly || 0) / mrrGoal) * 100)
+    : null;
   const customerGoal = toFiniteNumber(businessGoals?.activeCustomersGoal);
   const customerSub = customerGoal
     ? `${formatCount(Math.max(customerGoal - metrics.snapshot.customers.active, 0))} to go against your active customer goal.`
     : `${formatCount(metrics.snapshot.jobs.activeRounds)} active recurring rounds in the imported book.`;
+  const mrrGoalSub = mrrGoal > 0
+    ? `${formatCurrencyFull(Math.round(Math.max(mrrGoal - metrics.snapshot.recurring.monthly, 0)))} remaining to ${formatCurrencyFull(Math.round(mrrGoal))}.`
+    : 'Set a recurring MRR goal to track how close the active book is.';
 
   wrap.innerHTML = [
     businessOverviewCard({
@@ -4207,15 +4254,15 @@ function renderBusinessOverview(metrics) {
       label: 'Active Rounds MRR',
       value: formatCurrencyFull(Math.round(metrics.snapshot.recurring.monthly)),
       sub: 'Monthly recurring book from active recurring round jobs.',
-      series: forecast
+      series: activeBookSeries
     }),
     businessOverviewCard({
       tone: 'accent-gold',
-      badge: 'TM',
-      label: 'Projected This Month',
-      value: formatCurrencyFull(Math.round(thisMonth)),
-      sub: 'Projected recurring turnover in the current calendar month.',
-      series: forecast.slice(0, 6)
+      badge: 'GO',
+      label: 'MRR Goal Progress',
+      value: mrrProgress === null ? 'Set goal' : formatPercent(mrrProgress, 0),
+      sub: mrrGoalSub,
+      series: activeBookSeries
     }),
     businessOverviewCard({
       tone: 'accent-blue',
@@ -4295,42 +4342,41 @@ function renderBusinessForecast(metrics) {
   const ctx = $('#chartBusinessGoalTrack')?.getContext('2d');
   if (!ctx) return;
 
-  if (!metrics.hasSnapshot || !metrics.snapshot?.forecast?.length) {
+  if (!metrics.hasSnapshot || !metrics.snapshot?.growth?.activeBook?.length) {
     summary.innerHTML = '';
-    note.textContent = 'Import a jobs snapshot to see projected monthly recurring turnover against your saved monthly goal.';
+    note.textContent = 'Import a jobs snapshot to compare active recurring MRR against your saved monthly goal.';
     charts.businessGoalTrack = new Chart(ctx, {
       type: 'bar',
       data: { labels: [], datasets: [] },
-      options: { plugins: { title: { display: true, text: 'No projected turnover data yet', color: '#8a92a1' } } }
+      options: { plugins: { title: { display: true, text: 'No active recurring MRR data yet', color: '#8a92a1' } } }
     });
     return;
   }
 
   const goal = toFiniteNumber(businessGoals?.recurringMrrGoal) || 0;
-  const projection = metrics.snapshot.forecast;
-  const thisMonth = projection[0]?.value || 0;
-  const bestMonth = projection.reduce((best, month) => month.value > best.value ? month : best, projection[0]);
-  const goalGap = goal > 0 ? (thisMonth - goal) : null;
+  const activeBook = metrics.snapshot.growth.activeBook || [];
+  const currentMrr = metrics.snapshot.recurring.monthly || 0;
+  const added12m = metrics.snapshot.growth.addedMrr365 || 0;
+  const goalProgress = goal > 0 ? (currentMrr / goal) * 100 : null;
+  const goalRemaining = goal > 0 ? Math.max(goal - currentMrr, 0) : 0;
 
   summary.innerHTML = [
     {
-      label: 'This month projected',
-      value: formatCurrencyFull(Math.round(thisMonth)),
-      sub: 'Projected recurring turnover this calendar month from the active imported jobs book.'
+      label: 'Active recurring MRR',
+      value: formatCurrencyFull(Math.round(currentMrr)),
+      sub: 'Current monthly value from active recurring jobs in the imported book.'
     },
     {
-      label: 'Monthly goal',
-      value: goal > 0 ? formatCurrencyFull(Math.round(goal)) : 'Not set',
-      sub: goal > 0 ? 'Your saved recurring monthly goal line on the chart below.' : 'Set a monthly goal above to compare projection against target.'
-    },
-    {
-      label: goal > 0 ? (goalGap >= 0 ? 'Ahead of goal' : 'Goal gap') : 'Best month ahead',
-      value: goal > 0
-        ? formatCurrencyFull(Math.round(Math.abs(goalGap || 0)))
-        : formatCurrencyFull(Math.round(bestMonth?.value || 0)),
+      label: 'MRR goal progress',
+      value: goal > 0 ? formatPercent(goalProgress, 0) : 'Not set',
       sub: goal > 0
-        ? (goalGap >= 0 ? 'Current month projected above target.' : 'Still needed this month to hit target.')
-        : `${bestMonth?.label || 'Upcoming'} is the strongest projected month in the current imported book.`
+        ? (goalRemaining > 0 ? `${formatCurrencyFull(Math.round(goalRemaining))} remaining to ${formatCurrencyFull(Math.round(goal))}.` : `Goal reached against ${formatCurrencyFull(Math.round(goal))}.`)
+        : 'Set a recurring MRR goal above to add the target line.'
+    },
+    {
+      label: 'MRR added 12m',
+      value: formatCurrencyFull(Math.round(added12m)),
+      sub: 'Active recurring value from jobs created in the last 12 months.'
     }
   ].map(item => `
     <div class="business-forecast-card">
@@ -4341,28 +4387,40 @@ function renderBusinessForecast(metrics) {
   `).join('');
 
   note.textContent = goal > 0
-    ? 'Projected recurring turnover is built from active recurring jobs, their next-due dates, and frequency cadence in the imported snapshot. It is not cash received, but it gives you a clean month-by-month view against your current goal.'
-    : 'Projected recurring turnover is built from active recurring jobs, their next-due dates, and frequency cadence in the imported snapshot. Set a recurring MRR goal above to add the target line.';
+    ? 'This uses active recurring jobs, created dates, prices, and frequency cadence. It does not use the unreliable planned next-due schedule, so it is a book-value goal tracker rather than a cashflow forecast.'
+    : 'This uses active recurring jobs, created dates, prices, and frequency cadence. Set a recurring MRR goal above to add the target line.';
 
   charts.businessGoalTrack = new Chart(ctx, {
     type: 'line',
     data: {
-      labels: projection.map(month => month.label),
+      labels: activeBook.map(month => month.label),
       datasets: [
         {
-          label: 'Projected recurring turnover',
-          data: projection.map(month => Math.round(month.value || 0)),
+          type: 'line',
+          label: 'Active recurring MRR',
+          data: activeBook.map(month => Math.round(month.cumulative || 0)),
           backgroundColor: 'rgba(39, 174, 96, 0.13)',
-          borderColor: 'rgba(211, 161, 52, 1)',
+          borderColor: 'rgba(39,174,96,1)',
           borderWidth: 3,
-          pointRadius: 3,
+          pointRadius: 2,
           pointHoverRadius: 5,
           fill: true,
           tension: 0.35
         },
+        {
+          type: 'bar',
+          label: 'MRR added',
+          data: activeBook.map(month => Math.round(month.added || 0)),
+          backgroundColor: 'rgba(211,161,52,0.36)',
+          borderColor: 'rgba(211,161,52,0.82)',
+          borderWidth: 1,
+          borderRadius: 8,
+          maxBarThickness: 24
+        },
         ...(goal > 0 ? [{
-          label: 'Monthly goal',
-          data: projection.map(() => Math.round(goal)),
+          type: 'line',
+          label: 'MRR goal',
+          data: activeBook.map(() => Math.round(goal)),
           borderColor: 'rgba(41, 52, 74, 0.92)',
           backgroundColor: 'rgba(41, 52, 74, 0.08)',
           borderDash: [8, 6],
@@ -4422,39 +4480,39 @@ function renderBusinessBookGrowth(metrics) {
   const ctx = $('#chartBusinessBookGrowth')?.getContext('2d');
   if (!ctx) return;
 
-  if (!metrics.hasSnapshot || !metrics.snapshot?.growth?.activeBook?.length) {
+  if (!metrics.hasSnapshot || !metrics.snapshot?.growth?.bookStateCohorts?.length) {
     summary.innerHTML = '';
-    note.textContent = 'Import a jobs snapshot to see how today’s active recurring book was built over time.';
+    note.textContent = 'Import a jobs snapshot to compare current active recurring value with jobs that are now inactive.';
     charts.businessBookGrowth = new Chart(ctx, {
       type: 'line',
       data: { labels: [], datasets: [] },
-      options: { plugins: { title: { display: true, text: 'No active book growth data yet', color: '#8a92a1' } } }
+      options: { plugins: { title: { display: true, text: 'No active/inactive book data yet', color: '#8a92a1' } } }
     });
     return;
   }
 
   const growth = metrics.snapshot.growth;
-  const activeBook = growth.activeBook || [];
+  const cohorts = growth.bookStateCohorts || [];
   const currentMrr = metrics.snapshot.recurring.monthly || 0;
-  const opening = activeBook[0]?.cumulative || 0;
-  const last = activeBook[activeBook.length - 1]?.cumulative || currentMrr;
-  const netGrowth = Math.max(last - opening, 0);
+  const inactiveMrr = metrics.snapshot.inactiveBook?.monthly || 0;
+  const activeShare = metrics.snapshot.inactiveBook?.activeShare || 0;
+  const netCreatedMrr12m = growth.netCreatedMrr12m || 0;
 
   summary.innerHTML = [
     {
-      label: 'MRR added 90d',
-      value: formatCurrencyFull(Math.round(growth.addedMrr90 || 0)),
-      sub: 'Current active monthly book created in the last 90 days.'
+      label: 'Active recurring MRR',
+      value: formatCurrencyFull(Math.round(currentMrr)),
+      sub: `${formatCount(metrics.snapshot.jobs.activeRecurringRows || 0)} active recurring jobs currently counted.`
     },
     {
-      label: 'MRR added 12m',
-      value: formatCurrencyFull(Math.round(growth.addedMrr365 || 0)),
-      sub: 'Current active monthly book created in the last 12 months.'
+      label: 'Inactive historical MRR',
+      value: formatCurrencyFull(Math.round(inactiveMrr)),
+      sub: `${formatCount(metrics.snapshot.inactiveBook?.rows || 0)} recurring jobs now inactive, using their last known value.`
     },
     {
-      label: '24m active-book lift',
-      value: formatCurrencyFull(Math.round(netGrowth || 0)),
-      sub: 'Growth visible from active jobs created inside this 24-month window.'
+      label: 'Current active share',
+      value: formatPercent(activeShare, 0),
+      sub: `Last 12m net created value: ${formatCurrencyFull(Math.round(netCreatedMrr12m))} MRR.`
     }
   ].map(item => `
     <div class="business-forecast-card">
@@ -4464,17 +4522,17 @@ function renderBusinessBookGrowth(metrics) {
     </div>
   `).join('');
 
-  note.textContent = 'This uses created dates from the current active recurring book. It shows how today’s MRR was built; true churn/down movement needs recurring monthly exports because this CSV does not include cancellation dates.';
+  note.textContent = 'Inactive value is not current revenue. It is the last-known recurring value of jobs that are now inactive, grouped by the date they were created. Exact cancellation timing would need monthly historical exports from the CRM.';
 
   charts.businessBookGrowth = new Chart(ctx, {
-    type: 'line',
+    type: 'bar',
     data: {
-      labels: activeBook.map(month => month.label),
+      labels: cohorts.map(month => month.label),
       datasets: [
         {
           type: 'line',
-          label: 'Active MRR carried forward',
-          data: activeBook.map(month => month.cumulative),
+          label: 'Active MRR retained',
+          data: cohorts.map(month => month.activeCumulative),
           borderColor: 'rgba(39,174,96,1)',
           backgroundColor: 'rgba(39,174,96,0.13)',
           borderWidth: 3,
@@ -4485,9 +4543,22 @@ function renderBusinessBookGrowth(metrics) {
           yAxisID: 'y'
         },
         {
+          type: 'line',
+          label: 'Inactive last-known MRR',
+          data: cohorts.map(month => month.inactiveCumulative),
+          borderColor: 'rgba(192,57,43,0.92)',
+          backgroundColor: 'rgba(192,57,43,0.08)',
+          borderWidth: 3,
+          pointRadius: 2,
+          pointHoverRadius: 5,
+          fill: false,
+          tension: 0.35,
+          yAxisID: 'y'
+        },
+        {
           type: 'bar',
-          label: 'MRR added',
-          data: activeBook.map(month => month.added),
+          label: 'Net MRR created',
+          data: cohorts.map(month => (month.activeAdded || 0) - (month.inactiveAdded || 0)),
           backgroundColor: 'rgba(211,161,52,0.42)',
           borderColor: 'rgba(211,161,52,0.85)',
           borderWidth: 1,
@@ -4566,9 +4637,9 @@ function renderBusinessTab(filteredLeads, analyticsLeads) {
         metricCard('Active customers', formatCount(metrics.snapshot.customers.active), 'Customers currently active in the imported jobs snapshot.'),
         metricCard('Active rounds MRR', formatCurrencyFull(Math.round(metrics.snapshot.recurring.monthly)), 'Monthly recurring book from active recurring round jobs.'),
         metricCard('Active rounds ARR', formatCurrencyFull(Math.round(metrics.snapshot.recurring.annual)), 'Annualised value from that same active recurring round book.'),
-        metricCard('Avg active customer', formatCurrencyFull(Math.round(metrics.snapshot.recurring.averageCustomer || 0)), 'Average monthly recurring book value per active recurring customer.'),
-        metricCard('Outstanding active balance', formatCurrencyFull(Math.round(metrics.snapshot.balances || 0)), 'Balances carried by customers who are still active in the imported jobs snapshot.'),
-        metricCard('MRR added 12m', formatCurrencyFull(Math.round(metrics.snapshot.growth?.addedMrr365 || 0)), 'Active monthly book created in the last 12 months from jobs still active today.')
+        metricCard('Inactive recurring customers', formatCount(metrics.snapshot.inactiveBook?.customers || 0), 'Customers with recurring jobs now marked inactive in the imported snapshot.'),
+        metricCard('Current active share', formatPercent(metrics.snapshot.inactiveBook?.activeShare || 0, 0), 'Active MRR as a share of active plus inactive last-known recurring value.'),
+        metricCard('12m net created MRR', formatCurrencyFull(Math.round(metrics.snapshot.growth?.netCreatedMrr12m || 0)), 'Active created MRR minus now-inactive created MRR from the last 12 months.')
       ].join('');
     }
   }
