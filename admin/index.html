@@ -1241,7 +1241,7 @@ canvas{border-radius:8px}
                   </div>
                   <span class="business-status-pill status-empty" id="businessFreshnessPill">No snapshot</span>
                 </div>
-                <div class="business-import-meta" id="businessImportMeta">No jobs snapshot imported yet. Import your all-jobs CSV to unlock recurring book, customer-base, and operations insight.</div>
+                <div class="business-import-meta" id="businessImportMeta">No jobs snapshot imported yet. Import your all-jobs CSV to unlock recurring book, customer-base, and growth insight.</div>
                 <div class="business-import-actions">
                   <input type="file" id="businessFileInput" accept=".csv" hidden>
                   <button class="btn-business-primary" id="btnBusinessImport" type="button">Import all-jobs CSV</button>
@@ -1327,22 +1327,20 @@ canvas{border-radius:8px}
         <button class="module-resize" type="button" aria-label="Resize business customer base"></button>
       </section>
 
-      <section class="layout-module" data-tab="business" data-module="business_operations" data-title="Operations Pulse" data-min-span="1" data-max-span="2" data-span="1">
+      <section class="layout-module" data-tab="business" data-module="business_book_growth" data-title="Active Book Growth" data-min-span="1" data-max-span="2" data-span="1">
         <div class="layout-module-toolbar">
-          <div class="layout-grip">⋮⋮ <span class="layout-toolbar-title">Operations Pulse</span></div>
-          <div class="layout-toolbar-actions"><span class="layout-size-pill">Resizable</span><button class="module-hide-btn" data-hide-module="business_operations">Hide</button></div>
+          <div class="layout-grip">⋮⋮ <span class="layout-toolbar-title">Active Book Growth</span></div>
+          <div class="layout-toolbar-actions"><span class="layout-size-pill">Chart</span><button class="module-hide-btn" data-hide-module="business_book_growth">Hide</button></div>
         </div>
         <div class="module-surface">
           <div class="card">
-            <div class="card-title">Operations Pulse</div>
-            <div class="signal-list" id="businessOperationsList"></div>
-            <div class="business-subsection">
-              <div class="business-subtitle">Top Assignees</div>
-              <div class="signal-list" id="businessAssigneeList"></div>
-            </div>
+            <div class="card-title">Active Book Growth</div>
+            <div class="business-chart-note" id="businessBookGrowthNote">Import a jobs snapshot to see how today’s active recurring book was built over time.</div>
+            <div class="business-forecast-summary" id="businessBookGrowthSummary" style="margin-top:14px"></div>
+            <div class="chart-wrap" style="margin-top:14px"><canvas id="chartBusinessBookGrowth"></canvas></div>
           </div>
         </div>
-        <button class="module-resize" type="button" aria-label="Resize business operations"></button>
+        <button class="module-resize" type="button" aria-label="Resize active book growth"></button>
       </section>
 
       <section class="layout-module" data-tab="business" data-module="business_service_mix" data-title="Service Mix" data-min-span="1" data-max-span="2" data-span="1">
@@ -1370,7 +1368,7 @@ canvas{border-radius:8px}
             <div style="overflow-x:auto">
               <table class="business-data-table" id="businessAreaTable">
                 <thead>
-                  <tr><th>Area</th><th>Active Customers</th><th>Monthly Book</th><th>Next 7d Jobs</th></tr>
+                  <tr><th>Area</th><th>Active Customers</th><th>Monthly Book</th><th>Book Share</th></tr>
                 </thead>
                 <tbody></tbody>
               </table>
@@ -1453,7 +1451,7 @@ let layoutEditing = false;
 let activeResize = null;
 let currentTab = 'dashboard';
 
-const LAYOUT_STORAGE_KEY = 'mac-cleaning-dashboard-layout-v6';
+const LAYOUT_STORAGE_KEY = 'mac-cleaning-dashboard-layout-v7';
 const BUSINESS_SNAPSHOT_STORAGE_KEY = 'mac-cleaning-business-snapshot-v1';
 const BUSINESS_GOALS_STORAGE_KEY = 'mac-cleaning-business-goals-v1';
 const BUSINESS_SNAPSHOT_VERSION = 2;
@@ -1508,7 +1506,7 @@ const DEFAULT_TAB_LAYOUTS = {
       'business_goals',
       'business_monthly_goal',
       'business_customer_base',
-      'business_operations',
+      'business_book_growth',
       'business_service_mix',
       'business_geography',
       'business_pipeline_bridge'
@@ -1519,7 +1517,7 @@ const DEFAULT_TAB_LAYOUTS = {
       business_goals: { minHeight: '0px', chartHeight: '280px', span: 2 },
       business_monthly_goal: { minHeight: '0px', chartHeight: '320px', span: 2 },
       business_customer_base: { minHeight: '0px', chartHeight: '280px', span: 1 },
-      business_operations: { minHeight: '0px', chartHeight: '280px', span: 1 },
+      business_book_growth: { minHeight: '0px', chartHeight: '300px', span: 1 },
       business_service_mix: { minHeight: '0px', chartHeight: '280px', span: 1 },
       business_geography: { minHeight: '0px', chartHeight: '280px', span: 1 },
       business_pipeline_bridge: { minHeight: '0px', chartHeight: '280px', span: 2 }
@@ -1571,6 +1569,11 @@ function formatCurrency(n) {
 
 function formatCurrencyFull(n) {
   return '\u00A3' + n.toLocaleString('en-GB', {minimumFractionDigits:0, maximumFractionDigits:0});
+}
+
+function formatPercent(value, digits = 1) {
+  const num = Number(value || 0);
+  return `${num.toFixed(digits)}%`;
 }
 
 function annualizedLeadValue(lead) {
@@ -2100,10 +2103,6 @@ function jobContributesToRecurringBook(job) {
   );
 }
 
-function jobCountsForOperations(job) {
-  return Boolean(job && job.state === 'active' && !job.isQuote);
-}
-
 function monthKey(date) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
 }
@@ -2210,6 +2209,54 @@ function monthlyValueTrendFromLeads(leads, valueGetter, months = 12, anchorDate 
   });
 
   return labels.map((label, index) => ({ label, value: Math.round(values[index] || 0) }));
+}
+
+function buildActiveBookGrowth(jobs, months = 24, anchorDate = new Date()) {
+  const start = new Date(anchorDate.getFullYear(), anchorDate.getMonth() - (months - 1), 1);
+  const labels = [];
+  const addedValues = [];
+  const indexByKey = new Map();
+  let openingMonthly = 0;
+
+  for (let i = 0; i < months; i += 1) {
+    const date = new Date(start.getFullYear(), start.getMonth() + i, 1);
+    labels.push(monthLabel(date));
+    addedValues.push(0);
+    indexByKey.set(monthKey(date), i);
+  }
+
+  jobs.forEach(job => {
+    const monthly = toFiniteNumber(job.recurringMonthlyValue) || 0;
+    if (!monthly) return;
+    const created = job.createdAt ? new Date(job.createdAt) : null;
+    if (!created || Number.isNaN(created.getTime()) || created < start) {
+      openingMonthly += monthly;
+      return;
+    }
+    const idx = indexByKey.get(monthKey(created));
+    if (idx !== undefined) addedValues[idx] += monthly;
+  });
+
+  let running = openingMonthly;
+  return labels.map((label, index) => {
+    running += addedValues[index] || 0;
+    return {
+      label,
+      added: Math.round(addedValues[index] || 0),
+      cumulative: Math.round(running || 0)
+    };
+  });
+}
+
+function sumRecentMrrAdded(jobs, days, anchorDate = new Date()) {
+  const cutoff = new Date(anchorDate);
+  cutoff.setDate(cutoff.getDate() - days);
+  return jobs.reduce((sum, job) => {
+    if (!job.createdAt) return sum;
+    const created = new Date(job.createdAt);
+    if (Number.isNaN(created.getTime()) || created < cutoff) return sum;
+    return sum + (toFiniteNumber(job.recurringMonthlyValue) || 0);
+  }, 0);
 }
 
 function parseCsvText(text) {
@@ -2394,28 +2441,12 @@ function buildBusinessMetrics(leads) {
 
   const jobs = snapshot.jobs;
   const activeRecurringBookJobs = jobs.filter(job => jobContributesToRecurringBook(job));
-  const activeOperationalJobs = jobs.filter(job => jobCountsForOperations(job));
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  const dueIn = days => {
-    const end = new Date(today);
-    end.setDate(end.getDate() + days);
-    return activeOperationalJobs.filter(job => {
-      if (!job.nextDue) return false;
-      const due = new Date(job.nextDue);
-      return due >= today && due <= end;
-    });
-  };
-  const due7Jobs = dueIn(7);
-  const due30Jobs = dueIn(30);
-  const due7Value = due7Jobs.reduce((sum, job) => sum + (toFiniteNumber(job.price) || 0), 0);
-  const due30Value = due30Jobs.reduce((sum, job) => sum + (toFiniteNumber(job.price) || 0), 0);
-  const overdueJobs = activeOperationalJobs.filter(job => {
-    if (!job.nextDue) return false;
-    return new Date(job.nextDue) < today;
-  });
-  const issueRows = activeOperationalJobs.filter(job => job.skipped > 0 || job.notDone > 0);
   const recurringProjection = projectRecurringMonthlyTurnover(activeRecurringBookJobs, 12, today);
+  const activeBookGrowth = buildActiveBookGrowth(activeRecurringBookJobs, 24, today);
+  const addedMrr90 = sumRecentMrrAdded(activeRecurringBookJobs, 90, today);
+  const addedMrr365 = sumRecentMrrAdded(activeRecurringBookJobs, 365, today);
 
   const customers = new Map();
   jobs.forEach(job => {
@@ -2480,14 +2511,9 @@ function buildBusinessMetrics(leads) {
   const areaMap = {};
   activeCustomers.forEach(customer => {
     const area = customer.area || 'Unknown';
-    if (!areaMap[area]) areaMap[area] = { customers: 0, monthlyValue: 0, due7: 0 };
+    if (!areaMap[area]) areaMap[area] = { customers: 0, monthlyValue: 0 };
     areaMap[area].customers += 1;
     areaMap[area].monthlyValue += customer.monthlyValue || 0;
-  });
-  due7Jobs.forEach(job => {
-    const area = job.area || 'Unknown';
-    if (!areaMap[area]) areaMap[area] = { customers: 0, monthlyValue: 0, due7: 0 };
-    areaMap[area].due7 += 1;
   });
 
   const lookup = { email: new Set(), phone: new Set(), namearea: new Set() };
@@ -2525,14 +2551,12 @@ function buildBusinessMetrics(leads) {
       balances: outstandingBalance,
       forecast: recurringProjection,
       customerTrend: monthlyTrendFromDates(activeCustomers, customer => customer.createdAt, 12, today),
+      growth: {
+        activeBook: activeBookGrowth,
+        addedMrr90,
+        addedMrr365
+      },
       jobs: {
-        due7: due7Jobs.length,
-        due7Value,
-        due30: due30Jobs.length,
-        due30Value,
-        overdue: overdueJobs.length,
-        issues: issueRows.length,
-        activeRows: activeOperationalJobs.length,
         activeRecurringRows: activeRecurringBookJobs.length,
         activeRounds: new Set(activeRecurringBookJobs.map(job => job.round).filter(Boolean)).size
       },
@@ -2544,7 +2568,11 @@ function buildBusinessMetrics(leads) {
       areas: Object.entries(areaMap)
         .sort((a, b) => b[1].customers - a[1].customers)
         .slice(0, 12)
-        .map(([area, value]) => ({ area, ...value }))
+        .map(([area, value]) => ({
+          area,
+          ...value,
+          share: snapshotMrr > 0 ? (value.monthlyValue / snapshotMrr) * 100 : 0
+        }))
     },
     live: {
       recurringPipeline: liveRecurringPipeline,
@@ -4141,7 +4169,7 @@ function renderBusinessOverview(metrics) {
         badge: 'CSV',
         label: 'Jobs snapshot',
         value: 'Import',
-        sub: 'Add the all-jobs CSV to unlock active customers, MRR, forecast, and workload insight.',
+        sub: 'Add the all-jobs CSV to unlock active customers, MRR, forecast, and growth insight.',
         empty: true
       }),
       businessOverviewCard({
@@ -4317,21 +4345,22 @@ function renderBusinessForecast(metrics) {
     : 'Projected recurring turnover is built from active recurring jobs, their next-due dates, and frequency cadence in the imported snapshot. Set a recurring MRR goal above to add the target line.';
 
   charts.businessGoalTrack = new Chart(ctx, {
+    type: 'line',
     data: {
       labels: projection.map(month => month.label),
       datasets: [
         {
-          type: 'bar',
           label: 'Projected recurring turnover',
           data: projection.map(month => Math.round(month.value || 0)),
-          backgroundColor: 'rgba(211, 161, 52, 0.75)',
+          backgroundColor: 'rgba(39, 174, 96, 0.13)',
           borderColor: 'rgba(211, 161, 52, 1)',
-          borderWidth: 1,
-          borderRadius: 10,
-          maxBarThickness: 36
+          borderWidth: 3,
+          pointRadius: 3,
+          pointHoverRadius: 5,
+          fill: true,
+          tension: 0.35
         },
         ...(goal > 0 ? [{
-          type: 'line',
           label: 'Monthly goal',
           data: projection.map(() => Math.round(goal)),
           borderColor: 'rgba(41, 52, 74, 0.92)',
@@ -4383,6 +4412,125 @@ function renderBusinessForecast(metrics) {
   });
 }
 
+function renderBusinessBookGrowth(metrics) {
+  const summary = $('#businessBookGrowthSummary');
+  const note = $('#businessBookGrowthNote');
+  destroyChart('businessBookGrowth');
+
+  if (!summary || !note) return;
+
+  const ctx = $('#chartBusinessBookGrowth')?.getContext('2d');
+  if (!ctx) return;
+
+  if (!metrics.hasSnapshot || !metrics.snapshot?.growth?.activeBook?.length) {
+    summary.innerHTML = '';
+    note.textContent = 'Import a jobs snapshot to see how today’s active recurring book was built over time.';
+    charts.businessBookGrowth = new Chart(ctx, {
+      type: 'line',
+      data: { labels: [], datasets: [] },
+      options: { plugins: { title: { display: true, text: 'No active book growth data yet', color: '#8a92a1' } } }
+    });
+    return;
+  }
+
+  const growth = metrics.snapshot.growth;
+  const activeBook = growth.activeBook || [];
+  const currentMrr = metrics.snapshot.recurring.monthly || 0;
+  const opening = activeBook[0]?.cumulative || 0;
+  const last = activeBook[activeBook.length - 1]?.cumulative || currentMrr;
+  const netGrowth = Math.max(last - opening, 0);
+
+  summary.innerHTML = [
+    {
+      label: 'MRR added 90d',
+      value: formatCurrencyFull(Math.round(growth.addedMrr90 || 0)),
+      sub: 'Current active monthly book created in the last 90 days.'
+    },
+    {
+      label: 'MRR added 12m',
+      value: formatCurrencyFull(Math.round(growth.addedMrr365 || 0)),
+      sub: 'Current active monthly book created in the last 12 months.'
+    },
+    {
+      label: '24m active-book lift',
+      value: formatCurrencyFull(Math.round(netGrowth || 0)),
+      sub: 'Growth visible from active jobs created inside this 24-month window.'
+    }
+  ].map(item => `
+    <div class="business-forecast-card">
+      <div class="business-forecast-label">${esc(item.label)}</div>
+      <div class="business-forecast-value">${esc(item.value)}</div>
+      <div class="business-forecast-sub">${esc(item.sub)}</div>
+    </div>
+  `).join('');
+
+  note.textContent = 'This uses created dates from the current active recurring book. It shows how today’s MRR was built; true churn/down movement needs recurring monthly exports because this CSV does not include cancellation dates.';
+
+  charts.businessBookGrowth = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: activeBook.map(month => month.label),
+      datasets: [
+        {
+          type: 'line',
+          label: 'Active MRR carried forward',
+          data: activeBook.map(month => month.cumulative),
+          borderColor: 'rgba(39,174,96,1)',
+          backgroundColor: 'rgba(39,174,96,0.13)',
+          borderWidth: 3,
+          pointRadius: 2,
+          pointHoverRadius: 5,
+          fill: true,
+          tension: 0.35,
+          yAxisID: 'y'
+        },
+        {
+          type: 'bar',
+          label: 'MRR added',
+          data: activeBook.map(month => month.added),
+          backgroundColor: 'rgba(211,161,52,0.42)',
+          borderColor: 'rgba(211,161,52,0.85)',
+          borderWidth: 1,
+          borderRadius: 8,
+          maxBarThickness: 24,
+          yAxisID: 'y'
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      scales: {
+        x: {
+          grid: { display: false },
+          ticks: { color: '#727c90', maxRotation: 0, autoSkip: true, maxTicksLimit: 8 }
+        },
+        y: {
+          beginAtZero: true,
+          ticks: {
+            color: '#727c90',
+            callback: value => formatCurrency(Number(value))
+          },
+          grid: { color: 'rgba(28,36,52,0.08)' }
+        }
+      },
+      plugins: {
+        legend: {
+          labels: { usePointStyle: true, boxWidth: 8, color: '#4f596c' }
+        },
+        tooltip: {
+          callbacks: {
+            label(context) {
+              return `${context.dataset.label}: ${formatCurrencyFull(Math.round(context.parsed.y || 0))}`;
+            }
+          }
+        }
+      }
+    }
+  });
+}
+
 function renderBusinessTab(filteredLeads, analyticsLeads) {
   const metrics = buildBusinessMetrics(analyticsLeads);
   const freshness = metrics.freshness;
@@ -4396,17 +4544,18 @@ function renderBusinessTab(filteredLeads, analyticsLeads) {
   }
   if (meta) {
     if (metrics.hasSnapshot) {
-      meta.innerHTML = `<strong>${esc(metrics.snapshot.fileName || 'Imported CSV')}</strong> · ${formatCount(metrics.snapshot.rowCount)} rows · imported ${esc(fullDate(metrics.snapshot.importedAt))}`;
+      meta.innerHTML = `<strong>${esc(metrics.snapshot.fileName || 'Imported CSV')}</strong> · imported ${esc(fullDate(metrics.snapshot.importedAt))}`;
     } else {
-      meta.textContent = 'No jobs snapshot imported yet. Import your all-jobs CSV to unlock recurring book, customer-base, and operations insight.';
+      meta.textContent = 'No jobs snapshot imported yet. Import your all-jobs CSV to unlock recurring book, customer-base, and growth insight.';
     }
   }
   if (note) {
-    note.textContent = `${freshness.note} Recurring book metrics below exclude inactive customers and focus on active recurring rounds, while workload counts use active scheduled jobs from the imported snapshot.`;
+    note.textContent = `${freshness.note} Recurring book metrics below exclude inactive customers and focus on active recurring rounds; due-date planning fields are intentionally not used because they do not reflect the live schedule reliably.`;
   }
 
   renderBusinessOverview(metrics);
   renderBusinessForecast(metrics);
+  renderBusinessBookGrowth(metrics);
 
   const customerGrid = $('#businessCustomerGrid');
   if (customerGrid) {
@@ -4419,41 +4568,21 @@ function renderBusinessTab(filteredLeads, analyticsLeads) {
         metricCard('Active rounds ARR', formatCurrencyFull(Math.round(metrics.snapshot.recurring.annual)), 'Annualised value from that same active recurring round book.'),
         metricCard('Avg active customer', formatCurrencyFull(Math.round(metrics.snapshot.recurring.averageCustomer || 0)), 'Average monthly recurring book value per active recurring customer.'),
         metricCard('Outstanding active balance', formatCurrencyFull(Math.round(metrics.snapshot.balances || 0)), 'Balances carried by customers who are still active in the imported jobs snapshot.'),
-        metricCard('Next 7 days value', formatCurrencyFull(Math.round(metrics.snapshot.jobs.due7Value || 0)), `${formatCount(metrics.snapshot.jobs.due7)} active scheduled jobs landing in the next week from the imported snapshot.`)
+        metricCard('MRR added 12m', formatCurrencyFull(Math.round(metrics.snapshot.growth?.addedMrr365 || 0)), 'Active monthly book created in the last 12 months from jobs still active today.')
       ].join('');
     }
   }
 
   if (!metrics.hasSnapshot) {
-    renderSignalList('businessOperationsList', [], { emptyText: 'Import a jobs snapshot to see due work, overdue jobs, skipped/not-done pressure, and active rounds.' });
-    renderSignalList('businessAssigneeList', [], { emptyText: 'Assignee mix will appear here once a jobs snapshot is imported.' });
     renderSignalList('businessServiceMix', [], { emptyText: 'Service mix will appear here once a jobs snapshot is imported.' });
     const areaTbody = $('#businessAreaTable tbody');
     if (areaTbody) areaTbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--ink-faint);font-style:italic;padding:20px">Import a jobs snapshot to unlock geographic book insight.</td></tr>';
   } else {
-    renderSignalList('businessOperationsList', [
-      { label: 'Scheduled next 7 days', value: metrics.snapshot.jobs.due7, display: formatCount(metrics.snapshot.jobs.due7), sub: 'Active imported jobs with a next-due date in the next week.' },
-      { label: 'Next 7 days value', value: metrics.snapshot.jobs.due7Value, display: formatCurrencyFull(Math.round(metrics.snapshot.jobs.due7Value || 0)), sub: 'Projected booked value attached to those next-7-days scheduled jobs.', tone: 'alt' },
-      { label: 'Scheduled next 30 days', value: metrics.snapshot.jobs.due30, display: formatCount(metrics.snapshot.jobs.due30), sub: 'Active imported jobs with a next-due date in the next 30 days.' },
-      { label: 'Next 30 days value', value: metrics.snapshot.jobs.due30Value, display: formatCurrencyFull(Math.round(metrics.snapshot.jobs.due30Value || 0)), sub: 'Projected booked value attached to those next-30-days scheduled jobs.', tone: 'soft' },
-      { label: 'Overdue jobs', value: metrics.snapshot.jobs.overdue, display: formatCount(metrics.snapshot.jobs.overdue), sub: 'Active imported jobs with a next-due date already behind today.', tone: 'alt' },
-      { label: 'Issue rows', value: metrics.snapshot.jobs.issues, display: formatCount(metrics.snapshot.jobs.issues), sub: 'Active imported jobs carrying skipped or not-done history.', tone: 'soft' },
-      { label: 'Active rounds', value: metrics.snapshot.jobs.activeRounds, display: formatCount(metrics.snapshot.jobs.activeRounds), sub: 'Distinct recurring rounds seen in the imported jobs snapshot.', tone: 'soft' }
-    ], { emptyText: 'No imported operations data available yet.' });
-
-    renderSignalList('businessAssigneeList', metrics.snapshot.assignees.map((assignee, index) => ({
-      label: assignee.name,
-      value: assignee.count,
-      display: `${formatCount(assignee.count)} rows`,
-      sub: `${formatCurrencyFull(Math.round(assignee.monthlyValue || 0))} monthly book attached`,
-      tone: index === 0 ? 'alt' : 'soft'
-    })), { emptyText: 'No assignee data found in the imported snapshot.' });
-
     renderSignalList('businessServiceMix', metrics.snapshot.services.map(([label, value], index) => ({
       label,
       value,
-      display: `${formatCount(value)} rows`,
-      sub: 'Imported service rows carrying this service.',
+      display: `${formatCount(value)} jobs`,
+      sub: 'Active recurring jobs carrying this service.',
       tone: index === 0 ? 'alt' : 'soft'
     })), { emptyText: 'No service mix data found in the imported snapshot.' });
 
@@ -4467,7 +4596,7 @@ function renderBusinessTab(filteredLeads, analyticsLeads) {
             <td><strong>${esc(area.area)}</strong></td>
             <td>${formatCount(area.customers)}</td>
             <td>${formatCurrencyFull(Math.round(area.monthlyValue || 0))}</td>
-            <td>${formatCount(area.due7 || 0)}</td>
+            <td>${formatPercent(area.share || 0)}</td>
           </tr>
         `).join('');
       }
