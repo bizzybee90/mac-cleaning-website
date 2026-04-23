@@ -2199,7 +2199,7 @@ function buildBusinessMetrics(leads) {
   const prospectCustomers = customerList.filter(customer => customer.state === 'prospect');
   const snapshotMrr = activeCustomers.reduce((sum, customer) => sum + customer.monthlyValue, 0);
   const snapshotArr = activeCustomers.reduce((sum, customer) => sum + customer.annualValue, 0);
-  const outstandingBalance = customerList.reduce((sum, customer) => sum + (customer.balance || 0), 0);
+  const outstandingBalance = activeCustomers.reduce((sum, customer) => sum + (customer.balance || 0), 0);
   const avgActiveCustomerValue = activeCustomers.length ? snapshotMrr / activeCustomers.length : 0;
 
   const serviceCounts = {};
@@ -2232,7 +2232,7 @@ function buildBusinessMetrics(leads) {
   });
 
   const lookup = { email: new Set(), phone: new Set(), namearea: new Set() };
-  customerList.forEach(customer => {
+  activeCustomers.forEach(customer => {
     if (customer.email) lookup.email.add(customer.email);
     if (customer.phone) lookup.phone.add(customer.phone);
     if (customer.name || customer.area) lookup.namearea.add(`${String(customer.name || '').trim().toLowerCase()}|${customer.area || 'Unknown'}`);
@@ -3886,7 +3886,7 @@ function renderBusinessTab(filteredLeads, analyticsLeads) {
     }
   }
   if (note) {
-    note.textContent = freshness.note;
+    note.textContent = `${freshness.note} Core business metrics below exclude inactive customers and focus on the active book.`;
   }
 
   $('#businessSnapshotCustomers').textContent = metrics.hasSnapshot ? formatCount(metrics.snapshot.customers.active) : '--';
@@ -3901,11 +3901,11 @@ function renderBusinessTab(filteredLeads, analyticsLeads) {
     } else {
       customerGrid.innerHTML = [
         metricCard('Active customers', formatCount(metrics.snapshot.customers.active), 'Customers currently active in the imported jobs snapshot.'),
-        metricCard('Inactive customers', formatCount(metrics.snapshot.customers.inactive), 'Customers that appear inactive in the imported jobs snapshot.'),
         metricCard('Snapshot MRR', formatCurrencyFull(Math.round(metrics.snapshot.recurring.monthly)), 'Recurring monthly book from active imported jobs.'),
         metricCard('Snapshot ARR', formatCurrencyFull(Math.round(metrics.snapshot.recurring.annual)), 'Annualised recurring value from the imported active jobs.'),
         metricCard('Avg active customer', formatCurrencyFull(Math.round(metrics.snapshot.recurring.averageCustomer || 0)), 'Average recurring monthly value per active customer.'),
-        metricCard('Outstanding balance', formatCurrencyFull(Math.round(metrics.snapshot.balances || 0)), 'Customer balances carried on the imported jobs snapshot.')
+        metricCard('Outstanding active balance', formatCurrencyFull(Math.round(metrics.snapshot.balances || 0)), 'Balances carried by customers who are still active in the imported jobs snapshot.'),
+        metricCard('Due in 7 days', formatCount(metrics.snapshot.jobs.due7), 'Active recurring jobs due within the next week.')
       ].join('');
     }
   }
