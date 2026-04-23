@@ -157,6 +157,7 @@ function createInitialQuoteState() {
     name:'', phone:'', address:'', frequency:'4-weekly',
     addons:{ gutter:{selected:false,plan:'single'}, fascia:{selected:false,plan:'single'}, conservatory_roof:{selected:false,plan:'single'} },
     oneoffServices:{ gutter:false, fascia:false, conservatory_roof:false },
+    customerType:'public', existingCustomerDiscountPercent:0, existingCustomerDiscountLabel:'', existingCustomerOffer:'',
     termsAccepted:false, submitted:false, cardRegistered:false, feedback:null, leadToken:'', paymentMethod:''
   };
 }
@@ -213,6 +214,10 @@ function createPersistableQuoteState() {
     frequency: Q.frequency,
     addons: Q.addons,
     oneoffServices: Q.oneoffServices,
+    customerType: Q.customerType,
+    existingCustomerDiscountPercent: Q.existingCustomerDiscountPercent,
+    existingCustomerDiscountLabel: Q.existingCustomerDiscountLabel,
+    existingCustomerOffer: Q.existingCustomerOffer,
     termsAccepted: Q.termsAccepted,
     submitted: Q.submitted,
     cardRegistered: Q.cardRegistered,
@@ -317,6 +322,147 @@ function mergeAddonState(addons) {
     }
   });
   return next;
+}
+
+function normalizeStandaloneServiceKey(value) {
+  const key = String(value || '')
+    .trim()
+    .toLowerCase()
+    .replace(/[\s-]+/g, '_');
+  return Object.prototype.hasOwnProperty.call(STANDALONE, key) ? key : '';
+}
+
+function readStandaloneServiceKeys(value) {
+  if (!value) return [];
+  return String(value)
+    .split(',')
+    .map(normalizeStandaloneServiceKey)
+    .filter(Boolean);
+}
+
+function readPositiveNumber(value) {
+  if (value === null || value === undefined || value === '') return null;
+  const num = Number(value);
+  if (!Number.isFinite(num)) return null;
+  return Math.max(0, num);
+}
+
+function seedOneoffServices(keys = []) {
+  const next = { ...createInitialQuoteState().oneoffServices };
+  keys.forEach((key) => {
+    if (Object.prototype.hasOwnProperty.call(next, key)) next[key] = true;
+  });
+  return next;
+}
+
+function getQuoteWidgetConfig(widget) {
+  if (!widget) {
+    return {
+      isEmbedded: false,
+      mode: '',
+      services: [],
+      customerType: 'public',
+      existingCustomerDiscountPercent: 0,
+      existingCustomerDiscountLabel: '',
+      existingCustomerOffer: '',
+      prefill: { name: '', email: '', postcode: '', phone: '' }
+    };
+  }
+
+  const params = new URLSearchParams(window.location.search);
+  const mode = widget.dataset.quoteMode === 'regular' || widget.dataset.quoteMode === 'oneoff'
+    ? widget.dataset.quoteMode
+    : '';
+  const customerMarker = String(
+    params.get('customer') ||
+    widget.dataset.customerType ||
+    widget.dataset.customerTier ||
+    (widget.dataset.existingCustomer === 'true' ? 'existing' : '')
+  ).trim().toLowerCase();
+  const customerType = customerMarker === 'existing' ? 'existing' : 'public';
+  const discountFromQuery = readPositiveNumber(params.get('discount'));
+  const discountFromData = readPositiveNumber(widget.dataset.existingCustomerDiscount);
+  const services = Array.from(new Set([
+    ...readStandaloneServiceKeys(widget.dataset.quoteService),
+    ...readStandaloneServiceKeys(params.get('services'))
+  ]));
+
+  return {
+    isEmbedded: !!mode,
+    mode,
+    services,
+    customerType,
+    existingCustomerDiscountPercent: customerType === 'existing'
+      ? Math.min(100, discountFromQuery ?? discountFromData ?? 0)
+      : 0,
+    existingCustomerDiscountLabel: String(
+      params.get('discount_label') ||
+      params.get('discountLabel') ||
+      widget.dataset.existingCustomerLabel ||
+      'Existing customer offer'
+    ).trim(),
+    existingCustomerOffer: String(
+      params.get('offer') ||
+      widget.dataset.existingCustomerOffer ||
+      ''
+    ).trim(),
+    prefill: {
+      name: String(params.get('name') || widget.dataset.prefillName || '').trim(),
+      email: String(params.get('email') || widget.dataset.prefillEmail || '').trim().toLowerCase(),
+      postcode: String(params.get('postcode') || widget.dataset.prefillPostcode || '').trim().toUpperCase(),
+      phone: String(params.get('phone') || widget.dataset.prefillPhone || '').trim()
+    }
+  };
+}
+
+function applyQuoteWidgetConfig(widget, options = {}) {
+  const config = getQuoteWidgetConfig(widget);
+  const sameContext =
+    !!options.resumedQuote &&
+    Q.mode === config.mode &&
+    (Q.customerType || 'public') === config.customerType;
+
+  if (config.mode && !sameContext) {
+    resetQuoteState({
+      mode: config.mode,
+      step: 1,
+      customerType: config.customerType,
+      existingCustomerDiscountPercent: config.existingCustomerDiscountPercent,
+      existingCustomerDiscountLabel: config.existingCustomerDiscountLabel,
+      existingCustomerOffer: config.existingCustomerOffer,
+      name: config.prefill.name,
+      email: config.prefill.email,
+      postcode: config.prefill.postcode,
+      phone: config.prefill.phone,
+      oneoffServices: seedOneoffServices(config.services),
+      _embedded: config.isEmbedded
+    });
+    return;
+  }
+
+  Q._embedded = config.isEmbedded;
+  Q.customerType = config.customerType;
+  Q.existingCustomerDiscountPercent = config.existingCustomerDiscountPercent;
+  Q.existingCustomerDiscountLabel = config.existingCustomerDiscountLabel;
+  Q.existingCustomerOffer = config.existingCustomerOffer;
+
+  if (config.mode && !Q.mode) {
+    Q.mode = config.mode;
+    Q.step = 1;
+  }
+
+  if (config.services.length) {
+    config.services.forEach((serviceKey) => {
+      if (Object.prototype.hasOwnProperty.call(Q.oneoffServices, serviceKey)) {
+        Q.oneoffServices[serviceKey] = true;
+      }
+    });
+  }
+
+  if (config.prefill.name && !Q.name) Q.name = config.prefill.name;
+  if (config.prefill.email && !Q.email) Q.email = config.prefill.email;
+  if (config.prefill.postcode && !Q.postcode) Q.postcode = config.prefill.postcode;
+  if (config.prefill.phone && !Q.phone) Q.phone = config.prefill.phone;
 }
 
 function clampQuoteStep(mode, step) {
@@ -445,18 +591,8 @@ document.addEventListener('DOMContentLoaded', () => {
   loadGA();
   const resumedFromPaymentReturn = handlePaymentReturn();
   const resumedQuote = resumedFromPaymentReturn || restoreQuoteState({ announce: true });
-  /* Auto-init quote mode from data attributes (for embedded service pages) */
   const _autoWidget = document.getElementById('quoteWidget');
-  if (_autoWidget && _autoWidget.dataset.quoteMode && !resumedQuote) {
-    Q.mode = _autoWidget.dataset.quoteMode;
-    Q.step = 1;
-    if (_autoWidget.dataset.quoteService) {
-      _autoWidget.dataset.quoteService.split(',').forEach(s => {
-        if (Q.oneoffServices.hasOwnProperty(s)) Q.oneoffServices[s] = true;
-      });
-    }
-    Q._embedded = true;
-  }
+  applyQuoteWidgetConfig(_autoWidget, { resumedQuote });
   renderQuote();
   initQuoteDeepLinks();
   initQuoteModal();
@@ -879,6 +1015,7 @@ function getSourceData() {
 /* ─── PARTIAL LEAD CAPTURE (soft gate) ── */
 /* ─── PARTIAL LEAD CAPTURE ─────────────── */
 async function capturePartialLead() {
+  const oneoffPricing = getOneoffPricingBreakdown();
   const payload = {
     status: 'partial',
     timestamp: new Date().toISOString(),
@@ -888,11 +1025,28 @@ async function capturePartialLead() {
     property_type: Q.property,
     build_type: getBuild(),
     bedrooms: Q.beds,
-    extras: Q.extras || {},
-    price_4weekly: getPrice('4-weekly'),
-    price_8weekly: getPrice('8-weekly'),
     ...getSourceData()
   };
+
+  if (Q.mode === 'oneoff') {
+    payload.extras = {
+      quote_kind: 'oneoff',
+      oneoff_services: getOneoffSelectedServiceLabels(),
+      customer_type: Q.customerType || 'public',
+      existing_customer_discount_percent: Math.round(getExistingCustomerDiscountRate() * 100),
+      existing_customer_discount_label: getExistingCustomerOfferLabel() || null,
+      existing_customer_offer: Q.existingCustomerOffer || null,
+      bundle_discount_percent: Math.round(oneoffPricing.bundleRate * 100),
+      bundle_discount_amount: oneoffPricing.bundleDiscountAmount,
+      subtotal_before_discounts: oneoffPricing.subtotal,
+      total: oneoffPricing.total
+    };
+  } else {
+    payload.extras = Q.extras || {};
+    payload.price_4weekly = getPrice('4-weekly');
+    payload.price_8weekly = getPrice('8-weekly');
+  }
+
   console.log('[MAC] Partial lead captured');
   if (typeof gtag === 'function') {
     gtag('event', 'soft_gate_passed', { property: Q.property });
@@ -934,6 +1088,7 @@ function buildLeadPayload() {
     status: 'quoted',
     timestamp: new Date().toISOString(),
     type: isRegular ? 'regular' : 'oneoff',
+    quote_kind: isRegular ? 'regular' : 'oneoff',
     /* Customer */
     name: Q.name,
     email: Q.email,
@@ -980,9 +1135,11 @@ function buildLeadPayload() {
     payload.beds = Q.beds;
     payload.pricePerClean = payload.price_per_clean;
   } else {
-    const services = Object.entries(Q.oneoffServices).filter(([,v])=>v).map(([k])=>STANDALONE[k].label+' (£'+getStandalonePrice(k)+')');
+    const oneoffPricing = getOneoffPricingBreakdown();
+    const services = getOneoffSelectedServiceLabels();
     payload.services = services.join(', ');
-    payload.total = getOneoffTotal();
+    payload.total = oneoffPricing.total;
+    payload.addons_total = oneoffPricing.total;
     payload.property = Q.property;
     payload.build = getBuild();
     payload.beds = Q.beds;
@@ -991,8 +1148,22 @@ function buildLeadPayload() {
     Object.entries(Q.oneoffServices).filter(([,v])=>v).forEach(([k])=>{
       svcDetail[k] = { label: STANDALONE[k].label, price: getStandalonePrice(k) };
     });
+    payload.addons = svcDetail;
     payload.service_detail = svcDetail;
-    payload.service_requested = Object.entries(Q.oneoffServices).filter(([,v])=>v).map(([k])=>STANDALONE[k].label).join(', ');
+    payload.service_requested = services.join(', ');
+    payload.extras = {
+      quote_kind: 'oneoff',
+      customer_type: Q.customerType || 'public',
+      existing_customer_discount_percent: Math.round(getExistingCustomerDiscountRate() * 100),
+      existing_customer_discount_label: getExistingCustomerOfferLabel() || null,
+      existing_customer_offer: Q.existingCustomerOffer || null,
+      subtotal_before_discounts: oneoffPricing.subtotal,
+      bundle_discount_percent: Math.round(oneoffPricing.bundleRate * 100),
+      bundle_discount_amount: oneoffPricing.bundleDiscountAmount,
+      subtotal_after_bundle_discount: oneoffPricing.afterBundle,
+      existing_customer_discount_amount: oneoffPricing.existingDiscountAmount,
+      total: oneoffPricing.total
+    };
   }
   /* Commercial-specific fields */
   if (Q.property === 'commercial') {
@@ -1373,12 +1544,50 @@ function getAddonTotal() {
   });
   return Math.round(total);
 }
+function getOneoffSelectedServiceKeys() {
+  return Object.entries(Q.oneoffServices).filter(([,v]) => v).map(([k]) => k);
+}
+function getOneoffSelectedServiceLabels() {
+  return getOneoffSelectedServiceKeys().map((key) => STANDALONE[key].label);
+}
+function getOneoffSubtotal() {
+  return getOneoffSelectedServiceKeys().reduce((sum, key) => sum + getStandalonePrice(key), 0);
+}
+function getOneoffBundleDiscount() {
+  const count = getOneoffSelectedServiceKeys().length;
+  if (count >= 3) return 0.20;
+  if (count >= 2) return 0.15;
+  return 0;
+}
+function getExistingCustomerDiscountRate() {
+  if (Q.customerType !== 'existing') return 0;
+  const pct = Number(Q.existingCustomerDiscountPercent) || 0;
+  if (!Number.isFinite(pct) || pct <= 0) return 0;
+  return Math.min(1, pct / 100);
+}
+function getExistingCustomerOfferLabel() {
+  return String(Q.existingCustomerOffer || Q.existingCustomerDiscountLabel || '').trim();
+}
+function getOneoffPricingBreakdown() {
+  const subtotal = getOneoffSubtotal();
+  const bundleRate = getOneoffBundleDiscount();
+  const bundleDiscountAmount = Math.round(subtotal * bundleRate);
+  const afterBundle = subtotal - bundleDiscountAmount;
+  const existingRate = getExistingCustomerDiscountRate();
+  const existingDiscountAmount = Math.round(afterBundle * existingRate);
+  const total = afterBundle - existingDiscountAmount;
+  return {
+    subtotal,
+    bundleRate,
+    bundleDiscountAmount,
+    afterBundle,
+    existingRate,
+    existingDiscountAmount,
+    total: Math.max(0, total)
+  };
+}
 function getOneoffTotal() {
-  let total = 0;
-  Object.entries(Q.oneoffServices).forEach(([k,v]) => {
-    if (v) total += getStandalonePrice(k);
-  });
-  return total;
+  return getOneoffPricingBreakdown().total;
 }
 
 function scrollToQuote() {
@@ -1880,13 +2089,21 @@ function renderStep3() {
 function renderStep1Oneoff() {
   const eb = getBuild();
   const beds = getBeds();
+  const existingRate = Math.round(getExistingCustomerDiscountRate() * 100);
+  const existingOfferLabel = getExistingCustomerOfferLabel() || 'Existing customer offer';
   let h = `
     <div class="widget-header">
       ${Q._embedded ? '' : '<button class="btn-back-entry" data-act="backToEntry">← Change service type</button>'}
       <div class="tag">Step 1 of 3</div>
       <h3 class="widget-title">Your property &amp; services</h3>
       <p class="widget-copy">Tell us about your property and select the services you need.</p>
-    </div>
+    </div>`;
+
+  if (existingRate > 0) {
+    h += `<div class="widget-notice"><strong>${esc(existingOfferLabel)}</strong> — your extra ${existingRate}% existing-customer discount is applied automatically after any bundle savings.</div>`;
+  }
+
+  h += `
     <div class="widget-panel"><h3>Property type</h3><div class="chip-grid">${PROPERTY_TYPES.map(p => chip(p.label,p.note,'prop:'+p.id,Q.property===p.id)).join('')}</div>${fieldError('property')}</div>`;
 
   if (Q.property && !['flat','terraced','townhouse','commercial'].includes(Q.property)) {
@@ -1917,19 +2134,25 @@ function renderStep1Oneoff() {
 
     /* Postcode & email */
     h += `<div class="widget-panel"><h3>Check coverage &amp; see your price</h3>
+      <div class="field" style="margin-bottom:0.6rem"><label>Your name</label><input data-field="name" value="${esc(Q.name)}" placeholder="e.g. Sarah Thompson" autocomplete="name" class="${fieldHasError('name')?'field-input--error':''}">${fieldError('name')}</div>
       <div class="field-row">
         <div class="field ${fieldHasError('postcode')?'field--error':''}"><label>Postcode</label><input data-field="postcode" value="${esc(Q.postcode)}" placeholder="e.g. LU3 2AB" autocomplete="postal-code" class="${fieldHasError('postcode')?'field-input--error':''}"><div class="field-hint">Check we cover your area</div>${fieldError('postcode')}</div>
         <div class="field ${fieldHasError('email')?'field--error':''}"><label>Email</label><input data-field="email" type="email" value="${esc(Q.email)}" placeholder="name@email.com" autocomplete="email" class="${fieldHasError('email')?'field-input--error':''}"><div class="field-hint">We'll email you a copy of your quote</div>${fieldError('email')}</div>
       </div>`;
 
     if (Q.leadCaptured) {
-      const total = getOneoffTotal();
-      const selectedNames = Object.entries(Q.oneoffServices).filter(([,v])=>v).map(([k])=>STANDALONE[k].label);
+      const pricing = getOneoffPricingBreakdown();
+      const selectedNames = getOneoffSelectedServiceLabels();
+      const savingsBits = [];
+      if (pricing.bundleDiscountAmount > 0) savingsBits.push(`Bundle saving ${fmt(pricing.bundleDiscountAmount)}`);
+      if (pricing.existingDiscountAmount > 0) savingsBits.push(`${esc(existingOfferLabel)} ${fmt(pricing.existingDiscountAmount)}`);
       h += `<div class="price-reveal">
         <div style="text-align:center;margin-bottom:0.6rem">
-          <div style="font-size:0.85rem;color:var(--ink)">Your one-off service total</div>
-          <div style="font-size:2rem;font-weight:800;color:var(--charcoal)">${fmt(total)}</div>
+          <div style="font-size:0.85rem;color:var(--ink)">${existingRate > 0 ? 'Your existing-customer total' : 'Your one-off service total'}</div>
+          <div style="font-size:2rem;font-weight:800;color:var(--charcoal)">${fmt(pricing.total)}</div>
           <div style="font-size:0.85rem;color:var(--ink-faint)">${selectedNames.join(' + ')}</div>
+          ${pricing.subtotal > pricing.total ? `<div style="font-size:0.82rem;color:var(--gold);margin-top:0.35rem">Usually ${fmt(pricing.subtotal)} · you save ${fmt(pricing.subtotal - pricing.total)}</div>` : ''}
+          ${savingsBits.length ? `<div style="font-size:0.78rem;color:var(--ink-faint);margin-top:0.3rem">${savingsBits.join(' · ')}</div>` : ''}
         </div>
         <div class="widget-actions"><button class="btn btn-primary" data-act="continueOneoff">Continue to book →</button></div>
       </div>`;
@@ -1943,11 +2166,13 @@ function renderStep1Oneoff() {
 }
 
 function renderStep2Oneoff() {
-  const total = getOneoffTotal();
-  const selectedNames = Object.entries(Q.oneoffServices).filter(([,v])=>v).map(([k])=>STANDALONE[k].label);
+  const pricing = getOneoffPricingBreakdown();
+  const selectedNames = getOneoffSelectedServiceLabels();
+  const existingRate = Math.round(getExistingCustomerDiscountRate() * 100);
+  const offerLabel = getExistingCustomerOfferLabel() || 'Existing customer offer';
   return `
     <div class="widget-header"><div class="tag">Step 2 of 3</div><h3 class="widget-title">Your details</h3><p class="widget-copy">Almost there — just your contact details.</p></div>
-    <div class="widget-notice" style="display:flex;align-items:center;gap:0.6rem;font-weight:600"><span style="font-size:1.2rem">✓</span> One-off: ${selectedNames.join(' + ')} — ${fmt(total)}</div>
+    <div class="widget-notice" style="display:flex;align-items:center;gap:0.6rem;font-weight:600;flex-wrap:wrap"><span style="font-size:1.2rem">✓</span> One-off: ${selectedNames.join(' + ')} — ${fmt(pricing.total)}${existingRate > 0 ? ` <span style="font-size:0.82rem;color:var(--gold)">(${esc(offerLabel)} ${existingRate}% off)</span>` : ''}</div>
     <div class="widget-panel"><h3>Contact details</h3>
       <div class="field-row">
         <div class="field ${fieldHasError('name')?'field--error':''}"><label>Name</label><input data-field="name" value="${esc(Q.name)}" placeholder="Full name" autocomplete="name" class="${fieldHasError('name')?'field-input--error':''}"><div class="field-hint">So we know who to expect</div>${fieldError('name')}</div>
@@ -2000,10 +2225,19 @@ function renderReview() {
     h += `<div class="quote-review__total"><span>Total (first clean)</span><span>${fmt(grandTotal)}</span></div>`;
 
   } else {
-    const selectedSvcs = Object.entries(Q.oneoffServices).filter(([,v])=>v);
-    let svcHtml = selectedSvcs.map(([k]) => `${STANDALONE[k].label} — ${fmt(getStandalonePrice(k))}`).join('<br>');
+    const selectedSvcs = getOneoffSelectedServiceKeys();
+    const oneoffPricing = getOneoffPricingBreakdown();
+    const existingRate = Math.round(getExistingCustomerDiscountRate() * 100);
+    const offerLabel = getExistingCustomerOfferLabel() || 'Existing customer offer';
+    let svcHtml = selectedSvcs.map((k) => `${STANDALONE[k].label} — ${fmt(getStandalonePrice(k))}`).join('<br>');
     h += `<div class="quote-review__row"><div class="quote-review__label">Services</div><div class="quote-review__val">${svcHtml}</div></div>`;
-    h += `<div class="quote-review__total"><span>Total</span><span>${fmt(getOneoffTotal())}</span></div>`;
+    if (oneoffPricing.bundleDiscountAmount > 0) {
+      h += `<div class="quote-review__row"><div class="quote-review__label">Bundle saving</div><div class="quote-review__val">-${fmt(oneoffPricing.bundleDiscountAmount)} (${Math.round(oneoffPricing.bundleRate * 100)}%)</div></div>`;
+    }
+    if (oneoffPricing.existingDiscountAmount > 0) {
+      h += `<div class="quote-review__row"><div class="quote-review__label">${esc(offerLabel)}</div><div class="quote-review__val">-${fmt(oneoffPricing.existingDiscountAmount)} (${existingRate}%)</div></div>`;
+    }
+    h += `<div class="quote-review__total"><span>${existingRate > 0 ? 'Existing customer total' : 'Total'}</span><span>${fmt(oneoffPricing.total)}</span></div>`;
   }
 
   h += `<div class="quote-review__row"><div class="quote-review__label">Contact</div><div class="quote-review__val">${esc(Q.name)}<br>${esc(Q.address)}${Q.postcode?', '+esc(Q.postcode):''}<br>${esc(Q.email)}<br>${esc(Q.phone)}</div></div>`;
@@ -2041,7 +2275,8 @@ function renderConfirm() {
     const freqLabel = Q.frequency === '4-weekly' ? 'Every 4 weeks' : 'Every 8 weeks';
     h += `<div class="confirm-summary">${Q.property} · ${freqLabel} · <strong>${fmt(p)}/clean</strong></div>`;
   } else {
-    h += `<div class="confirm-summary">${Q.property} · One-off services · <strong>${fmt(getOneoffTotal())}</strong></div>`;
+    const oneoffPricing = getOneoffPricingBreakdown();
+    h += `<div class="confirm-summary">${Q.property} · One-off services${getExistingCustomerDiscountRate() > 0 ? ' · existing customer pricing' : ''} · <strong>${fmt(oneoffPricing.total)}</strong></div>`;
   }
 
   h += `<p class="confirm-email">Confirmation sent to <strong>${esc(Q.email)}</strong></p>`;
@@ -2127,7 +2362,9 @@ function renderConfirm() {
       <li>You'll receive an email reminder before the job</li>
       <li>Payment is taken after the job is complete</li>
     </ul></div>`;
-    h += `<div class="cross-sell"><p>Did you know we offer regular window cleaning from just <strong>£19/clean</strong>?</p><button class="btn btn-secondary btn-sm" data-act="crossSellRegular">Get a window cleaning quote →</button></div>`;
+    if (getExistingCustomerDiscountRate() <= 0) {
+      h += `<div class="cross-sell"><p>Did you know we offer regular window cleaning from just <strong>£19/clean</strong>?</p><button class="btn btn-secondary btn-sm" data-act="crossSellRegular">Get a window cleaning quote →</button></div>`;
+    }
   }
 
   h += '<button class="btn btn-ghost" data-act="restart" style="margin-top:1rem">Get another quote</button></div>';
@@ -2142,16 +2379,26 @@ function renderSummary() {
 
   /* One-off summary */
   if (Q.mode === 'oneoff') {
+    const oneoffPricing = getOneoffPricingBreakdown();
+    const existingRate = Math.round(getExistingCustomerDiscountRate() * 100);
+    const offerLabel = getExistingCustomerOfferLabel() || 'Existing customer offer';
     if (!Q.leadCaptured) {
-      let svcList = Object.entries(Q.oneoffServices).filter(([,v])=>v).map(([k])=>STANDALONE[k].label).join(', ');
-      return `<h3 class="summary-title">Your quote</h3><div class="summary-list"><div class="summary-row"><span>${Q.property} (${getBuild()}, ${Q.beds} bed)</span><span>—</span></div></div>${svcList?`<div style="font-size:0.85rem;color:var(--ink);margin-top:0.6rem">${svcList}</div>`:''}<div style="font-size:0.88rem;color:var(--ink-faint);margin-top:0.8rem;text-align:center">Enter your postcode &amp; email to see your price</div>`;
+      let svcList = getOneoffSelectedServiceLabels().join(', ');
+      return `<h3 class="summary-title">Your quote</h3><div class="summary-list"><div class="summary-row"><span>${Q.property} (${getBuild()}, ${Q.beds} bed)</span><span>—</span></div></div>${svcList?`<div style="font-size:0.85rem;color:var(--ink);margin-top:0.6rem">${svcList}</div>`:''}${existingRate > 0 ? `<div style="font-size:0.78rem;color:var(--gold);margin-top:0.65rem">${esc(offerLabel)} · ${existingRate}% off applied automatically</div>` : ''}<div style="font-size:0.88rem;color:var(--ink-faint);margin-top:0.8rem;text-align:center">Enter your name, postcode &amp; email to see your price</div>`;
     }
     let rows = '';
     Object.entries(Q.oneoffServices).forEach(([k,v]) => {
       if (v) rows += `<div class="summary-row"><span>${STANDALONE[k].label}</span><span>${fmt(getStandalonePrice(k))}</span></div>`;
     });
-    const total = getOneoffTotal();
-    return `<h3 class="summary-title">Your quote</h3><div class="summary-list"><div class="summary-row"><span>${Q.property} (${getBuild()}, ${Q.beds} bed)</span></div></div>${rows?`<div style="margin-top:0.8rem;padding-top:0.8rem;border-top:1px solid var(--line)"><div style="font-size:0.82rem;font-weight:600;color:var(--ink);margin-bottom:0.4rem">One-off services</div>${rows}</div>`:''}${total?`<div style="margin-top:0.8rem;padding-top:0.8rem;border-top:2px solid var(--charcoal);display:flex;justify-content:space-between;font-weight:700;font-size:1.05rem"><span>Total</span><span>${fmt(total)}</span></div>`:''}`;
+    const discountRows = [
+      oneoffPricing.bundleDiscountAmount > 0
+        ? `<div class="summary-row"><span>Bundle saving</span><span>-${fmt(oneoffPricing.bundleDiscountAmount)}</span></div>`
+        : '',
+      oneoffPricing.existingDiscountAmount > 0
+        ? `<div class="summary-row"><span>${esc(offerLabel)}</span><span>-${fmt(oneoffPricing.existingDiscountAmount)}</span></div>`
+        : ''
+    ].filter(Boolean).join('');
+    return `<h3 class="summary-title">Your quote</h3><div class="summary-list"><div class="summary-row"><span>${Q.property} (${getBuild()}, ${Q.beds} bed)</span></div></div>${rows?`<div style="margin-top:0.8rem;padding-top:0.8rem;border-top:1px solid var(--line)"><div style="font-size:0.82rem;font-weight:600;color:var(--ink);margin-bottom:0.4rem">${existingRate > 0 ? 'Existing-customer services' : 'One-off services'}</div>${rows}${discountRows ? `<div style="margin-top:0.55rem;padding-top:0.55rem;border-top:1px dashed var(--line)">${discountRows}</div>` : ''}</div>`:''}${oneoffPricing.total?`<div style="margin-top:0.8rem;padding-top:0.8rem;border-top:2px solid var(--charcoal);display:flex;justify-content:space-between;font-weight:700;font-size:1.05rem"><span>${existingRate > 0 ? 'Discounted total' : 'Total'}</span><span>${fmt(oneoffPricing.total)}</span></div>`:''}`;
   }
 
   /* Regular summary */

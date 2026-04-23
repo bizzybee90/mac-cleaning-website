@@ -1256,17 +1256,49 @@ function splitLeadTextList(value) {
   return String(value).split(',').map(item => item.trim()).filter(Boolean);
 }
 
+function getLeadExtrasMeta(lead) {
+  if (!lead?.extras || typeof lead.extras !== 'object' || Array.isArray(lead.extras)) return null;
+  return lead.extras;
+}
+
+function getLeadCustomerType(lead) {
+  const extras = getLeadExtrasMeta(lead);
+  return String(extras?.customer_type || '').trim().toLowerCase() === 'existing' ? 'existing' : 'public';
+}
+
+function getLeadExistingCustomerDiscountPercent(lead) {
+  const extras = getLeadExtrasMeta(lead);
+  const raw = toFiniteNumber(extras?.existing_customer_discount_percent);
+  if (raw === null || raw <= 0) return 0;
+  return raw < 1 ? Math.round(raw * 100) : Math.round(raw);
+}
+
+function getLeadExistingCustomerOfferLabel(lead) {
+  const extras = getLeadExtrasMeta(lead);
+  return String(extras?.existing_customer_offer || extras?.existing_customer_discount_label || '').trim();
+}
+
 function leadHasServiceSelection(lead) {
+  const extras = getLeadExtrasMeta(lead);
   if (splitLeadTextList(lead?.service_requested).length) return true;
   if (splitLeadTextList(lead?.services).length) return true;
+  if (splitLeadTextList(extras?.oneoff_services).length) return true;
   if (lead?.service_detail && typeof lead.service_detail === 'object' && !Array.isArray(lead.service_detail)) {
     return Object.keys(lead.service_detail).length > 0;
+  }
+  if (lead?.addons && typeof lead.addons === 'object' && !Array.isArray(lead.addons)) {
+    return Object.keys(lead.addons).length > 0;
   }
   return false;
 }
 
 function getLeadQuoteKind(lead) {
+  const extras = getLeadExtrasMeta(lead);
   const explicit = String(lead?.quote_kind || lead?.type || lead?.job_type || '').trim().toLowerCase();
+  const extrasKind = String(extras?.quote_kind || '').trim().toLowerCase();
+  if (extrasKind === 'commercial') return 'commercial';
+  if (extrasKind === 'oneoff' || extrasKind === 'one_off' || extrasKind === 'one-off') return 'oneoff';
+  if (extrasKind === 'regular') return 'regular';
   if (explicit === 'commercial') return 'commercial';
   if (explicit === 'oneoff' || explicit === 'one_off') return 'oneoff';
   if (explicit === 'regular') return 'regular';
@@ -1332,12 +1364,14 @@ function getLeadAverageValue(lead) {
 }
 
 function getLeadBundleDiscountPercent(lead) {
-  const raw = toFiniteNumber(lead?.bundle_discount);
+  const extras = getLeadExtrasMeta(lead);
+  const raw = toFiniteNumber(lead?.bundle_discount) ?? toFiniteNumber(extras?.bundle_discount_percent) ?? toFiniteNumber(extras?.bundle_discount);
   if (raw === null || raw <= 0) return 0;
   return raw < 1 ? Math.round(raw * 100) : Math.round(raw);
 }
 
 function getLeadSelectedServices(lead) {
+  const extras = getLeadExtrasMeta(lead);
   const requested = splitLeadTextList(lead?.service_requested);
   if (requested.length) return requested;
 
@@ -1349,6 +1383,16 @@ function getLeadSelectedServices(lead) {
       .map(item => item && typeof item === 'object' && item.label ? String(item.label).trim() : '')
       .filter(Boolean);
   }
+
+  if (lead?.addons && typeof lead.addons === 'object' && !Array.isArray(lead.addons)) {
+    const addonLabels = Object.values(lead.addons)
+      .map(item => item && typeof item === 'object' && item.label ? String(item.label).trim() : '')
+      .filter(Boolean);
+    if (addonLabels.length) return addonLabels;
+  }
+
+  const extraServices = splitLeadTextList(extras?.oneoff_services);
+  if (extraServices.length) return extraServices;
 
   return [];
 }
@@ -1375,6 +1419,7 @@ function getLeadAddonLines(lead) {
 
 function getLeadKindLabel(lead) {
   const kind = getLeadQuoteKind(lead);
+  if (kind === 'oneoff' && getLeadCustomerType(lead) === 'existing') return 'Existing Customer One-Off';
   if (kind === 'oneoff') return 'One-Off Services';
   if (kind === 'commercial') return 'Commercial Enquiry';
   return 'Regular Window Cleaning';
@@ -1400,13 +1445,18 @@ function getLeadDisplayValueParts(lead) {
 
   if (kind === 'oneoff') {
     const services = getLeadSelectedServices(lead);
-    const discount = getLeadBundleDiscountPercent(lead);
+    const bundleDiscount = getLeadBundleDiscountPercent(lead);
+    const existingDiscount = getLeadExistingCustomerDiscountPercent(lead);
+    const discountBits = [
+      bundleDiscount ? `${bundleDiscount}% bundle saving` : '',
+      existingDiscount ? `${existingDiscount}% existing-customer saving` : ''
+    ].filter(Boolean);
     const serviceLabel = services.length
       ? `${services.length} service${services.length === 1 ? '' : 's'} selected`
-      : 'Standalone service bundle';
+      : (getLeadCustomerType(lead) === 'existing' ? 'Existing customer service bundle' : 'Standalone service bundle');
     return {
       primary: total !== null ? formatCurrencyFull(Math.round(total)) : '-',
-      secondary: discount ? `${serviceLabel} · ${discount}% bundle saving` : serviceLabel,
+      secondary: discountBits.length ? `${serviceLabel} · ${discountBits.join(' · ')}` : serviceLabel,
       sortValue: total ?? 0,
       rawValue: total,
     };
@@ -2199,6 +2249,9 @@ function summarizeEventDetails(details) {
 function panelHeroCopy(lead) {
   const kind = getLeadQuoteKind(lead);
   if (kind === 'oneoff') {
+    if (getLeadCustomerType(lead) === 'existing') {
+      return 'An existing-customer one-off booking with customer pricing applied automatically, so you can see the discounted job value separately from recurring revenue.';
+    }
     return 'A standalone one-off booking with bundled services kept separate from recurring revenue, so you can see the real job value without muddying the subscription pipeline.';
   }
   if (kind === 'commercial') {
@@ -2216,19 +2269,25 @@ function renderPanelMetricStrip(lead, lastUpdated) {
 
   if (kind === 'oneoff') {
     const services = getLeadSelectedServices(lead);
-    const discount = getLeadBundleDiscountPercent(lead);
+    const bundleDiscount = getLeadBundleDiscountPercent(lead);
+    const existingDiscount = getLeadExistingCustomerDiscountPercent(lead);
+    const offerLabel = getLeadExistingCustomerOfferLabel(lead);
     const serviceSummary = services.length ? services.join(', ') : 'Service selection pending';
+    const savingsBits = [
+      bundleDiscount ? `${bundleDiscount}% bundle saving` : '',
+      existingDiscount ? `${existingDiscount}% existing-customer saving` : ''
+    ].filter(Boolean);
     return `
       <div class="panel-metric-strip">
         <div class="panel-metric">
-          <div class="panel-metric-label">One-off total</div>
+          <div class="panel-metric-label">${existingDiscount ? 'Existing customer total' : 'One-off total'}</div>
           <div class="panel-metric-value">${total !== null ? formatCurrencyFull(Math.round(total)) : '-'}</div>
-          <div class="panel-metric-sub">Standalone booking value</div>
+          <div class="panel-metric-sub">${existingDiscount ? esc(offerLabel || 'Customer-priced one-off booking') : 'Standalone booking value'}</div>
         </div>
         <div class="panel-metric">
           <div class="panel-metric-label">Services</div>
           <div class="panel-metric-value">${services.length ? `${services.length} selected` : 'Pending'}</div>
-          <div class="panel-metric-sub">${esc(discount ? `${serviceSummary} · ${discount}% saving` : serviceSummary)}</div>
+          <div class="panel-metric-sub">${esc(savingsBits.length ? `${serviceSummary} · ${savingsBits.join(' · ')}` : serviceSummary)}</div>
         </div>
         <div class="panel-metric">
           <div class="panel-metric-label">Payment</div>
@@ -2298,12 +2357,17 @@ function renderPanelSnapshot(lead, lastUpdated) {
 
   if (kind === 'oneoff') {
     const services = getLeadSelectedServices(lead);
-    const discount = getLeadBundleDiscountPercent(lead);
+    const bundleDiscount = getLeadBundleDiscountPercent(lead);
+    const existingDiscount = getLeadExistingCustomerDiscountPercent(lead);
+    const offerLabel = getLeadExistingCustomerOfferLabel(lead);
     detailItems.push(
+      ['Customer type', getLeadCustomerType(lead) === 'existing' ? 'Existing customer' : 'Public one-off'],
       ['Property', lead.property_type || '-'],
       ['Build', lead.build_type || '-'],
       ['Bedrooms', lead.bedrooms || '-'],
-      ['Bundle discount', discount ? `${discount}%` : 'No bundle saving'],
+      ['Existing-customer offer', existingDiscount ? `${existingDiscount}%` : 'No customer discount'],
+      ['Offer label', offerLabel || '-', true],
+      ['Bundle discount', bundleDiscount ? `${bundleDiscount}%` : 'No bundle saving'],
       ['One-off total', total !== null ? formatCurrencyFull(Math.round(total)) : '-'],
       ['Payment', lead.payment_method || '-'],
       ['Services', services.length ? services.join(', ') : 'Selection pending', true],
