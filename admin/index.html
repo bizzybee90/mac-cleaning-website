@@ -258,22 +258,46 @@ body.layout-editing .hidden-modules.has-hidden{display:flex}
 .stat-card-compact .stat-sub{font-size:.72rem}
 
 .insights-shell{
-  background:linear-gradient(135deg,#1f2738 0%, #283246 55%, #32405a 100%);
+  background:linear-gradient(135deg,#1c2434 0%, #293346 58%, #354258 100%);
   border-radius:24px;padding:24px;color:#fff;box-shadow:0 8px 28px rgba(28,36,52,0.18);
 }
 .insights-shell::before{
   content:'';position:absolute;display:none;
 }
 .insights-kicker{font-size:.74rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--gold-light);margin-bottom:10px}
-.insights-title{font-size:1.8rem;font-weight:800;letter-spacing:-.03em;line-height:1.02;max-width:14ch}
+.insights-title{font-size:1.8rem;font-weight:800;letter-spacing:0;line-height:1.05;max-width:18ch}
 .insights-copy{font-size:.92rem;line-height:1.7;color:rgba(255,255,255,0.76);max-width:54ch;margin-top:12px}
-.insights-strip{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:18px}
+.insights-strip{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:18px}
 .insight-chip{
-  padding:14px 16px;border-radius:18px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.08);
+  padding:14px 16px;border-radius:16px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.08);
 }
 .insight-chip-label{font-size:.7rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,0.56);margin-bottom:8px}
 .insight-chip-value{font-size:1.3rem;font-weight:800;color:#fff}
 .insight-chip-copy{font-size:.76rem;line-height:1.55;color:rgba(255,255,255,0.58);margin-top:6px}
+.insight-pulse-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:18px}
+.insight-pulse-card{
+  padding:15px 16px;border-radius:16px;background:rgba(255,255,255,0.08);
+  border:1px solid rgba(255,255,255,0.09);
+}
+.insight-pulse-label{font-size:.68rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,0.56)}
+.insight-pulse-value{font-size:1.38rem;font-weight:800;color:#fff;margin-top:8px;line-height:1.05}
+.insight-pulse-sub{font-size:.76rem;line-height:1.45;color:rgba(255,255,255,0.62);margin-top:6px}
+.layout-canvas[data-tab="insights"] .card{
+  border-radius:20px;padding:20px;background:linear-gradient(180deg,#fff 0%,#fbfaf6 100%);
+  border:1px solid rgba(28,36,52,0.07);box-shadow:0 4px 18px rgba(28,36,52,0.05);
+}
+.layout-canvas[data-tab="insights"] .card:hover{transform:none;box-shadow:0 8px 24px rgba(28,36,52,0.08)}
+.layout-canvas[data-tab="insights"] .card-title{
+  font-size:.82rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--charcoal);margin-bottom:14px;
+}
+.layout-canvas[data-tab="insights"] .chart-wrap{
+  border-radius:16px;background:#fff;border:1px solid rgba(28,36,52,0.06);padding:8px;
+}
+.insight-mix-grid{margin-top:16px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.insight-mix-block{
+  padding:13px 14px;border-radius:14px;background:#fff;border:1px solid rgba(28,36,52,0.07);
+}
+.insight-mix-block-wide{grid-column:span 2}
 
 .business-shell{
   background:linear-gradient(180deg,#f7f8fb 0%,#ffffff 100%);
@@ -830,7 +854,7 @@ canvas{border-radius:8px}
   .layout-canvas[data-tab="insights"] .layout-module[data-span="2"]{grid-column:auto}
   .layout-canvas[data-tab="business"]{grid-template-columns:1fr}
   .layout-canvas[data-tab="business"] .layout-module[data-span="2"]{grid-column:auto}
-  .insights-strip{grid-template-columns:1fr}
+  .insights-strip,.insight-pulse-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
   .business-top-grid,.business-goal-grid,.business-progress-grid,.business-forecast-summary{grid-template-columns:1fr}
   .business-overview-deck{grid-template-columns:repeat(2,minmax(0,1fr))}
   .stats-row{grid-template-columns:repeat(3,1fr)}
@@ -854,6 +878,8 @@ canvas{border-radius:8px}
   .revenue-row{grid-template-columns:1fr}
   .business-overview-deck,.business-stat-grid{grid-template-columns:1fr}
   .business-overview-main{grid-template-columns:1fr}
+  .insights-strip,.insight-pulse-grid,.insight-mix-grid{grid-template-columns:1fr}
+  .insight-mix-block-wide{grid-column:auto}
   .detail-panel{top:0;right:0;bottom:0;width:100%;max-height:100dvh;border-radius:0;border:none}
   .filters-bar{flex-direction:column;align-items:stretch}
   .lead-count{margin-left:0}
@@ -1137,24 +1163,30 @@ canvas{border-radius:8px}
         </div>
         <div class="module-surface">
           <div class="insights-shell">
-            <div class="insights-kicker">Insights</div>
-            <div class="insights-title">Patterns, source quality, and conversion behaviour in one surface.</div>
-            <div class="insights-copy">This view is for diagnosing what’s really happening across the lead engine: when demand lands, where it comes from, what mix of jobs you’re attracting, and where conversion begins to weaken. Think Monzo clarity, but for operational growth.</div>
+            <div class="insights-kicker">Lead Intelligence</div>
+            <div class="insights-title">Find the pattern worth acting on.</div>
+            <div class="insights-copy">The live lead data is grouped into demand, value, source, area, and follow-up signals so the page answers what is working, what is slowing down, and where the next useful improvement sits.</div>
+            <div class="insight-pulse-grid" id="insightsPulseGrid"></div>
             <div class="insights-strip">
               <div class="insight-chip">
-                <div class="insight-chip-label">Demand Timing</div>
-                <div class="insight-chip-value">When leads cluster</div>
-                <div class="insight-chip-copy">Use day and hour patterns to decide when instant follow-up matters most.</div>
+                <div class="insight-chip-label">Demand</div>
+                <div class="insight-chip-value">Lead rhythm</div>
+                <div class="insight-chip-copy">Daily and hourly pressure across the current date range.</div>
               </div>
               <div class="insight-chip">
-                <div class="insight-chip-label">Lead Quality</div>
-                <div class="insight-chip-value">Which channels convert</div>
-                <div class="insight-chip-copy">Spot the source and area combinations that produce real signups, not just noise.</div>
+                <div class="insight-chip-label">Quality</div>
+                <div class="insight-chip-value">Source to signup</div>
+                <div class="insight-chip-copy">Channels and areas ranked by conversion and value.</div>
               </div>
               <div class="insight-chip">
-                <div class="insight-chip-label">Service Mix</div>
-                <div class="insight-chip-value">What customers want</div>
-                <div class="insight-chip-copy">See the recurring frequency and one-off mix shaping the business you’re building.</div>
+                <div class="insight-chip-label">Value</div>
+                <div class="insight-chip-value">Quote movement</div>
+                <div class="insight-chip-copy">Recurring annual value and one-off work kept separate.</div>
+              </div>
+              <div class="insight-chip">
+                <div class="insight-chip-label">Follow-up</div>
+                <div class="insight-chip-value">Chase drag</div>
+                <div class="insight-chip-copy">Where unresolved leads are collecting after quote delivery.</div>
               </div>
             </div>
           </div>
@@ -1164,13 +1196,13 @@ canvas{border-radius:8px}
 
       <section class="layout-module" data-tab="insights" data-module="insights_leads_over_time" data-title="Leads Over Time" data-min-span="1" data-max-span="2" data-span="1">
         <div class="layout-module-toolbar"><div class="layout-grip">⋮⋮ <span class="layout-toolbar-title">Leads Over Time</span></div><div class="layout-toolbar-actions"><span class="layout-size-pill">Chart</span><button class="module-hide-btn" data-hide-module="insights_leads_over_time">Hide</button></div></div>
-        <div class="module-surface"><div class="card"><div class="card-title">Leads Over Time</div><div class="chart-wrap"><canvas id="chartLeadsOverTime"></canvas></div></div></div>
+        <div class="module-surface"><div class="card"><div class="card-title">Demand Over Time</div><div class="chart-wrap"><canvas id="chartLeadsOverTime"></canvas></div></div></div>
         <button class="module-resize" type="button" aria-label="Resize leads over time"></button>
       </section>
 
       <section class="layout-module" data-tab="insights" data-module="insights_value_trend" data-title="Quote & Signup Value" data-min-span="1" data-max-span="2" data-span="1">
         <div class="layout-module-toolbar"><div class="layout-grip">⋮⋮ <span class="layout-toolbar-title">Quote & Signup Value</span></div><div class="layout-toolbar-actions"><span class="layout-size-pill">Chart</span><button class="module-hide-btn" data-hide-module="insights_value_trend">Hide</button></div></div>
-        <div class="module-surface"><div class="card"><div class="card-title">Recurring &amp; One-Off Value Over Time</div><div class="chart-wrap"><canvas id="chartValueTrend"></canvas></div></div></div>
+        <div class="module-surface"><div class="card"><div class="card-title">Quote &amp; Signup Value Movement</div><div class="chart-wrap"><canvas id="chartValueTrend"></canvas></div></div></div>
         <button class="module-resize" type="button" aria-label="Resize quote and signup value trend"></button>
       </section>
 
@@ -1182,7 +1214,7 @@ canvas{border-radius:8px}
 
       <section class="layout-module" data-tab="insights" data-module="insights_service_breakdown" data-title="Service Breakdown" data-min-span="1" data-max-span="2" data-span="2">
         <div class="layout-module-toolbar"><div class="layout-grip">⋮⋮ <span class="layout-toolbar-title">Service Breakdown</span></div><div class="layout-toolbar-actions"><span class="layout-size-pill">Signals</span><button class="module-hide-btn" data-hide-module="insights_service_breakdown">Hide</button></div></div>
-        <div class="module-surface"><div class="card"><div class="card-title">Service Breakdown</div><div id="serviceBreakdown"><div class="signal-list" id="frequencyBreakdown"></div><div style="margin-top:16px;display:grid;grid-template-columns:1fr 1fr;gap:12px"><div><div class="stat-label">Property Types</div><div id="propertyTypeCounts" style="font-size:.85rem;margin-top:4px"></div></div><div><div class="stat-label">Bedrooms</div><div id="bedroomCounts" style="font-size:.85rem;margin-top:4px"></div></div><div style="grid-column:span 2"><div class="stat-label">Build Types</div><div id="buildTypeCounts" style="font-size:.85rem;margin-top:4px"></div></div></div></div></div></div>
+        <div class="module-surface"><div class="card"><div class="card-title">Service Breakdown</div><div id="serviceBreakdown"><div class="signal-list" id="frequencyBreakdown"></div><div class="insight-mix-grid"><div class="insight-mix-block"><div class="stat-label">Property Types</div><div id="propertyTypeCounts" style="font-size:.85rem;margin-top:4px"></div></div><div class="insight-mix-block"><div class="stat-label">Bedrooms</div><div id="bedroomCounts" style="font-size:.85rem;margin-top:4px"></div></div><div class="insight-mix-block insight-mix-block-wide"><div class="stat-label">Build Types</div><div id="buildTypeCounts" style="font-size:.85rem;margin-top:4px"></div></div></div></div></div></div>
         <button class="module-resize" type="button" aria-label="Resize service breakdown"></button>
       </section>
 
@@ -3996,6 +4028,7 @@ function destroyChart(key) {
 }
 
 function renderCharts(leads) {
+  renderInsightsPulse(leads);
   renderLeadsOverTime(leads);
   renderValueTrendChart(leads);
   renderFunnel(leads);
@@ -4006,6 +4039,73 @@ function renderCharts(leads) {
   renderDayOfWeekChart(leads);
   renderHourChart(leads);
   renderServiceBreakdownText(leads);
+}
+
+function renderInsightsPulse(leads) {
+  const wrap = $('#insightsPulseGrid');
+  if (!wrap) return;
+
+  const source = Array.isArray(leads) ? leads : [];
+  const quoted = source.filter(lead => lead.status !== 'partial');
+  const signedUp = source.filter(lead => isWonStatus(lead.status));
+  const conversion = quoted.length ? (signedUp.length / quoted.length) * 100 : 0;
+
+  const areaCounts = {};
+  const sourceCounts = {};
+  source.forEach(lead => {
+    const area = postcodeArea(lead.postcode);
+    areaCounts[area] = (areaCounts[area] || 0) + 1;
+    const sourceLabel = normalizeSourceLabel(lead.source_page);
+    sourceCounts[sourceLabel] = sourceCounts[sourceLabel] || { total: 0, signedUp: 0, values: [] };
+    sourceCounts[sourceLabel].total += 1;
+    if (isWonStatus(lead.status)) sourceCounts[sourceLabel].signedUp += 1;
+    const value = getLeadAverageValue(lead);
+    if (value !== null) sourceCounts[sourceLabel].values.push(value);
+  });
+
+  const topArea = Object.entries(areaCounts).sort((a, b) => b[1] - a[1])[0];
+  const topSource = Object.entries(sourceCounts)
+    .sort((a, b) => {
+      const aConv = a[1].total ? a[1].signedUp / a[1].total : 0;
+      const bConv = b[1].total ? b[1].signedUp / b[1].total : 0;
+      return (bConv - aConv) || (b[1].total - a[1].total);
+    })[0];
+  const topSourceAvg = topSource?.[1]?.values?.length
+    ? topSource[1].values.reduce((sum, value) => sum + value, 0) / topSource[1].values.length
+    : null;
+
+  const cards = [
+    {
+      label: 'Leads',
+      value: formatCount(source.length),
+      sub: `${formatCount(quoted.length)} quoted in ${rangeLabel().toLowerCase()}.`
+    },
+    {
+      label: 'Conversion',
+      value: formatPercent(conversion, 1),
+      sub: `${formatCount(signedUp.length)} signed up from quoted leads.`
+    },
+    {
+      label: 'Strongest area',
+      value: topArea ? topArea[0] : '-',
+      sub: topArea ? `${formatCount(topArea[1])} lead${topArea[1] === 1 ? '' : 's'} in this view.` : 'No area data yet.'
+    },
+    {
+      label: 'Best source',
+      value: topSource ? topSource[0] : '-',
+      sub: topSource
+        ? `${formatCount(topSource[1].signedUp)} signup${topSource[1].signedUp === 1 ? '' : 's'}${topSourceAvg !== null ? ` · ${formatCurrencyFull(Math.round(topSourceAvg))} avg` : ''}.`
+        : 'No source data yet.'
+    }
+  ];
+
+  wrap.innerHTML = cards.map(card => `
+    <div class="insight-pulse-card">
+      <div class="insight-pulse-label">${esc(card.label)}</div>
+      <div class="insight-pulse-value">${esc(card.value)}</div>
+      <div class="insight-pulse-sub">${esc(card.sub)}</div>
+    </div>
+  `).join('');
 }
 
 function renderLeadsOverTime(leads) {
