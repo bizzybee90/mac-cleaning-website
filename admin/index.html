@@ -373,6 +373,18 @@ body.layout-editing .hidden-modules.has-hidden{display:flex}
 .business-forecast-value{font-size:1.45rem;font-weight:800;color:var(--charcoal);margin-top:8px;letter-spacing:-.03em}
 .business-forecast-sub{font-size:.78rem;line-height:1.55;color:var(--ink);margin-top:6px}
 .business-chart-note{font-size:.76rem;line-height:1.6;color:var(--ink-faint)}
+.business-chart-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.business-chart-toolbar .business-chart-note{flex:1;min-width:220px}
+.business-movement-periods{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:12px}
+.business-movement-period-card{
+  padding:13px 14px;border-radius:15px;background:#fff;border:1px solid rgba(28,36,52,0.07);
+  box-shadow:0 4px 16px rgba(28,36,52,0.04);
+}
+.business-movement-period-label{font-size:.68rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-faint)}
+.business-movement-period-value{font-size:1.08rem;font-weight:800;color:var(--charcoal);margin-top:7px}
+.business-movement-period-value.is-positive,.business-forecast-value.is-positive{color:var(--success)}
+.business-movement-period-value.is-negative,.business-forecast-value.is-negative{color:var(--danger)}
+.business-movement-period-sub{font-size:.72rem;line-height:1.45;color:var(--ink);margin-top:4px}
 .business-stat-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
 .business-stat-card{
   padding:16px;border-radius:16px;background:#fbfaf6;border:1px solid rgba(28,36,52,0.06);
@@ -1327,16 +1339,17 @@ canvas{border-radius:8px}
         <button class="module-resize" type="button" aria-label="Resize business customer base"></button>
       </section>
 
-      <section class="layout-module" data-tab="business" data-module="business_book_growth" data-title="Active vs Inactive Book" data-min-span="1" data-max-span="2" data-span="1">
+      <section class="layout-module" data-tab="business" data-module="business_book_growth" data-title="Book Movement" data-min-span="1" data-max-span="2" data-span="1">
         <div class="layout-module-toolbar">
-          <div class="layout-grip">⋮⋮ <span class="layout-toolbar-title">Active vs Inactive Book</span></div>
+          <div class="layout-grip">⋮⋮ <span class="layout-toolbar-title">Book Movement</span></div>
           <div class="layout-toolbar-actions"><span class="layout-size-pill">Chart</span><button class="module-hide-btn" data-hide-module="business_book_growth">Hide</button></div>
         </div>
         <div class="module-surface">
           <div class="card">
-            <div class="card-title">Active vs Inactive Book</div>
-            <div class="business-chart-note" id="businessBookGrowthNote">Import a jobs snapshot to compare current active recurring value with jobs that are now inactive.</div>
+            <div class="card-title">Jobs Gained vs Lost</div>
+            <div class="business-chart-note" id="businessBookGrowthNote">Import a jobs snapshot to see recurring jobs gained, jobs lost, and whether MRR is moving up or down.</div>
             <div class="business-forecast-summary" id="businessBookGrowthSummary" style="margin-top:14px"></div>
+            <div class="business-movement-periods" id="businessMovementPeriods"></div>
             <div class="chart-wrap" style="margin-top:14px"><canvas id="chartBusinessBookGrowth"></canvas></div>
           </div>
         </div>
@@ -1454,7 +1467,8 @@ let currentTab = 'dashboard';
 const LAYOUT_STORAGE_KEY = 'mac-cleaning-dashboard-layout-v8';
 const BUSINESS_SNAPSHOT_STORAGE_KEY = 'mac-cleaning-business-snapshot-v1';
 const BUSINESS_GOALS_STORAGE_KEY = 'mac-cleaning-business-goals-v1';
-const BUSINESS_SNAPSHOT_VERSION = 2;
+const BUSINESS_SNAPSHOT_VERSION = 3;
+const BUSINESS_MOVEMENT_HISTORY_LIMIT = 18;
 let businessSnapshot = loadBusinessSnapshot();
 let businessGoals = loadBusinessGoals();
 const DEFAULT_TAB_LAYOUTS = {
@@ -1911,6 +1925,92 @@ function leadAttentionReasons(lead) {
   return [...new Set(reasons)];
 }
 
+function businessMovementJobKey(job) {
+  if (!job) return '';
+  if (job.jobRef) return `job:${job.jobRef}`;
+  if (job.customerRef && job.round) return `customer-round:${job.customerRef}|${job.round}`;
+  if (job.customerRef && job.primaryService) return `customer-service:${job.customerRef}|${job.primaryService}|${job.createdAt || ''}`;
+  return [
+    job.name,
+    job.address,
+    job.frequency,
+    job.primaryService,
+    job.createdAt,
+    job.price
+  ].map(value => String(value || '').trim().toLowerCase()).filter(Boolean).join('|');
+}
+
+function normalizeStoredMovementJob(job) {
+  if (!job || typeof job !== 'object') return null;
+  const key = String(job.key || '').trim();
+  if (!key) return null;
+  return {
+    key,
+    monthlyValue: toFiniteNumber(job.monthlyValue) || 0,
+    createdAt: parseJobDate(job.createdAt),
+    label: String(job.label || '').trim(),
+    area: String(job.area || '').trim()
+  };
+}
+
+function movementSnapshotFromJobs(snapshot) {
+  if (!snapshot || !Array.isArray(snapshot.jobs)) return null;
+  const activeJobs = snapshot.jobs
+    .filter(job => jobContributesToRecurringBook(job))
+    .map(job => normalizeStoredMovementJob({
+      key: businessMovementJobKey(job),
+      monthlyValue: job.recurringMonthlyValue || 0,
+      createdAt: job.createdAt,
+      label: job.name || job.address || job.customerRef || job.jobRef,
+      area: job.area || ''
+    }))
+    .filter(Boolean);
+
+  return {
+    importedAt: snapshot.importedAt || null,
+    fileName: snapshot.fileName || 'Imported CSV',
+    rowCount: snapshot.rowCount || snapshot.jobs.length || 0,
+    activeJobs
+  };
+}
+
+function normalizeMovementSnapshot(snapshot) {
+  if (!snapshot || typeof snapshot !== 'object') return null;
+  if (Array.isArray(snapshot.activeJobs)) {
+    const activeJobs = snapshot.activeJobs.map(normalizeStoredMovementJob).filter(Boolean);
+    return {
+      importedAt: snapshot.importedAt || null,
+      fileName: snapshot.fileName || 'Imported CSV',
+      rowCount: snapshot.rowCount || activeJobs.length || 0,
+      activeJobs
+    };
+  }
+  return movementSnapshotFromJobs(snapshot);
+}
+
+function movementHistoryKey(snapshot) {
+  return [
+    snapshot?.importedAt || '',
+    snapshot?.fileName || '',
+    snapshot?.rowCount || 0,
+    snapshot?.activeJobs?.length || 0
+  ].join('|');
+}
+
+function dedupeMovementHistory(history) {
+  const seen = new Set();
+  return (Array.isArray(history) ? history : [])
+    .map(normalizeMovementSnapshot)
+    .filter(Boolean)
+    .filter(snapshot => {
+      const key = movementHistoryKey(snapshot);
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .slice(0, BUSINESS_MOVEMENT_HISTORY_LIMIT);
+}
+
 function loadBusinessSnapshot() {
   try {
     const parsed = JSON.parse(localStorage.getItem(BUSINESS_SNAPSHOT_STORAGE_KEY) || 'null');
@@ -1921,7 +2021,9 @@ function loadBusinessSnapshot() {
       importedAt: parsed.importedAt || null,
       fileName: parsed.fileName || 'Imported CSV',
       rowCount: rehydratedJobs.length || parsed.rowCount || 0,
-      jobs: rehydratedJobs
+      jobs: rehydratedJobs,
+      movementSnapshot: normalizeMovementSnapshot(parsed.movementSnapshot || { ...parsed, jobs: rehydratedJobs }),
+      movementHistory: dedupeMovementHistory(parsed.movementHistory || [])
     };
     if ((parsed.version || 0) !== BUSINESS_SNAPSHOT_VERSION) {
       localStorage.setItem(BUSINESS_SNAPSHOT_STORAGE_KEY, JSON.stringify(snapshot));
@@ -1945,6 +2047,13 @@ function saveBusinessSnapshot(snapshot) {
     rowCount: snapshot.rowCount || snapshot.jobs?.length || 0,
     jobs: Array.isArray(snapshot.jobs) ? snapshot.jobs.map(rehydrateStoredBusinessJob) : []
   };
+  const previousMovement = normalizeMovementSnapshot(businessSnapshot);
+  const previousHistory = dedupeMovementHistory(businessSnapshot?.movementHistory || []);
+  safeSnapshot.movementSnapshot = movementSnapshotFromJobs(safeSnapshot);
+  safeSnapshot.movementHistory = dedupeMovementHistory([
+    previousMovement,
+    ...previousHistory
+  ]);
   localStorage.setItem(BUSINESS_SNAPSHOT_STORAGE_KEY, JSON.stringify(safeSnapshot));
   businessSnapshot = safeSnapshot;
 }
@@ -2257,6 +2366,208 @@ function buildBookStateCohorts(activeJobs, inactiveJobs, months = 24, anchorDate
   });
 }
 
+function buildCreatedBookMovement(activeJobs, inactiveJobs, months = 24, anchorDate = new Date()) {
+  const start = new Date(anchorDate.getFullYear(), anchorDate.getMonth() - (months - 1), 1);
+  const labels = [];
+  const gainedMrr = [];
+  const lostMrr = [];
+  const gainedJobs = [];
+  const lostJobs = [];
+  const indexByKey = new Map();
+
+  for (let i = 0; i < months; i += 1) {
+    const date = new Date(start.getFullYear(), start.getMonth() + i, 1);
+    labels.push(monthLabel(date));
+    gainedMrr.push(0);
+    lostMrr.push(0);
+    gainedJobs.push(0);
+    lostJobs.push(0);
+    indexByKey.set(monthKey(date), i);
+  }
+
+  const addJob = (job, bucket) => {
+    const monthly = toFiniteNumber(job.recurringMonthlyValue) || 0;
+    if (!monthly || !job.createdAt) return;
+    const created = new Date(job.createdAt);
+    if (Number.isNaN(created.getTime()) || created < start) return;
+    const idx = indexByKey.get(monthKey(created));
+    if (idx === undefined) return;
+    if (bucket === 'gained') {
+      gainedMrr[idx] += monthly;
+      gainedJobs[idx] += 1;
+    } else {
+      lostMrr[idx] += monthly;
+      lostJobs[idx] += 1;
+    }
+  };
+
+  activeJobs.forEach(job => addJob(job, 'gained'));
+  inactiveJobs.forEach(job => addJob(job, 'lost'));
+
+  return labels.map((label, index) => {
+    const netMrr = (gainedMrr[index] || 0) - (lostMrr[index] || 0);
+    const netJobs = (gainedJobs[index] || 0) - (lostJobs[index] || 0);
+    return {
+      label,
+      gainedJobs: gainedJobs[index] || 0,
+      lostJobs: lostJobs[index] || 0,
+      netJobs,
+      gainedMrr: Math.round(gainedMrr[index] || 0),
+      lostMrr: Math.round(lostMrr[index] || 0),
+      netMrr: Math.round(netMrr || 0)
+    };
+  });
+}
+
+function movementActiveJobMap(snapshot) {
+  const map = new Map();
+  (snapshot?.activeJobs || []).forEach(job => {
+    if (!job?.key) return;
+    map.set(job.key, job);
+  });
+  return map;
+}
+
+function compareMovementSnapshots(previous, current) {
+  if (!previous || !current) return null;
+  const previousJobs = movementActiveJobMap(previous);
+  const currentJobs = movementActiveJobMap(current);
+  const gained = [];
+  const lost = [];
+
+  currentJobs.forEach((job, key) => {
+    if (!previousJobs.has(key)) gained.push(job);
+  });
+  previousJobs.forEach((job, key) => {
+    if (!currentJobs.has(key)) lost.push(job);
+  });
+
+  const openingMrr = [...previousJobs.values()].reduce((sum, job) => sum + (toFiniteNumber(job.monthlyValue) || 0), 0);
+  const closingMrr = [...currentJobs.values()].reduce((sum, job) => sum + (toFiniteNumber(job.monthlyValue) || 0), 0);
+  const gainedMrr = gained.reduce((sum, job) => sum + (toFiniteNumber(job.monthlyValue) || 0), 0);
+  const lostMrr = lost.reduce((sum, job) => sum + (toFiniteNumber(job.monthlyValue) || 0), 0);
+  const netMrr = closingMrr - openingMrr;
+  const openingJobs = previousJobs.size;
+  const closingJobs = currentJobs.size;
+
+  return {
+    startAt: previous.importedAt || null,
+    endAt: current.importedAt || null,
+    label: current.importedAt ? monthLabel(new Date(current.importedAt)) : current.fileName || 'Latest',
+    openingJobs,
+    closingJobs,
+    gainedJobs: gained.length,
+    lostJobs: lost.length,
+    netJobs: closingJobs - openingJobs,
+    openingMrr,
+    closingMrr,
+    gainedMrr,
+    lostMrr,
+    netMrr,
+    percent: openingMrr > 0 ? (netMrr / openingMrr) * 100 : 0
+  };
+}
+
+function buildImportMovementDeltas(snapshot) {
+  const current = normalizeMovementSnapshot(snapshot?.movementSnapshot || snapshot);
+  const history = dedupeMovementHistory(snapshot?.movementHistory || []);
+  const snapshots = [...history, current]
+    .filter(Boolean)
+    .filter(item => item.importedAt)
+    .sort((a, b) => new Date(a.importedAt) - new Date(b.importedAt));
+  const records = [];
+
+  for (let i = 1; i < snapshots.length; i += 1) {
+    const record = compareMovementSnapshots(snapshots[i - 1], snapshots[i]);
+    if (record) records.push(record);
+  }
+  return records;
+}
+
+function movementPeriodFromImports(records, days, anchorDate = new Date()) {
+  if (!records?.length) return null;
+  const cutoff = new Date(anchorDate);
+  cutoff.setDate(cutoff.getDate() - days);
+  const matching = records.filter(record => {
+    if (!record.endAt) return false;
+    const end = new Date(record.endAt);
+    return !Number.isNaN(end.getTime()) && end >= cutoff;
+  });
+  if (!matching.length) return null;
+
+  const openingMrr = matching[0].openingMrr || 0;
+  const closingMrr = matching[matching.length - 1].closingMrr || 0;
+  const openingJobs = matching[0].openingJobs || 0;
+  const closingJobs = matching[matching.length - 1].closingJobs || 0;
+  const gainedMrr = matching.reduce((sum, record) => sum + (record.gainedMrr || 0), 0);
+  const lostMrr = matching.reduce((sum, record) => sum + (record.lostMrr || 0), 0);
+  const gainedJobs = matching.reduce((sum, record) => sum + (record.gainedJobs || 0), 0);
+  const lostJobs = matching.reduce((sum, record) => sum + (record.lostJobs || 0), 0);
+  const netMrr = closingMrr - openingMrr;
+  const netJobs = closingJobs - openingJobs;
+
+  return {
+    days,
+    source: 'import_history',
+    gainedJobs,
+    lostJobs,
+    netJobs,
+    gainedMrr,
+    lostMrr,
+    netMrr,
+    percent: openingMrr > 0 ? (netMrr / openingMrr) * 100 : 0
+  };
+}
+
+function movementPeriodFromCreatedDates(activeJobs, inactiveJobs, days, currentMrr, anchorDate = new Date()) {
+  const cutoff = new Date(anchorDate);
+  cutoff.setDate(cutoff.getDate() - days);
+  const inWindow = job => {
+    if (!job.createdAt) return false;
+    const created = new Date(job.createdAt);
+    return !Number.isNaN(created.getTime()) && created >= cutoff;
+  };
+  const gained = activeJobs.filter(inWindow);
+  const lost = inactiveJobs.filter(inWindow);
+  const gainedMrr = gained.reduce((sum, job) => sum + (toFiniteNumber(job.recurringMonthlyValue) || 0), 0);
+  const lostMrr = lost.reduce((sum, job) => sum + (toFiniteNumber(job.recurringMonthlyValue) || 0), 0);
+  const netMrr = gainedMrr - lostMrr;
+  const openingMrr = Math.max(currentMrr - netMrr, 0);
+
+  return {
+    days,
+    source: 'created_dates',
+    gainedJobs: gained.length,
+    lostJobs: lost.length,
+    netJobs: gained.length - lost.length,
+    gainedMrr,
+    lostMrr,
+    netMrr,
+    percent: openingMrr > 0 ? (netMrr / openingMrr) * 100 : 0
+  };
+}
+
+function buildBookMovement(activeJobs, inactiveJobs, snapshot, months = 24, anchorDate = new Date()) {
+  const currentMrr = activeJobs.reduce((sum, job) => sum + (toFiniteNumber(job.recurringMonthlyValue) || 0), 0);
+  const importDeltas = buildImportMovementDeltas(snapshot);
+  const periods = [30, 90, 180, 365].map(days =>
+    movementPeriodFromImports(importDeltas, days, anchorDate) ||
+    movementPeriodFromCreatedDates(activeJobs, inactiveJobs, days, currentMrr, anchorDate)
+  );
+  const monthly = buildCreatedBookMovement(activeJobs, inactiveJobs, months, anchorDate);
+  const bestGain = [...monthly].sort((a, b) => (b.gainedMrr || 0) - (a.gainedMrr || 0))[0] || null;
+  const worstLoss = [...monthly].sort((a, b) => (b.lostMrr || 0) - (a.lostMrr || 0))[0] || null;
+
+  return {
+    monthly,
+    periods,
+    importDeltas,
+    hasImportHistory: importDeltas.length > 0,
+    bestGain,
+    worstLoss
+  };
+}
+
 function sumRecentMrrAdded(jobs, days, anchorDate = new Date()) {
   const cutoff = new Date(anchorDate);
   cutoff.setDate(cutoff.getDate() - days);
@@ -2457,7 +2768,7 @@ function buildBusinessMetrics(leads) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const activeBookGrowth = buildActiveBookGrowth(activeRecurringBookJobs, 24, today);
-  const bookStateCohorts = buildBookStateCohorts(activeRecurringBookJobs, inactiveRecurringBookJobs, 24, today);
+  const bookMovement = buildBookMovement(activeRecurringBookJobs, inactiveRecurringBookJobs, snapshot, 24, today);
   const addedMrr90 = sumRecentMrrAdded(activeRecurringBookJobs, 90, today);
   const addedMrr365 = sumRecentMrrAdded(activeRecurringBookJobs, 365, today);
   const activeMrrFromJobs = activeRecurringBookJobs.reduce((sum, job) => sum + (toFiniteNumber(job.recurringMonthlyValue) || 0), 0);
@@ -2581,12 +2892,12 @@ function buildBusinessMetrics(leads) {
       customerTrend: monthlyTrendFromDates(activeCustomers, customer => customer.createdAt, 12, today),
       growth: {
         activeBook: activeBookGrowth,
-        bookStateCohorts,
+        bookMovement,
         addedMrr90,
         addedMrr365,
         activeMrrAdded12m,
         inactiveMrrCreated12m,
-        netCreatedMrr12m: activeMrrAdded12m - inactiveMrrCreated12m
+        netCreatedMrr12m: bookMovement.periods.find(period => period.days === 365)?.netMrr ?? (activeMrrAdded12m - inactiveMrrCreated12m)
       },
       inactiveBook: {
         monthly: inactiveMrr,
@@ -4226,17 +4537,13 @@ function renderBusinessOverview(metrics) {
 
   const activeBookSeries = (metrics.snapshot.growth?.activeBook || [])
     .map(month => ({ label: month.label, value: month.cumulative || 0 }));
-  const mrrGoal = toFiniteNumber(businessGoals?.recurringMrrGoal) || 0;
-  const mrrProgress = mrrGoal > 0
-    ? Math.min(999, ((metrics.snapshot.recurring.monthly || 0) / mrrGoal) * 100)
-    : null;
+  const movement30 = metrics.snapshot.growth?.bookMovement?.periods?.find(period => period.days === 30) || {};
+  const movementSeries = (metrics.snapshot.growth?.bookMovement?.monthly || [])
+    .map(month => ({ label: month.label, value: month.netMrr || 0 }));
   const customerGoal = toFiniteNumber(businessGoals?.activeCustomersGoal);
   const customerSub = customerGoal
     ? `${formatCount(Math.max(customerGoal - metrics.snapshot.customers.active, 0))} to go against your active customer goal.`
     : `${formatCount(metrics.snapshot.jobs.activeRounds)} active recurring rounds in the imported book.`;
-  const mrrGoalSub = mrrGoal > 0
-    ? `${formatCurrencyFull(Math.round(Math.max(mrrGoal - metrics.snapshot.recurring.monthly, 0)))} remaining to ${formatCurrencyFull(Math.round(mrrGoal))}.`
-    : 'Set a recurring MRR goal to track how close the active book is.';
 
   wrap.innerHTML = [
     businessOverviewCard({
@@ -4258,11 +4565,11 @@ function renderBusinessOverview(metrics) {
     }),
     businessOverviewCard({
       tone: 'accent-gold',
-      badge: 'GO',
-      label: 'MRR Goal Progress',
-      value: mrrProgress === null ? 'Set goal' : formatPercent(mrrProgress, 0),
-      sub: mrrGoalSub,
-      series: activeBookSeries
+      badge: '30D',
+      label: '30d Book Movement',
+      value: formatSignedCurrencyFull(movement30.netMrr || 0),
+      sub: `${formatSignedCount(movement30.netJobs || 0)} jobs · ${formatCount(movement30.gainedJobs || 0)} gained / ${formatCount(movement30.lostJobs || 0)} lost.`,
+      series: movementSeries
     }),
     businessOverviewCard({
       tone: 'accent-blue',
@@ -4470,9 +4777,32 @@ function renderBusinessForecast(metrics) {
   });
 }
 
+function movementValueClass(value) {
+  const num = Number(value || 0);
+  if (num > 0) return 'is-positive';
+  if (num < 0) return 'is-negative';
+  return '';
+}
+
+function formatSignedCount(value) {
+  const num = Math.round(Number(value || 0));
+  return `${num > 0 ? '+' : ''}${formatCount(num)}`;
+}
+
+function formatSignedCurrencyFull(value) {
+  const num = Math.round(Number(value || 0));
+  return `${num > 0 ? '+' : ''}${formatCurrencyFull(num)}`;
+}
+
+function formatSignedPercent(value, digits = 1) {
+  const num = Number(value || 0);
+  return `${num > 0 ? '+' : ''}${formatPercent(num, digits)}`;
+}
+
 function renderBusinessBookGrowth(metrics) {
   const summary = $('#businessBookGrowthSummary');
   const note = $('#businessBookGrowthNote');
+  const periodsWrap = $('#businessMovementPeriods');
   destroyChart('businessBookGrowth');
 
   if (!summary || !note) return;
@@ -4480,90 +4810,111 @@ function renderBusinessBookGrowth(metrics) {
   const ctx = $('#chartBusinessBookGrowth')?.getContext('2d');
   if (!ctx) return;
 
-  if (!metrics.hasSnapshot || !metrics.snapshot?.growth?.bookStateCohorts?.length) {
+  if (!metrics.hasSnapshot || !metrics.snapshot?.growth?.bookMovement?.monthly?.length) {
     summary.innerHTML = '';
-    note.textContent = 'Import a jobs snapshot to compare current active recurring value with jobs that are now inactive.';
+    if (periodsWrap) periodsWrap.innerHTML = '';
+    note.textContent = 'Import a jobs snapshot to see recurring jobs gained, jobs lost, and whether MRR is moving up or down.';
     charts.businessBookGrowth = new Chart(ctx, {
       type: 'line',
       data: { labels: [], datasets: [] },
-      options: { plugins: { title: { display: true, text: 'No active/inactive book data yet', color: '#8a92a1' } } }
+      options: { plugins: { title: { display: true, text: 'No book movement data yet', color: '#8a92a1' } } }
     });
     return;
   }
 
-  const growth = metrics.snapshot.growth;
-  const cohorts = growth.bookStateCohorts || [];
-  const currentMrr = metrics.snapshot.recurring.monthly || 0;
-  const inactiveMrr = metrics.snapshot.inactiveBook?.monthly || 0;
-  const activeShare = metrics.snapshot.inactiveBook?.activeShare || 0;
-  const netCreatedMrr12m = growth.netCreatedMrr12m || 0;
+  const movement = metrics.snapshot.growth.bookMovement;
+  const monthly = movement.monthly || [];
+  const periods = movement.periods || [];
+  const last30 = periods.find(period => period.days === 30) || {};
+  const bestGain = movement.bestGain || {};
+  const worstLoss = movement.worstLoss || {};
+  const sourceLabel = movement.hasImportHistory ? 'saved import comparisons' : 'created-date estimate';
 
   summary.innerHTML = [
     {
-      label: 'Active recurring MRR',
-      value: formatCurrencyFull(Math.round(currentMrr)),
-      sub: `${formatCount(metrics.snapshot.jobs.activeRecurringRows || 0)} active recurring jobs currently counted.`
+      label: 'Net jobs 30d',
+      value: `${formatSignedCount(last30.netJobs || 0)} jobs`,
+      tone: movementValueClass(last30.netJobs || 0),
+      sub: `${formatCount(last30.gainedJobs || 0)} gained, ${formatCount(last30.lostJobs || 0)} lost.`
     },
     {
-      label: 'Inactive historical MRR',
-      value: formatCurrencyFull(Math.round(inactiveMrr)),
-      sub: `${formatCount(metrics.snapshot.inactiveBook?.rows || 0)} recurring jobs now inactive, using their last known value.`
+      label: 'Net MRR 30d',
+      value: formatSignedCurrencyFull(last30.netMrr || 0),
+      tone: movementValueClass(last30.netMrr || 0),
+      sub: `${formatSignedPercent(last30.percent || 0, 1)} against the opening recurring book.`
     },
     {
-      label: 'Current active share',
-      value: formatPercent(activeShare, 0),
-      sub: `Last 12m net created value: ${formatCurrencyFull(Math.round(netCreatedMrr12m))} MRR.`
+      label: 'Best / worst month',
+      value: bestGain?.gainedMrr ? `${bestGain.label} + ${formatCurrencyFull(bestGain.gainedMrr)}` : 'Not enough data',
+      tone: '',
+      sub: worstLoss?.lostMrr ? `Largest loss: ${worstLoss.label} - ${formatCurrencyFull(worstLoss.lostMrr)} MRR.` : 'Loss months appear once inactive recurring jobs are present.'
     }
   ].map(item => `
     <div class="business-forecast-card">
       <div class="business-forecast-label">${esc(item.label)}</div>
-      <div class="business-forecast-value">${esc(item.value)}</div>
+      <div class="business-forecast-value ${esc(item.tone || '')}">${esc(item.value)}</div>
       <div class="business-forecast-sub">${esc(item.sub)}</div>
     </div>
   `).join('');
 
-  note.textContent = 'Inactive value is not current revenue. It is the last-known recurring value of jobs that are now inactive, grouped by the date they were created. Exact cancellation timing would need monthly historical exports from the CRM.';
+  if (periodsWrap) {
+    const periodLabels = {
+      30: '1 month',
+      90: '3 months',
+      180: '6 months',
+      365: '12 months'
+    };
+    periodsWrap.innerHTML = periods.map(period => `
+      <div class="business-movement-period-card">
+        <div class="business-movement-period-label">${esc(periodLabels[period.days] || `${period.days}d`)}</div>
+        <div class="business-movement-period-value ${esc(movementValueClass(period.netMrr || 0))}">${esc(formatSignedCurrencyFull(period.netMrr || 0))}</div>
+        <div class="business-movement-period-sub">${esc(formatSignedCount(period.netJobs || 0))} jobs · ${formatCount(period.gainedJobs || 0)} gained / ${formatCount(period.lostJobs || 0)} lost</div>
+      </div>
+    `).join('');
+  }
+
+  note.textContent = movement.hasImportHistory
+    ? `Period cards use actual changes between saved all-jobs imports. The monthly chart still uses job created dates so you can see where new and now-inactive work came from over time.`
+    : `No previous jobs snapshot is saved yet, so this is a ${sourceLabel}: gains are active recurring jobs by created date, and losses are recurring jobs that are now inactive. Import the next all-jobs CSV to unlock true gained/lost movement between imports.`;
 
   charts.businessBookGrowth = new Chart(ctx, {
     type: 'bar',
     data: {
-      labels: cohorts.map(month => month.label),
+      labels: monthly.map(month => month.label),
       datasets: [
         {
-          type: 'line',
-          label: 'Active MRR retained',
-          data: cohorts.map(month => month.activeCumulative),
+          type: 'bar',
+          label: 'MRR gained',
+          data: monthly.map(month => Math.round(month.gainedMrr || 0)),
           borderColor: 'rgba(39,174,96,1)',
-          backgroundColor: 'rgba(39,174,96,0.13)',
-          borderWidth: 3,
-          pointRadius: 2,
-          pointHoverRadius: 5,
-          fill: true,
-          tension: 0.35,
+          backgroundColor: 'rgba(39,174,96,0.56)',
+          borderWidth: 1,
+          borderRadius: 8,
+          maxBarThickness: 22,
+          yAxisID: 'y'
+        },
+        {
+          type: 'bar',
+          label: 'MRR lost',
+          data: monthly.map(month => -Math.round(month.lostMrr || 0)),
+          borderColor: 'rgba(192,57,43,0.92)',
+          backgroundColor: 'rgba(192,57,43,0.52)',
+          borderWidth: 1,
+          borderRadius: 8,
+          maxBarThickness: 22,
           yAxisID: 'y'
         },
         {
           type: 'line',
-          label: 'Inactive last-known MRR',
-          data: cohorts.map(month => month.inactiveCumulative),
-          borderColor: 'rgba(192,57,43,0.92)',
-          backgroundColor: 'rgba(192,57,43,0.08)',
+          label: 'Net MRR',
+          data: monthly.map(month => Math.round(month.netMrr || 0)),
+          backgroundColor: 'rgba(211,161,52,0.14)',
+          borderColor: 'rgba(211,161,52,0.85)',
           borderWidth: 3,
           pointRadius: 2,
           pointHoverRadius: 5,
           fill: false,
           tension: 0.35,
-          yAxisID: 'y'
-        },
-        {
-          type: 'bar',
-          label: 'Net MRR created',
-          data: cohorts.map(month => (month.activeAdded || 0) - (month.inactiveAdded || 0)),
-          backgroundColor: 'rgba(211,161,52,0.42)',
-          borderColor: 'rgba(211,161,52,0.85)',
-          borderWidth: 1,
-          borderRadius: 8,
-          maxBarThickness: 24,
           yAxisID: 'y'
         }
       ]
@@ -4593,7 +4944,15 @@ function renderBusinessBookGrowth(metrics) {
         tooltip: {
           callbacks: {
             label(context) {
-              return `${context.dataset.label}: ${formatCurrencyFull(Math.round(context.parsed.y || 0))}`;
+              const rawValue = Math.round(context.parsed.y || 0);
+              const month = monthly[context.dataIndex] || {};
+              if (context.dataset.label === 'MRR lost') {
+                return `${context.dataset.label}: -${formatCurrencyFull(Math.abs(rawValue))} · ${formatCount(month.lostJobs || 0)} jobs`;
+              }
+              if (context.dataset.label === 'MRR gained') {
+                return `${context.dataset.label}: ${formatCurrencyFull(rawValue)} · ${formatCount(month.gainedJobs || 0)} jobs`;
+              }
+              return `${context.dataset.label}: ${formatSignedCurrencyFull(rawValue)} · ${formatSignedCount(month.netJobs || 0)} jobs`;
             }
           }
         }
@@ -4633,13 +4992,14 @@ function renderBusinessTab(filteredLeads, analyticsLeads) {
     if (!metrics.hasSnapshot) {
       customerGrid.innerHTML = `<div class="business-empty" style="grid-column:1 / -1">Import your all-jobs CSV to populate the actual customer book. Live pipeline and dashboard metrics will keep updating regardless.</div>`;
     } else {
+      const movement12m = metrics.snapshot.growth?.bookMovement?.periods?.find(period => period.days === 365) || {};
       customerGrid.innerHTML = [
         metricCard('Active customers', formatCount(metrics.snapshot.customers.active), 'Customers currently active in the imported jobs snapshot.'),
         metricCard('Active rounds MRR', formatCurrencyFull(Math.round(metrics.snapshot.recurring.monthly)), 'Monthly recurring book from active recurring round jobs.'),
         metricCard('Active rounds ARR', formatCurrencyFull(Math.round(metrics.snapshot.recurring.annual)), 'Annualised value from that same active recurring round book.'),
         metricCard('Inactive recurring customers', formatCount(metrics.snapshot.inactiveBook?.customers || 0), 'Customers with recurring jobs now marked inactive in the imported snapshot.'),
         metricCard('Current active share', formatPercent(metrics.snapshot.inactiveBook?.activeShare || 0, 0), 'Active MRR as a share of active plus inactive last-known recurring value.'),
-        metricCard('12m net created MRR', formatCurrencyFull(Math.round(metrics.snapshot.growth?.netCreatedMrr12m || 0)), 'Active created MRR minus now-inactive created MRR from the last 12 months.')
+        metricCard('12m net MRR movement', formatSignedCurrencyFull(movement12m.netMrr || 0), `${formatSignedCount(movement12m.netJobs || 0)} jobs · ${formatCount(movement12m.gainedJobs || 0)} gained / ${formatCount(movement12m.lostJobs || 0)} lost.`)
       ].join('');
     }
   }
