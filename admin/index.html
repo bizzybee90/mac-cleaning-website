@@ -276,29 +276,31 @@ body.layout-editing .hidden-modules.has-hidden{display:flex}
 .insight-chip-copy{font-size:.76rem;line-height:1.55;color:rgba(255,255,255,0.58);margin-top:6px}
 
 .business-shell{
-  background:linear-gradient(135deg,#1f2738 0%, #283246 55%, #34445f 100%);
-  border-radius:24px;padding:24px;color:#fff;box-shadow:0 8px 28px rgba(28,36,52,0.18);
+  background:linear-gradient(180deg,#f7f8fb 0%,#ffffff 100%);
+  border:1px solid rgba(28,36,52,0.07);
+  border-radius:24px;padding:24px;color:var(--charcoal);box-shadow:0 8px 28px rgba(28,36,52,0.08);
 }
-.business-kicker{font-size:.74rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--gold-light);margin-bottom:10px}
-.business-title{font-size:1.8rem;font-weight:800;letter-spacing:-.03em;line-height:1.02;max-width:16ch}
-.business-copy{font-size:.92rem;line-height:1.7;color:rgba(255,255,255,0.76);max-width:56ch;margin-top:12px}
-.business-top-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(300px,.85fr);gap:14px;margin-top:18px}
+.business-kicker{font-size:.74rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--gold);margin-bottom:10px}
+.business-title{font-size:2.15rem;font-weight:800;letter-spacing:0;line-height:1.02;max-width:18ch}
+.business-copy{font-size:.92rem;line-height:1.7;color:var(--ink);max-width:62ch;margin-top:12px}
+.business-top-grid{display:grid;grid-template-columns:minmax(260px,.72fr) minmax(0,1.28fr);gap:16px;margin-top:18px}
 .business-import-card,.business-context-card{
-  padding:18px;border-radius:20px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.1);
+  padding:18px;border-radius:20px;background:rgba(255,255,255,0.88);border:1px solid rgba(28,36,52,0.08);
+  box-shadow:0 4px 18px rgba(28,36,52,0.04);
 }
 .business-card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
-.business-card-title{font-size:.86rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,0.7)}
-.business-card-copy{font-size:.8rem;line-height:1.6;color:rgba(255,255,255,0.62);margin-top:8px;max-width:54ch}
+.business-card-title{font-size:.86rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-faint)}
+.business-card-copy{font-size:.8rem;line-height:1.6;color:var(--ink);margin-top:8px;max-width:54ch}
 .business-status-pill{
   display:inline-flex;align-items:center;padding:6px 11px;border-radius:999px;
   font-size:.72rem;font-weight:800;letter-spacing:.04em;text-transform:uppercase;
-  background:rgba(255,255,255,0.12);color:#fff;white-space:nowrap;
+  background:rgba(28,36,52,0.08);color:var(--charcoal);white-space:nowrap;
 }
-.business-status-pill.status-good{background:rgba(39,174,96,0.18);color:#d7f5e2}
-.business-status-pill.status-warn{background:rgba(230,126,34,0.18);color:#ffe7cc}
-.business-status-pill.status-empty{background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.8)}
-.business-import-meta{font-size:.84rem;line-height:1.65;color:#fff;margin-top:14px}
-.business-import-note{font-size:.75rem;line-height:1.6;color:rgba(255,255,255,0.55);margin-top:12px}
+.business-status-pill.status-good{background:rgba(39,174,96,0.12);color:#1e8e4d}
+.business-status-pill.status-warn{background:rgba(230,126,34,0.13);color:#b45b10}
+.business-status-pill.status-empty{background:rgba(28,36,52,0.08);color:var(--ink)}
+.business-import-meta{font-size:.84rem;line-height:1.65;color:var(--charcoal);margin-top:14px}
+.business-import-note{font-size:.75rem;line-height:1.6;color:var(--ink-faint);margin-top:12px}
 .business-import-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:16px}
 .btn-business-primary,.btn-business-secondary,.btn-business-quiet{
   display:inline-flex;align-items:center;justify-content:center;padding:10px 16px;border-radius:999px;
@@ -306,17 +308,36 @@ body.layout-editing .hidden-modules.has-hidden{display:flex}
 }
 .btn-business-primary{background:var(--gold);color:var(--white)}
 .btn-business-primary:hover{background:var(--gold-light)}
-.btn-business-secondary{background:rgba(255,255,255,0.12);color:#fff;border:1px solid rgba(255,255,255,0.14)}
-.btn-business-secondary:hover{border-color:rgba(255,255,255,0.3)}
+.btn-business-secondary{background:#fff;color:var(--charcoal);border:1px solid var(--line)}
+.btn-business-secondary:hover{border-color:var(--gold);color:var(--gold)}
 .btn-business-quiet{background:transparent;color:var(--ink);border:1px solid var(--line)}
 .btn-business-quiet:hover{border-color:var(--gold);color:var(--gold)}
-.business-snapshot-strip{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-.business-mini-card{
-  padding:14px 15px;border-radius:18px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.08);
+.business-overview-deck{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:14px}
+.business-overview-card{
+  position:relative;min-height:178px;padding:18px;border-radius:24px;background:#fff;border:1px solid rgba(28,36,52,0.06);
+  overflow:hidden;box-shadow:0 8px 26px rgba(28,36,52,0.06);
 }
-.business-mini-label{font-size:.68rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,0.56);margin-bottom:8px}
-.business-mini-value{font-size:1.3rem;font-weight:800;color:#fff;letter-spacing:-.03em}
-.business-mini-sub{font-size:.74rem;line-height:1.55;color:rgba(255,255,255,0.58);margin-top:6px}
+.business-overview-card::before{
+  content:"";position:absolute;inset:0 0 auto 0;height:4px;background:var(--card-accent,var(--gold));
+}
+.business-overview-top{display:flex;align-items:center;gap:9px;color:var(--card-accent,var(--gold));font-weight:800}
+.business-overview-icon{
+  width:24px;height:24px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;
+  background:color-mix(in srgb,var(--card-accent,var(--gold)) 12%,transparent);font-size:.9rem;
+}
+.business-overview-label{font-size:.86rem;line-height:1.2}
+.business-overview-main{display:grid;grid-template-columns:minmax(0,.95fr) minmax(120px,.75fr);gap:12px;align-items:end;margin-top:24px}
+.business-overview-value{font-size:2.35rem;font-weight:800;letter-spacing:0;color:#05070d;line-height:1}
+.business-overview-unit{font-size:.94rem;font-weight:800;color:var(--ink-faint);margin-left:6px}
+.business-overview-sub{font-size:.76rem;line-height:1.45;color:var(--ink);margin-top:10px}
+.business-sparkline{width:100%;height:76px;overflow:visible}
+.business-sparkline .spark-area{fill:var(--card-fill,rgba(39,174,96,0.12))}
+.business-sparkline .spark-line{fill:none;stroke:var(--card-accent,var(--gold));stroke-width:4;stroke-linecap:round;stroke-linejoin:round}
+.business-overview-card.accent-green{--card-accent:#27ae60;--card-fill:rgba(39,174,96,0.14)}
+.business-overview-card.accent-amber{--card-accent:#e58f32;--card-fill:rgba(229,143,50,0.14)}
+.business-overview-card.accent-blue{--card-accent:#2980b9;--card-fill:rgba(41,128,185,0.13)}
+.business-overview-card.accent-gold{--card-accent:var(--gold);--card-fill:rgba(211,161,52,0.14)}
+.business-overview-card.is-empty .business-overview-value{font-size:1.9rem;color:var(--ink-faint)}
 .business-empty{
   padding:16px;border:1px dashed var(--line);border-radius:14px;background:rgba(255,255,255,0.55);
   font-size:.84rem;line-height:1.6;color:var(--ink-faint);
@@ -799,7 +820,7 @@ canvas{border-radius:8px}
   .layout-canvas[data-tab="business"] .layout-module[data-span="2"]{grid-column:auto}
   .insights-strip{grid-template-columns:1fr}
   .business-top-grid,.business-goal-grid,.business-progress-grid,.business-forecast-summary{grid-template-columns:1fr}
-  .business-snapshot-strip{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .business-overview-deck{grid-template-columns:repeat(2,minmax(0,1fr))}
   .stats-row{grid-template-columns:repeat(3,1fr)}
   .revenue-row{grid-template-columns:repeat(3,1fr)}
 }
@@ -819,7 +840,8 @@ canvas{border-radius:8px}
   .stats-row{grid-template-columns:repeat(2,1fr);gap:10px}
   .two-col{grid-template-columns:1fr}
   .revenue-row{grid-template-columns:1fr}
-  .business-snapshot-strip,.business-stat-grid{grid-template-columns:1fr}
+  .business-overview-deck,.business-stat-grid{grid-template-columns:1fr}
+  .business-overview-main{grid-template-columns:1fr}
   .detail-panel{top:0;right:0;bottom:0;width:100%;max-height:100dvh;border-radius:0;border:none}
   .filters-bar{flex-direction:column;align-items:stretch}
   .lead-count{margin-left:0}
@@ -1228,30 +1250,9 @@ canvas{border-radius:8px}
                 <div class="business-import-note" id="businessImportNote">Live lead metrics still update in real time. Imported jobs metrics refresh when you import a new CSV.</div>
               </div>
               <div class="business-context-card">
-                <div class="business-card-title">Snapshot at a Glance</div>
-                <div class="business-card-copy">A fast blended read on the customer book, imported workload, and live pipeline. The imported book is all-business; the pipeline figures still respect your current lead dashboard range.</div>
-                <div class="business-snapshot-strip" id="businessSnapshotStrip">
-                  <div class="business-mini-card">
-                    <div class="business-mini-label">Active customers</div>
-                    <div class="business-mini-value" id="businessSnapshotCustomers">--</div>
-                    <div class="business-mini-sub">Customers currently active in the imported jobs snapshot.</div>
-                  </div>
-                  <div class="business-mini-card">
-                    <div class="business-mini-label">Active rounds MRR</div>
-                    <div class="business-mini-value" id="businessSnapshotMrr">--</div>
-                    <div class="business-mini-sub">Monthly recurring book from active recurring round jobs in the imported snapshot.</div>
-                  </div>
-                  <div class="business-mini-card">
-                    <div class="business-mini-label">Active rounds</div>
-                    <div class="business-mini-value" id="businessSnapshotRounds">--</div>
-                    <div class="business-mini-sub">Distinct active recurring rounds in the imported jobs snapshot.</div>
-                  </div>
-                  <div class="business-mini-card">
-                    <div class="business-mini-label">Live annual pipeline</div>
-                    <div class="business-mini-value" id="businessSnapshotPipeline">--</div>
-                    <div class="business-mini-sub">Open recurring quote value from the live leads view.</div>
-                  </div>
-                </div>
+                <div class="business-card-title">Business Overview</div>
+                <div class="business-card-copy">The headline cards show the imported recurring book beside live pipeline pressure, with compact trend visuals so the business picture reads quickly.</div>
+                <div class="business-overview-deck" id="businessOverviewDeck"></div>
               </div>
             </div>
           </div>
@@ -2162,6 +2163,55 @@ function projectRecurringMonthlyTurnover(jobs, months = 12, anchorDate = new Dat
   }));
 }
 
+function monthlyTrendFromDates(items, dateGetter, months = 12, anchorDate = new Date()) {
+  const start = new Date(anchorDate.getFullYear(), anchorDate.getMonth() - (months - 1), 1);
+  const labels = [];
+  const values = [];
+  const indexByKey = new Map();
+
+  for (let i = 0; i < months; i += 1) {
+    const date = new Date(start.getFullYear(), start.getMonth() + i, 1);
+    labels.push(monthLabel(date));
+    values.push(0);
+    indexByKey.set(monthKey(date), i);
+  }
+
+  items.forEach(item => {
+    const raw = dateGetter(item);
+    if (!raw) return;
+    const date = new Date(raw);
+    if (Number.isNaN(date.getTime()) || date < start) return;
+    const idx = indexByKey.get(monthKey(date));
+    if (idx !== undefined) values[idx] += 1;
+  });
+
+  return labels.map((label, index) => ({ label, value: values[index] || 0 }));
+}
+
+function monthlyValueTrendFromLeads(leads, valueGetter, months = 12, anchorDate = new Date()) {
+  const start = new Date(anchorDate.getFullYear(), anchorDate.getMonth() - (months - 1), 1);
+  const labels = [];
+  const values = [];
+  const indexByKey = new Map();
+
+  for (let i = 0; i < months; i += 1) {
+    const date = new Date(start.getFullYear(), start.getMonth() + i, 1);
+    labels.push(monthLabel(date));
+    values.push(0);
+    indexByKey.set(monthKey(date), i);
+  }
+
+  leads.forEach(lead => {
+    if (!lead.created_at) return;
+    const date = new Date(lead.created_at);
+    if (Number.isNaN(date.getTime()) || date < start) return;
+    const idx = indexByKey.get(monthKey(date));
+    if (idx !== undefined) values[idx] += valueGetter(lead) || 0;
+  });
+
+  return labels.map((label, index) => ({ label, value: Math.round(values[index] || 0) }));
+}
+
 function parseCsvText(text) {
   const rows = [];
   let row = [];
@@ -2319,6 +2369,11 @@ function buildBusinessMetrics(leads) {
   const liveOneoffQuoted = liveLeads
     .filter(lead => getLeadQuoteKind(lead) === 'oneoff' && isOpenPipelineStatus(lead.status))
     .reduce((sum, lead) => sum + (getLeadTotal(lead) || 0), 0);
+  const livePipelineTrend = monthlyValueTrendFromLeads(
+    liveLeads.filter(lead => getLeadQuoteKind(lead) === 'regular' && isOpenPipelineStatus(lead.status)),
+    annualizedLeadValue,
+    12
+  );
 
   if (!snapshot?.jobs?.length) {
     return {
@@ -2330,6 +2385,7 @@ function buildBusinessMetrics(leads) {
         partialCount: livePartials.length,
         manualReviewCount: liveManualReview.length,
         oneoffQuotedValue: liveOneoffQuoted,
+        pipelineTrend: livePipelineTrend,
         wonAwaitingImportCount: 0,
         wonAwaitingImportValue: 0
       }
@@ -2372,6 +2428,7 @@ function buildBusinessMetrics(leads) {
       email: job.email,
       phone: job.phone || job.altPhone,
       state: job.state || 'inactive',
+      createdAt: job.createdAt || null,
       balance: 0,
       monthlyValue: 0,
       annualValue: 0,
@@ -2382,6 +2439,9 @@ function buildBusinessMetrics(leads) {
       ? existing.state
       : 'active';
     existing.state = nextState === 'active' ? 'active' : (existing.state === 'prospect' || job.state === 'prospect' ? 'prospect' : job.state || existing.state);
+    if (job.createdAt && (!existing.createdAt || new Date(job.createdAt) < new Date(existing.createdAt))) {
+      existing.createdAt = job.createdAt;
+    }
     existing.balance = Math.max(existing.balance, job.balance || 0);
     existing.rows += 1;
     if (jobContributesToRecurringBook(job)) {
@@ -2464,6 +2524,7 @@ function buildBusinessMetrics(leads) {
       },
       balances: outstandingBalance,
       forecast: recurringProjection,
+      customerTrend: monthlyTrendFromDates(activeCustomers, customer => customer.createdAt, 12, today),
       jobs: {
         due7: due7Jobs.length,
         due7Value,
@@ -2491,6 +2552,7 @@ function buildBusinessMetrics(leads) {
       partialCount: livePartials.length,
       manualReviewCount: liveManualReview.length,
       oneoffQuotedValue: liveOneoffQuoted,
+      pipelineTrend: livePipelineTrend,
       wonAwaitingImportCount: wonAwaitingImport.length,
       wonAwaitingImportValue: wonAwaitingImport.reduce((sum, lead) => sum + annualizedLeadValue(lead), 0)
     }
@@ -4013,6 +4075,131 @@ function metricCard(label, value, sub) {
   `;
 }
 
+function sparklineSvg(series) {
+  const values = (Array.isArray(series) ? series : [])
+    .map(point => typeof point === 'number' ? point : point?.value)
+    .map(value => Number(value || 0));
+
+  if (values.length < 2) {
+    return `
+      <svg class="business-sparkline" viewBox="0 0 180 76" aria-hidden="true">
+        <path class="spark-area" d="M0 76 L180 76 L180 58 L0 58 Z"></path>
+        <path class="spark-line" d="M0 58 L180 58"></path>
+      </svg>
+    `;
+  }
+
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const range = max - min || 1;
+  const width = 180;
+  const height = 76;
+  const pad = 8;
+  const usableHeight = height - (pad * 2);
+  const points = values.map((value, index) => {
+    const x = values.length === 1 ? 0 : (index / (values.length - 1)) * width;
+    const y = height - pad - (((value - min) / range) * usableHeight);
+    return [Number(x.toFixed(2)), Number(y.toFixed(2))];
+  });
+  const line = points.map(([x, y], index) => `${index === 0 ? 'M' : 'L'}${x} ${y}`).join(' ');
+  const area = `${line} L${width} ${height} L0 ${height} Z`;
+
+  return `
+    <svg class="business-sparkline" viewBox="0 0 ${width} ${height}" aria-hidden="true">
+      <path class="spark-area" d="${area}"></path>
+      <path class="spark-line" d="${line}"></path>
+    </svg>
+  `;
+}
+
+function businessOverviewCard({ tone = 'accent-gold', badge = 'M', label, value, unit = '', sub, series = [], empty = false }) {
+  return `
+    <div class="business-overview-card ${esc(tone)} ${empty ? 'is-empty' : ''}">
+      <div class="business-overview-top">
+        <span class="business-overview-icon">${esc(badge)}</span>
+        <span class="business-overview-label">${esc(label)}</span>
+      </div>
+      <div class="business-overview-main">
+        <div>
+          <div class="business-overview-value">${esc(value)}${unit ? `<span class="business-overview-unit">${esc(unit)}</span>` : ''}</div>
+          <div class="business-overview-sub">${esc(sub)}</div>
+        </div>
+        ${sparklineSvg(series)}
+      </div>
+    </div>
+  `;
+}
+
+function renderBusinessOverview(metrics) {
+  const wrap = $('#businessOverviewDeck');
+  if (!wrap) return;
+
+  if (!metrics.hasSnapshot) {
+    wrap.innerHTML = [
+      businessOverviewCard({
+        tone: 'accent-amber',
+        badge: 'CSV',
+        label: 'Jobs snapshot',
+        value: 'Import',
+        sub: 'Add the all-jobs CSV to unlock active customers, MRR, forecast, and workload insight.',
+        empty: true
+      }),
+      businessOverviewCard({
+        tone: 'accent-blue',
+        badge: 'LP',
+        label: 'Live pipeline',
+        value: formatCurrencyFull(Math.round(metrics.live?.recurringPipeline || 0)),
+        sub: 'Open recurring annual quote value from the live leads dashboard.',
+        series: metrics.live?.pipelineTrend || []
+      })
+    ].join('');
+    return;
+  }
+
+  const forecast = metrics.snapshot.forecast || [];
+  const thisMonth = forecast[0]?.value || 0;
+  const customerGoal = toFiniteNumber(businessGoals?.activeCustomersGoal);
+  const customerSub = customerGoal
+    ? `${formatCount(Math.max(customerGoal - metrics.snapshot.customers.active, 0))} to go against your active customer goal.`
+    : `${formatCount(metrics.snapshot.jobs.activeRounds)} active recurring rounds in the imported book.`;
+
+  wrap.innerHTML = [
+    businessOverviewCard({
+      tone: 'accent-amber',
+      badge: 'AC',
+      label: 'Active Customers',
+      value: formatCount(metrics.snapshot.customers.active),
+      unit: 'total',
+      sub: customerSub,
+      series: metrics.snapshot.customerTrend || []
+    }),
+    businessOverviewCard({
+      tone: 'accent-green',
+      badge: 'MRR',
+      label: 'Active Rounds MRR',
+      value: formatCurrencyFull(Math.round(metrics.snapshot.recurring.monthly)),
+      sub: 'Monthly recurring book from active recurring round jobs.',
+      series: forecast
+    }),
+    businessOverviewCard({
+      tone: 'accent-gold',
+      badge: 'TM',
+      label: 'Projected This Month',
+      value: formatCurrencyFull(Math.round(thisMonth)),
+      sub: 'Projected recurring turnover in the current calendar month.',
+      series: forecast.slice(0, 6)
+    }),
+    businessOverviewCard({
+      tone: 'accent-blue',
+      badge: 'LP',
+      label: 'Live Annual Pipeline',
+      value: formatCurrencyFull(Math.round(metrics.live?.recurringPipeline || 0)),
+      sub: `${formatCount(metrics.live?.paymentPendingCount || 0)} payment pending, ${formatCount(metrics.live?.partialCount || 0)} partial leads.`,
+      series: metrics.live?.pipelineTrend || []
+    })
+  ].join('');
+}
+
 function renderBusinessGoalProgress(metrics) {
   const wrap = $('#businessGoalProgress');
   if (!wrap) return;
@@ -4218,10 +4405,7 @@ function renderBusinessTab(filteredLeads, analyticsLeads) {
     note.textContent = `${freshness.note} Recurring book metrics below exclude inactive customers and focus on active recurring rounds, while workload counts use active scheduled jobs from the imported snapshot.`;
   }
 
-  $('#businessSnapshotCustomers').textContent = metrics.hasSnapshot ? formatCount(metrics.snapshot.customers.active) : '--';
-  $('#businessSnapshotMrr').textContent = metrics.hasSnapshot ? formatCurrencyFull(Math.round(metrics.snapshot.recurring.monthly)) : '--';
-  $('#businessSnapshotRounds').textContent = metrics.hasSnapshot ? formatCount(metrics.snapshot.jobs.activeRounds) : '--';
-  $('#businessSnapshotPipeline').textContent = formatCurrencyFull(Math.round(metrics.live.recurringPipeline || 0));
+  renderBusinessOverview(metrics);
   renderBusinessForecast(metrics);
 
   const customerGrid = $('#businessCustomerGrid');
