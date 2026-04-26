@@ -1,11 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <path d="M8 29 32 15l12.5 7.3V17l6 3.5V38" fill="none" stroke="#000" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M14 25v23M50 25v23" fill="none" stroke="#000" stroke-width="3.4" stroke-linecap="round"/>
-  <rect x="28" y="23" width="4.7" height="4.7" fill="#000" rx=".5"/>
-  <rect x="34" y="23" width="4.7" height="4.7" fill="#000" rx=".5"/>
-  <rect x="28" y="29" width="4.7" height="4.7" fill="#000" rx=".5"/>
-  <rect x="34" y="29" width="4.7" height="4.7" fill="#000" rx=".5"/>
-  <text x="14" y="47" fill="#000" font-family="Manrope, Avenir Next, Segoe UI, sans-serif" font-size="20" font-weight="900" letter-spacing="-1.5">mac</text>
-  <path d="M25 55c0-2 2-4.8 3.5-7.5C30 50.2 32 53 32 55a3.5 3.5 0 0 1-7 0z" fill="#000"/>
-  <path d="M36 55c0-1.7 1.7-4 3-6.2 1.3 2.2 3 4.5 3 6.2a3 3 0 0 1-6 0z" fill="#000"/>
+  <path fill="#000" d="M5 28.5 32 13l27 15.5-1.9 3.2L32 17.3 6.9 31.7z"/>
+  <path fill="#000" d="M8 30h3.7v17H8zm44.3 0H56v17h-3.7z"/>
+  <path fill="#000" d="M28.7 22h3.2v3.2h-3.2zm4.4 0h3.2v3.2h-3.2zm-4.4 4.4h3.2v3.2h-3.2zm4.4 0h3.2v3.2h-3.2z"/>
+  <text x="7.5" y="43" fill="#000" font-family="Arial Black, Avenir Next, sans-serif" font-size="18" font-weight="900" letter-spacing="-1.6">mac</text>
+  <text x="13.5" y="50" fill="#000" font-family="Arial, Avenir Next, sans-serif" font-size="5.8" font-weight="900" letter-spacing="1.5">CLEANING</text>
+  <path fill="#000" d="M15 57c0-1.4 1.4-3.3 2.3-5 1 1.7 2.4 3.6 2.4 5a2.35 2.35 0 0 1-4.7 0zm14.7 1c0-1.7 1.7-4 2.8-6 1.1 2 2.8 4.3 2.8 6a2.8 2.8 0 0 1-5.6 0zm14.6-1c0-1.4 1.4-3.3 2.3-5 1 1.7 2.4 3.6 2.4 5a2.35 2.35 0 0 1-4.7 0z"/>
 </svg>
