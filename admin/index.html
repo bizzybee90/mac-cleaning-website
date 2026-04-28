@@ -528,17 +528,50 @@ body.layout-editing .hidden-modules.has-hidden{display:flex}
   font-size:.84rem;line-height:1.6;color:var(--ink-faint);
 }
 
-.panel-inline-actions{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center;margin-top:10px}
-.panel-status-select{
-  width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:var(--radius-pill);
-  background:var(--white);color:var(--charcoal);outline:none;transition:border var(--transition);
+.pipeline-control-card{overflow:hidden}
+.pipeline-current{
+  display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;
+  padding:12px 13px;border:1px solid rgba(28,36,52,0.08);border-radius:16px;
+  background:linear-gradient(180deg,#fff 0%,#fbf8f1 100%);
 }
-.panel-status-select:focus{border-color:var(--gold)}
+.pipeline-current-label{
+  font-size:.68rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--ink-faint);margin-bottom:5px;
+}
+.pipeline-current-value{font-size:.98rem;font-weight:800;color:var(--charcoal);line-height:1.2}
+.pipeline-current-sub{font-size:.72rem;color:var(--ink-faint);margin-top:3px}
+.pipeline-stage-dot{width:10px;height:10px;border-radius:999px;background:var(--gold);box-shadow:0 0 0 4px rgba(184,134,11,.12)}
+.panel-status-select{display:none}
+.panel-status-grid{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.panel-status-option{
+  display:inline-flex;align-items:center;gap:7px;padding:8px 11px;border-radius:999px;
+  border:1px solid rgba(28,36,52,0.09);background:#fff;color:var(--ink);
+  font-size:.78rem;font-weight:800;letter-spacing:.01em;
+  transition:border-color var(--transition),background var(--transition),color var(--transition),box-shadow var(--transition),transform var(--transition);
+}
+.panel-status-option::before{
+  content:'';width:7px;height:7px;border-radius:999px;background:currentColor;opacity:.42;
+}
+.panel-status-option:hover{
+  border-color:rgba(184,134,11,.38);color:var(--charcoal);box-shadow:0 8px 18px rgba(28,36,52,0.07);transform:translateY(-1px);
+}
+.panel-status-option.active{
+  background:var(--charcoal);border-color:var(--charcoal);color:#fff;
+  box-shadow:0 10px 22px rgba(28,36,52,0.16);
+}
+.panel-status-option.status-won.active{background:var(--success);border-color:var(--success)}
+.panel-status-option.status-risk.active{background:#935116;border-color:#935116}
+.panel-status-option.status-closed.active{background:#6b7280;border-color:#6b7280}
+.panel-inline-actions{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;margin-top:14px}
+.pipeline-apply-note{
+  min-height:20px;font-size:.76rem;line-height:1.45;color:var(--ink-faint);
+}
 .btn-apply-status{
-  padding:10px 14px;border-radius:var(--radius-pill);background:var(--charcoal);color:var(--white);
-  font-weight:700;font-size:.8rem;transition:all var(--transition);
+  padding:11px 17px;border-radius:var(--radius-pill);background:var(--charcoal);color:var(--white);
+  font-weight:800;font-size:.8rem;transition:all var(--transition);box-shadow:0 10px 22px rgba(28,36,52,0.14);
 }
-.btn-apply-status:hover{background:var(--gold)}
+.btn-apply-status:hover{background:var(--gold);transform:translateY(-1px)}
+.btn-apply-status:disabled{opacity:.52;cursor:not-allowed;transform:none;box-shadow:none}
 .panel-link-list{display:grid;gap:8px}
 .panel-link-button{
   display:flex;align-items:center;justify-content:space-between;gap:12px;
@@ -827,15 +860,16 @@ tbody tr:has(.badge-test){border-left-color:#9b59b6}
   transition:all var(--transition);
 }
 .btn-save-notes:hover{background:var(--gold-light)}
-.panel-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.panel-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
 .btn-action{
-  flex:1;padding:11px 12px;border-radius:var(--radius-pill);font-weight:700;
+  flex:1;padding:12px 12px;border-radius:var(--radius-pill);font-weight:800;
   font-size:.82rem;color:var(--white);transition:all var(--transition);
+  box-shadow:0 10px 22px rgba(28,36,52,0.10);
 }
 .btn-confirm{background:var(--success)}
-.btn-confirm:hover{background:#1d8b51}
+.btn-confirm:hover{background:#1d8b51;transform:translateY(-1px)}
 .btn-dead{background:var(--ink-faint)}
-.btn-dead:hover{background:var(--error)}
+.btn-dead:hover{background:var(--error);transform:translateY(-1px)}
 .timeline{margin-top:12px}
 .timeline-item{
   position:relative;padding:0 0 14px 18px;border-left:2px solid rgba(28,36,52,0.08);font-size:.82rem;
@@ -4020,6 +4054,21 @@ function renderSignalList(targetId, items, options = {}) {
   }).join('');
 }
 
+function statusOptionTone(status) {
+  const value = String(status || '').toLowerCase();
+  if (['signed_up', 'confirmed', 'active'].includes(value)) return 'status-won';
+  if (['dead', 'cancelled'].includes(value)) return 'status-closed';
+  if (['partial', 'payment_pending', 'chased_2', 'chased_3', 'commercial_pending'].includes(value)) return 'status-risk';
+  return '';
+}
+
+function statusApplyCopy(currentStatus, selectedStatus) {
+  if (!selectedStatus || currentStatus === selectedStatus) {
+    return 'Choose a new stage, then apply it when you are ready.';
+  }
+  return `Ready to move this lead from ${statusLabel(currentStatus)} to ${statusLabel(selectedStatus)}.`;
+}
+
 function defaultStatusOptions() {
   return [
     'partial',
@@ -4229,6 +4278,7 @@ function openPanel(leadId) {
   const sourceLabel = normalizeSourceLabel(lead.source_page);
   const lastUpdated = lead.updated_at || lead.created_at;
   const snapshotTitle = quoteKind === 'commercial' ? 'Enquiry Snapshot' : 'Quote Snapshot';
+  const currentStatus = lead.status || 'partial';
 
   const panel = $('#panelContent');
   panel.innerHTML = `
@@ -4251,14 +4301,32 @@ function openPanel(leadId) {
         ${renderPanelMetricStrip(lead, lastUpdated)}
       </div>
 
-      <div class="panel-card panel-section">
+      <div class="panel-card panel-section pipeline-control-card">
         <div class="panel-section-title">Pipeline Control</div>
-        <div class="panel-empty">Change the live stage for this quote without leaving the drawer. The current state stays visible above while you move it forward.</div>
+        <div class="pipeline-current">
+          <div>
+            <div class="pipeline-current-label">Current stage</div>
+            <div class="pipeline-current-value">${esc(statusLabel(currentStatus))}</div>
+            <div class="pipeline-current-sub">Pick the next stage below, then apply.</div>
+          </div>
+          <span class="pipeline-stage-dot" aria-hidden="true"></span>
+        </div>
+        <div class="panel-status-grid" id="panelStatusGrid" aria-label="Pipeline status options">
+          ${availableStatuses.map(status => `
+            <button
+              class="panel-status-option ${esc(statusOptionTone(status))} ${status === currentStatus ? 'active' : ''}"
+              type="button"
+              data-panel-status="${esc(status)}"
+              aria-pressed="${status === currentStatus ? 'true' : 'false'}"
+            >${esc(statusLabel(status))}</button>
+          `).join('')}
+        </div>
         <div class="panel-inline-actions">
+          <div class="pipeline-apply-note" id="pipelineApplyNote">${esc(statusApplyCopy(currentStatus, currentStatus))}</div>
           <select class="panel-status-select" id="panelStatusSelect">
-            ${availableStatuses.map(status => `<option value="${esc(status)}" ${status === (lead.status || 'partial') ? 'selected' : ''}>${esc(statusLabel(status))}</option>`).join('')}
+            ${availableStatuses.map(status => `<option value="${esc(status)}" ${status === currentStatus ? 'selected' : ''}>${esc(statusLabel(status))}</option>`).join('')}
           </select>
-          <button class="btn-apply-status" id="btnApplyStatus">Apply</button>
+          <button class="btn-apply-status" id="btnApplyStatus" disabled>Apply</button>
         </div>
         <div class="panel-actions">
           <button class="btn-action btn-confirm" id="btnMarkConfirmed">Mark Confirmed</button>
@@ -4338,11 +4406,29 @@ function openPanel(leadId) {
     };
   }
 
+  const statusSelect = $('#panelStatusSelect');
+  const applyStatusBtn = $('#btnApplyStatus');
+  const applyNote = $('#pipelineApplyNote');
+  const statusButtons = $$('#panelStatusGrid [data-panel-status]');
+  statusButtons.forEach(button => {
+    button.onclick = () => {
+      const nextStatus = button.dataset.panelStatus || currentStatus;
+      statusSelect.value = nextStatus;
+      statusButtons.forEach(item => {
+        const isSelected = item === button;
+        item.classList.toggle('active', isSelected);
+        item.setAttribute('aria-pressed', isSelected ? 'true' : 'false');
+      });
+      if (applyNote) applyNote.textContent = statusApplyCopy(currentStatus, nextStatus);
+      if (applyStatusBtn) applyStatusBtn.disabled = nextStatus === currentStatus;
+    };
+  });
+
   // Bind actions
   $('#btnSaveNotes').onclick = () => saveNotes(lead.id);
   $('#btnMarkConfirmed').onclick = () => markStatus(lead.id, 'confirmed');
   $('#btnMarkDead').onclick = () => markStatus(lead.id, 'dead');
-  $('#btnApplyStatus').onclick = () => markStatus(lead.id, $('#panelStatusSelect').value);
+  applyStatusBtn.onclick = () => markStatus(lead.id, statusSelect.value);
 }
 
 function renderExtras(extras) {
