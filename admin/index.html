@@ -461,6 +461,8 @@ body.layout-editing .hidden-modules.has-hidden{display:flex}
 .attention-item-meta{font-size:.76rem;color:var(--ink-faint);margin-top:3px}
 .attention-item-time{font-size:.74rem;color:var(--ink-faint);white-space:nowrap}
 .attention-item-tags{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.attention-action{margin-top:9px;font-size:.78rem;line-height:1.45;color:var(--ink)}
+.attention-action strong{display:block;color:var(--charcoal);font-size:.82rem;margin-bottom:2px}
 .attention-empty{
   padding:16px;border:1px dashed var(--line);border-radius:14px;
   color:var(--ink-faint);font-size:.84rem;line-height:1.6;background:rgba(255,255,255,0.55);
@@ -468,9 +470,14 @@ body.layout-editing .hidden-modules.has-hidden{display:flex}
 .snapshot-list{display:grid;gap:10px}
 .snapshot-row{
   display:flex;align-items:flex-start;justify-content:space-between;gap:14px;
-  padding:12px 0;border-bottom:1px solid var(--line);
+  width:100%;text-align:left;color:inherit;
+  padding:12px 14px;border:1px solid var(--line);border-radius:15px;
+  background:linear-gradient(180deg,var(--white) 0%,#fbf9f4 100%);
+  cursor:pointer;transition:border-color var(--transition),box-shadow var(--transition),transform var(--transition);
 }
-.snapshot-row:last-child{border-bottom:none;padding-bottom:0}
+.snapshot-row:hover{border-color:rgba(184,134,11,.35);box-shadow:var(--shadow);transform:translateY(-1px)}
+.snapshot-row.active{border-color:rgba(184,134,11,.55);box-shadow:0 10px 24px rgba(184,134,11,.12)}
+.snapshot-row:last-child{padding-bottom:12px}
 .snapshot-label{font-size:.82rem;font-weight:700;color:var(--charcoal)}
 .snapshot-sub{font-size:.75rem;color:var(--ink-faint);margin-top:3px}
 .snapshot-value{font-size:1rem;font-weight:800;color:var(--charcoal);white-space:nowrap}
@@ -645,9 +652,10 @@ thead th.sorted .sort-arrow{opacity:1;color:var(--gold)}
 tbody tr{border-bottom:1px solid var(--line);cursor:pointer;transition:background var(--transition),border-left var(--transition);border-left:3px solid transparent}
 tbody tr:nth-child(even){background:rgba(241,237,230,0.25)}
 tbody tr:hover{background:rgba(184,134,11,0.06)}
-tbody td{padding:8px 14px;white-space:nowrap}
+tbody td{padding:12px 14px;white-space:nowrap;vertical-align:middle}
 .empty-row td{text-align:center;padding:40px 14px;color:var(--ink-faint);font-style:italic}
 .lead-name{display:flex;flex-direction:column;gap:4px}
+.lead-name strong{font-size:.94rem}
 .lead-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
 .mini-pill{
   display:inline-flex;align-items:center;padding:2px 8px;border-radius:var(--radius-pill);
@@ -656,6 +664,28 @@ tbody td{padding:8px 14px;white-space:nowrap}
 .mini-pill-attention{background:#fff0d9;color:#935116}
 .mini-pill-source{background:var(--cream-2);color:var(--ink)}
 .lead-subtle{font-size:.74rem;color:var(--ink-faint)}
+.stage-cell{display:flex;flex-direction:column;gap:5px;min-width:170px}
+.stage-pill{
+  display:inline-flex;align-items:center;width:max-content;gap:6px;
+  padding:5px 11px;border-radius:var(--radius-pill);
+  font-size:.74rem;font-weight:800;letter-spacing:.02em;
+}
+.stage-pill::before{
+  content:'';width:7px;height:7px;border-radius:50%;background:currentColor;opacity:.75;
+}
+.stage-new{background:#eef4ff;color:#315ea8}
+.stage-unfinished{background:#fff1dc;color:#935116}
+.stage-due{background:#ffe8df;color:#a74722}
+.stage-waiting{background:#f3eee4;color:#8a5d00}
+.stage-payment{background:#edf1f4;color:#566573}
+.stage-manual{background:#eee5f4;color:#6c3483}
+.stage-won{background:#ddf7e8;color:#1a6b3c}
+.stage-closed{background:#edf0f3;color:#5b6473}
+.next-action{display:flex;flex-direction:column;gap:4px;min-width:230px}
+.next-action strong{font-size:.88rem;color:var(--charcoal)}
+.next-action span{font-size:.75rem;color:var(--ink-faint);line-height:1.35}
+.last-activity{display:flex;flex-direction:column;gap:4px;align-items:flex-start}
+.last-activity strong{font-size:.86rem}
 .row-attention{background:rgba(230,126,34,0.06)!important}
 .row-attention:hover{background:rgba(230,126,34,0.12)!important}
 
@@ -1038,39 +1068,39 @@ canvas{border-radius:8px}
       <button class="module-resize" type="button" aria-label="Resize overview section"></button>
     </section>
 
-    <section class="layout-module" data-tab="dashboard" data-module="needs_attention" data-title="Needs Attention" data-min-span="1" data-max-span="4" data-span="3">
+    <section class="layout-module" data-tab="dashboard" data-module="needs_attention" data-title="Next Follow-ups" data-min-span="1" data-max-span="4" data-span="3">
       <div class="layout-module-toolbar">
-        <div class="layout-grip">⋮⋮ <span class="layout-toolbar-title">Needs Attention</span></div>
+        <div class="layout-grip">⋮⋮ <span class="layout-toolbar-title">Next Follow-ups</span></div>
         <div class="layout-toolbar-actions"><span class="layout-size-pill">Resizable</span><button class="module-hide-btn" data-hide-module="needs_attention">Hide</button></div>
       </div>
       <div class="module-surface">
         <div class="card rail-card">
           <div class="rail-header">
             <div>
-              <div class="card-title">Needs Attention</div>
-              <div class="rail-copy">The leads most likely to need manual intervention next, with manual-review and stalled quotes kept front and centre.</div>
+              <div class="card-title">Next Follow-ups</div>
+              <div class="rail-copy">The leads most ready for a nudge, ordered by follow-up stage and urgency.</div>
             </div>
             <span class="rail-count" id="attentionCount">0</span>
           </div>
           <div class="attention-workbench" id="attentionWorkbench"></div>
         </div>
       </div>
-      <button class="module-resize" type="button" aria-label="Resize needs attention section"></button>
+      <button class="module-resize" type="button" aria-label="Resize next follow-ups section"></button>
     </section>
 
-    <section class="layout-module" data-tab="dashboard" data-module="queue_snapshot" data-title="Queue Snapshot" data-min-span="1" data-max-span="4" data-span="1">
+    <section class="layout-module" data-tab="dashboard" data-module="queue_snapshot" data-title="Follow-up Stages" data-min-span="1" data-max-span="4" data-span="1">
       <div class="layout-module-toolbar">
-        <div class="layout-grip">⋮⋮ <span class="layout-toolbar-title">Queue Snapshot</span></div>
+        <div class="layout-grip">⋮⋮ <span class="layout-toolbar-title">Follow-up Stages</span></div>
         <div class="layout-toolbar-actions"><span class="layout-size-pill">Resizable</span><button class="module-hide-btn" data-hide-module="queue_snapshot">Hide</button></div>
       </div>
       <div class="module-surface">
         <div class="card rail-card">
-          <div class="card-title">Queue Snapshot</div>
-          <div class="rail-copy" style="margin:-8px 0 14px">A compact pulse on what kind of work is sitting in the queue right now.</div>
+          <div class="card-title">Follow-up Stages</div>
+          <div class="rail-copy" style="margin:-8px 0 14px">Click a stage to focus the live queue on that exact type of work.</div>
           <div class="snapshot-list" id="queueSnapshot"></div>
         </div>
       </div>
-      <button class="module-resize" type="button" aria-label="Resize queue snapshot section"></button>
+      <button class="module-resize" type="button" aria-label="Resize follow-up stages section"></button>
     </section>
 
     <section class="layout-module" data-tab="dashboard" data-module="working_queue" data-title="Working Queue" data-min-span="2" data-max-span="4" data-span="4">
@@ -1082,7 +1112,7 @@ canvas{border-radius:8px}
         <div class="section-head">
           <div>
             <div class="section-title" style="margin:0 0 6px">Working Queue</div>
-            <div class="section-copy">The live lead table stays dominant, while filters, export, and manual-review triage stay tightly attached to the queue itself.</div>
+            <div class="section-copy">Every lead is grouped by where it sits in the follow-up journey, with the next action shown before the old status/source detail.</div>
           </div>
         </div>
 
@@ -1090,7 +1120,12 @@ canvas{border-radius:8px}
           <div class="filters-bar">
             <div class="queue-pills" id="queuePills">
               <button class="queue-pill active" data-queue="all">All leads</button>
-              <button class="queue-pill" data-queue="attention">Needs attention</button>
+              <button class="queue-pill" data-queue="due">Action due</button>
+              <button class="queue-pill" data-queue="unfinished">Quote unfinished</button>
+              <button class="queue-pill" data-queue="chase_1">Follow-up 1</button>
+              <button class="queue-pill" data-queue="chase_later">Follow-up 2/3</button>
+              <button class="queue-pill" data-queue="payment_pending">Payment pending</button>
+              <button class="queue-pill" data-queue="signed_up">Signed up</button>
               <button class="queue-pill" data-queue="manual_review">Manual review</button>
             </div>
             <select class="filter-select" id="filterStatus"><option value="">All Statuses</option></select>
@@ -1103,12 +1138,10 @@ canvas{border-radius:8px}
             <table>
               <thead id="tableHead">
                 <tr>
-                  <th data-sort="name">Name <span class="sort-arrow">&#9650;</span></th>
-                  <th data-sort="property_type">Property <span class="sort-arrow">&#9650;</span></th>
+                  <th data-sort="name">Lead <span class="sort-arrow">&#9650;</span></th>
+                  <th data-sort="followup_stage">Follow-up stage <span class="sort-arrow">&#9650;</span></th>
+                  <th data-sort="next_action">Next action <span class="sort-arrow">&#9650;</span></th>
                   <th data-sort="display_value">Value <span class="sort-arrow">&#9650;</span></th>
-                  <th data-sort="status">Status <span class="sort-arrow">&#9650;</span></th>
-                  <th data-sort="postcode">Area <span class="sort-arrow">&#9650;</span></th>
-                  <th data-sort="source_page">Source <span class="sort-arrow">&#9650;</span></th>
                   <th data-sort="updated_at">Updated <span class="sort-arrow">&#9650;</span></th>
                 </tr>
               </thead>
@@ -1507,6 +1540,13 @@ let charts = {};
 let layoutEditing = false;
 let activeResize = null;
 let currentTab = 'dashboard';
+
+function setQueueFilter(value) {
+  filterQueue = value || 'all';
+  $$('#queuePills .queue-pill').forEach(p => p.classList.toggle('active', (p.dataset.queue || 'all') === filterQueue));
+  currentPage = 1;
+  computeAll();
+}
 
 const LAYOUT_STORAGE_KEY = 'mac-cleaning-dashboard-layout-v8';
 const BUSINESS_SNAPSHOT_STORAGE_KEY = 'mac-cleaning-business-snapshot-v1';
@@ -1967,6 +2007,303 @@ function leadAttentionReasons(lead) {
   if (stalePartial) reasons.push('Unfinished quote');
 
   return [...new Set(reasons)];
+}
+
+const HOUR_MS = 60 * 60 * 1000;
+const DAY_MS = 24 * HOUR_MS;
+const PARTIAL_RECOVERY_DELAYS = [45 * 60 * 1000, DAY_MS, 3 * DAY_MS];
+const QUOTE_CHASE_DELAYS = [DAY_MS, 3 * DAY_MS, 7 * DAY_MS];
+const QUOTE_FOLLOWUP_STATUSES = new Set(['quoted', 'quote_sent', 'quote_emailed', 'chased_1', 'chased_2', 'chased_3']);
+
+function parseLeadTime(value) {
+  const timestamp = Date.parse(value || '');
+  return Number.isFinite(timestamp) ? timestamp : null;
+}
+
+function eventTime(lead, eventType) {
+  const match = leadEvents(lead.id).find(event => event.event_type === eventType);
+  return parseLeadTime(match?.created_at);
+}
+
+function partialRecoverySentAt(lead, step) {
+  return eventTime(lead, `partial.recovery_${step}_sent`);
+}
+
+function quoteChaseSentAt(lead, step) {
+  return parseLeadTime(lead[`chase_${step}_sent_at`]) || (lead.status === `chased_${step}` ? parseLeadTime(lead.updated_at || lead.created_at) : null);
+}
+
+function dueCopy(dueAt) {
+  if (!dueAt) return '';
+  const diff = dueAt - Date.now();
+  const abs = Math.abs(diff);
+  const unit = abs < DAY_MS
+    ? `${Math.max(1, Math.round(abs / HOUR_MS))}h`
+    : `${Math.max(1, Math.round(abs / DAY_MS))}d`;
+  return diff <= 0 ? `Overdue by ${unit}` : `Due in ${unit}`;
+}
+
+function getPartialFollowUpState(lead) {
+  const anchor = parseLeadTime(lead.updated_at) || parseLeadTime(lead.created_at);
+  const sent1 = partialRecoverySentAt(lead, 1);
+  const sent2 = partialRecoverySentAt(lead, 2);
+  const sent3 = partialRecoverySentAt(lead, 3);
+  if (!anchor) {
+    return {
+      label: 'Quote unfinished',
+      detail: 'No timestamp found',
+      action: 'Open lead and check what the customer completed',
+      actionDetail: 'The quote journey did not leave enough timing data.',
+      group: 'unfinished',
+      tone: 'stage-unfinished',
+      sort: 35,
+      due: false,
+      dueAt: 0,
+    };
+  }
+
+  const reminder1Due = anchor + PARTIAL_RECOVERY_DELAYS[0];
+  if (!sent1) {
+    const due = Date.now() >= reminder1Due;
+    return {
+      label: due ? 'Reminder 1 due' : 'Quote unfinished',
+      detail: dueCopy(reminder1Due),
+      action: due ? 'Send first unfinished-quote reminder' : 'Wait for reminder 1',
+      actionDetail: 'Customer started the quote but has not finished it.',
+      group: due ? 'due' : 'unfinished',
+      tone: due ? 'stage-due' : 'stage-unfinished',
+      sort: due ? 5 : 35,
+      due,
+      dueAt: reminder1Due,
+    };
+  }
+
+  const reminder2Due = sent1 + PARTIAL_RECOVERY_DELAYS[1];
+  if (!sent2) {
+    const due = Date.now() >= reminder2Due;
+    return {
+      label: due ? 'Reminder 2 due' : 'Reminder 1 sent',
+      detail: dueCopy(reminder2Due),
+      action: due ? 'Send second unfinished-quote reminder' : 'Wait for reminder 2',
+      actionDetail: 'First unfinished-quote reminder has already gone out.',
+      group: due ? 'due' : 'partial_sent',
+      tone: due ? 'stage-due' : 'stage-waiting',
+      sort: due ? 6 : 42,
+      due,
+      dueAt: reminder2Due,
+    };
+  }
+
+  const reminder3Due = sent2 + PARTIAL_RECOVERY_DELAYS[2];
+  if (!sent3) {
+    const due = Date.now() >= reminder3Due;
+    return {
+      label: due ? 'Reminder 3 due' : 'Reminder 2 sent',
+      detail: dueCopy(reminder3Due),
+      action: due ? 'Send final unfinished-quote reminder' : 'Wait for reminder 3',
+      actionDetail: 'Second unfinished-quote reminder has already gone out.',
+      group: due ? 'due' : 'partial_sent',
+      tone: due ? 'stage-due' : 'stage-waiting',
+      sort: due ? 7 : 43,
+      due,
+      dueAt: reminder3Due,
+    };
+  }
+
+  return {
+    label: 'Reminder sequence complete',
+    detail: 'All unfinished-quote reminders sent',
+    action: 'Leave unless they re-engage',
+    actionDetail: 'The automatic unfinished-quote reminder sequence has finished.',
+    group: 'closed',
+    tone: 'stage-closed',
+    sort: 85,
+    due: false,
+    dueAt: sent3,
+  };
+}
+
+function getQuoteFollowUpState(lead) {
+  const anchor = parseLeadTime(lead.quote_sent_at) || parseLeadTime(lead.quoted_at) || parseLeadTime(lead.updated_at);
+  const chase1 = quoteChaseSentAt(lead, 1);
+  const chase2 = quoteChaseSentAt(lead, 2);
+  const chase3 = quoteChaseSentAt(lead, 3);
+
+  if (!anchor) {
+    return {
+      label: 'Quoted',
+      detail: 'No quote timestamp found',
+      action: 'Open lead and check quote delivery',
+      actionDetail: 'The quote exists, but the follow-up clock cannot be read.',
+      group: 'chase_1',
+      tone: 'stage-new',
+      sort: 30,
+      due: false,
+      dueAt: 0,
+    };
+  }
+
+  const chase1Due = anchor + QUOTE_CHASE_DELAYS[0];
+  if (!chase1) {
+    const due = Date.now() >= chase1Due;
+    return {
+      label: due ? 'Follow-up 1 due' : 'Quote sent',
+      detail: dueCopy(chase1Due),
+      action: due ? 'Send first quote follow-up' : 'Wait for follow-up 1',
+      actionDetail: 'Customer has their quote but has not signed up yet.',
+      group: 'chase_1',
+      tone: due ? 'stage-due' : 'stage-new',
+      sort: due ? 10 : 40,
+      due,
+      dueAt: chase1Due,
+    };
+  }
+
+  const chase2Due = chase1 + QUOTE_CHASE_DELAYS[1];
+  if (!chase2) {
+    const due = Date.now() >= chase2Due;
+    return {
+      label: due ? 'Follow-up 2 due' : 'Follow-up 1 sent',
+      detail: dueCopy(chase2Due),
+      action: due ? 'Send second quote follow-up' : 'Wait for follow-up 2',
+      actionDetail: 'First quote follow-up is already logged.',
+      group: 'chase_2',
+      tone: due ? 'stage-due' : 'stage-waiting',
+      sort: due ? 11 : 50,
+      due,
+      dueAt: chase2Due,
+    };
+  }
+
+  const chase3Due = chase2 + QUOTE_CHASE_DELAYS[2];
+  if (!chase3) {
+    const due = Date.now() >= chase3Due;
+    return {
+      label: due ? 'Follow-up 3 due' : 'Follow-up 2 sent',
+      detail: dueCopy(chase3Due),
+      action: due ? 'Send final quote follow-up' : 'Wait for follow-up 3',
+      actionDetail: 'Second quote follow-up is already logged.',
+      group: 'chase_3',
+      tone: due ? 'stage-due' : 'stage-waiting',
+      sort: due ? 12 : 55,
+      due,
+      dueAt: chase3Due,
+    };
+  }
+
+  return {
+    label: 'Follow-up 3 sent',
+    detail: 'Final quote chase logged',
+    action: 'Let this cool unless they reply',
+    actionDetail: 'The automatic quote chase sequence has finished.',
+    group: 'chase_3',
+    tone: 'stage-closed',
+    sort: 70,
+    due: false,
+    dueAt: chase3,
+  };
+}
+
+function getLeadFollowUpStage(lead) {
+  const status = String(lead?.status || 'partial').toLowerCase();
+  if (isAnalyticsExcludedLead(lead)) {
+    return {
+      label: 'Test lead',
+      detail: 'Excluded from analytics',
+      action: 'No action needed',
+      actionDetail: 'This is marked as a test record.',
+      group: 'closed',
+      tone: 'stage-closed',
+      sort: 95,
+      due: false,
+      dueAt: 0,
+    };
+  }
+
+  if (isWonStatus(status)) {
+    return {
+      label: 'Signed up',
+      detail: statusLabel(status),
+      action: 'No lead follow-up needed',
+      actionDetail: 'This lead is already won or active.',
+      group: 'signed_up',
+      tone: 'stage-won',
+      sort: 90,
+      due: false,
+      dueAt: parseLeadTime(lead.signed_up_at || lead.confirmed_at || lead.updated_at) || 0,
+    };
+  }
+
+  if (['dead', 'cancelled', 'rejected'].includes(status)) {
+    return {
+      label: 'Closed',
+      detail: statusLabel(status),
+      action: 'No action needed',
+      actionDetail: 'This lead has been closed.',
+      group: 'closed',
+      tone: 'stage-closed',
+      sort: 92,
+      due: false,
+      dueAt: parseLeadTime(lead.updated_at) || 0,
+    };
+  }
+
+  if (hasManualReview(lead) || status === 'commercial_pending') {
+    return {
+      label: 'Manual review',
+      detail: getLeadQuoteKind(lead) === 'commercial' ? 'Commercial enquiry' : 'Coverage or pricing check',
+      action: getLeadQuoteKind(lead) === 'commercial' ? 'Review commercial fit and respond manually' : 'Check coverage before the next email',
+      actionDetail: 'This needs a human decision before it should move on.',
+      group: 'manual_review',
+      tone: 'stage-manual',
+      sort: 1,
+      due: true,
+      dueAt: parseLeadTime(lead.updated_at || lead.created_at) || 0,
+    };
+  }
+
+  if (status === 'payment_pending' || ((lead.payment_link || lead.gocardless_link) && !['partial', 'dead', 'cancelled'].includes(status))) {
+    return {
+      label: 'Payment pending',
+      detail: lead.gocardless_link ? 'GoCardless step open' : lead.payment_link ? 'Stripe step open' : statusLabel(status),
+      action: 'Check whether payment setup completed',
+      actionDetail: 'This is closest to converted work.',
+      group: 'payment_pending',
+      tone: 'stage-payment',
+      sort: 20,
+      due: false,
+      dueAt: parseLeadTime(lead.updated_at || lead.created_at) || 0,
+    };
+  }
+
+  if (status === 'partial') return getPartialFollowUpState(lead);
+  if (QUOTE_FOLLOWUP_STATUSES.has(status)) return getQuoteFollowUpState(lead);
+
+  return {
+    label: statusLabel(status) || 'New lead',
+    detail: 'Not in a chase sequence',
+    action: 'Open lead and choose the next step',
+    actionDetail: 'This status does not map to an automatic follow-up stage yet.',
+    group: 'new',
+    tone: 'stage-new',
+    sort: 60,
+    due: false,
+    dueAt: parseLeadTime(lead.updated_at || lead.created_at) || 0,
+  };
+}
+
+function matchesQueueFilter(lead, filter) {
+  if (!filter || filter === 'all') return true;
+  const stage = getLeadFollowUpStage(lead);
+  if (filter === 'due') return stage.due;
+  if (filter === 'unfinished') return stage.group === 'unfinished' || stage.group === 'partial_sent';
+  if (filter === 'chase_1') return stage.group === 'chase_1';
+  if (filter === 'chase_later') return stage.group === 'chase_2' || stage.group === 'chase_3';
+  if (filter === 'payment_pending') return stage.group === 'payment_pending';
+  if (filter === 'signed_up') return stage.group === 'signed_up';
+  if (filter === 'manual_review') return stage.group === 'manual_review';
+  if (filter === 'attention') return leadAttentionReasons(lead).length > 0;
+  return true;
 }
 
 function businessMovementJobKey(job) {
@@ -3317,9 +3654,7 @@ function populateFilters() {
 function getFilteredLeads() {
   return allLeads.filter(l => {
     if (!isInRange(l.created_at)) return false;
-    const attentionReasons = leadAttentionReasons(l);
-    if (filterQueue === 'attention' && attentionReasons.length === 0) return false;
-    if (filterQueue === 'manual_review' && !attentionReasons.includes('Manual review')) return false;
+    if (!matchesQueueFilter(l, filterQueue)) return false;
     if (filterStatus && l.status !== filterStatus) return false;
     if (filterProperty && l.property_type !== filterProperty) return false;
     if (filterFrequency && l.frequency !== filterFrequency) return false;
@@ -3443,6 +3778,14 @@ function renderTable(leads) {
     } else if (sortCol === 'display_value') {
       va = a.display_value_sort ?? 0;
       vb = b.display_value_sort ?? 0;
+    } else if (sortCol === 'followup_stage') {
+      va = getLeadFollowUpStage(a).sort;
+      vb = getLeadFollowUpStage(b).sort;
+    } else if (sortCol === 'next_action') {
+      const stageA = getLeadFollowUpStage(a);
+      const stageB = getLeadFollowUpStage(b);
+      va = stageA.due ? stageA.sort : stageA.dueAt || stageA.sort;
+      vb = stageB.due ? stageB.sort : stageB.dueAt || stageB.sort;
     } else if (sortCol === 'created_at' || sortCol === 'updated_at') {
       va = va ? new Date(va).getTime() : 0;
       vb = vb ? new Date(vb).getTime() : 0;
@@ -3462,10 +3805,10 @@ function renderTable(leads) {
   const page = sorted.slice(start, start + PAGE_SIZE);
 
   // Lead count
-  const attentionCount = sorted.filter(l => leadAttentionReasons(l).length > 0).length;
+  const actionDueCount = sorted.filter(l => getLeadFollowUpStage(l).due).length;
   $('#leadCount').textContent =
     sorted.length + ' lead' + (sorted.length !== 1 ? 's' : '') +
-    (filterQueue === 'all' && attentionCount ? ` · ${attentionCount} need attention` : '');
+    (actionDueCount ? ` · ${actionDueCount} action${actionDueCount === 1 ? '' : 's'} due` : '');
 
   // Headers
   $$('#tableHead th').forEach(th => {
@@ -3477,38 +3820,47 @@ function renderTable(leads) {
   // Body
   const tbody = $('#tableBody');
   if (page.length === 0) {
-    tbody.innerHTML = '<tr class="empty-row"><td colspan="7">Waiting for your first lead...</td></tr>';
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="5">No leads match this follow-up stage yet.</td></tr>';
   } else {
-    tbody.innerHTML = page.map(l => `
-      <tr data-id="${l.id}" class="${leadAttentionReasons(l).length ? 'row-attention' : ''}">
+    tbody.innerHTML = page.map(l => {
+      const stage = getLeadFollowUpStage(l);
+      return `
+      <tr data-id="${l.id}" class="${stage.due || leadAttentionReasons(l).length ? 'row-attention' : ''}">
         <td>
           <div class="lead-name">
             <strong>${esc(l.name || '-')}</strong>
             <div class="lead-meta">
-              ${leadAttentionReasons(l)[0] ? `<span class="mini-pill mini-pill-attention">${esc(leadAttentionReasons(l)[0])}</span>` : ''}
+              <span class="mini-pill mini-pill-source">${esc(postcodeArea(l.postcode))}</span>
+              <span class="mini-pill mini-pill-source">${esc(propertyDisplay(l))}</span>
               <span class="mini-pill mini-pill-source">${esc(getLeadKindLabel(l))}</span>
-              <span class="mini-pill mini-pill-source">${esc(normalizeSourceLabel(l.source_page))}</span>
             </div>
           </div>
         </td>
-        <td>${esc(propertyDisplay(l))}</td>
+        <td>
+          <div class="stage-cell">
+            <span class="stage-pill ${esc(stage.tone)}">${esc(stage.label)}</span>
+            <span class="lead-subtle">${esc(stage.detail)}</span>
+          </div>
+        </td>
+        <td>
+          <div class="next-action">
+            <strong>${esc(stage.action)}</strong>
+            <span>${esc(stage.actionDetail)}</span>
+          </div>
+        </td>
         <td>
           <div><strong>${esc(getLeadDisplayValueParts(l).primary)}</strong></div>
           <div class="lead-subtle">${esc(getLeadDisplayValueParts(l).secondary)}</div>
         </td>
-        <td><span class="badge badge-${l.status || 'partial'}">${statusLabel(l.status || 'partial')}</span></td>
-        <td>${esc(postcodeArea(l.postcode))}</td>
         <td>
-          <div>${esc(normalizeSourceLabel(l.source_page))}</div>
-          ${getLeadQuoteKind(l) === 'commercial'
-            ? '<div class="lead-subtle">Manual commercial follow-up</div>'
-            : hasManualReview(l)
-              ? '<div class="lead-subtle">Confirm coverage manually</div>'
-              : ''}
+          <div class="last-activity">
+            <strong title="${fullDate(l.updated_at || l.created_at)}">${relativeTime(l.updated_at || l.created_at)}</strong>
+            <span class="lead-subtle">${esc(statusLabel(l.status || 'partial'))} · ${esc(normalizeSourceLabel(l.source_page))}</span>
+          </div>
         </td>
-        <td title="${fullDate(l.updated_at || l.created_at)}">${relativeTime(l.updated_at || l.created_at)}</td>
       </tr>
-    `).join('');
+    `;
+    }).join('');
   }
 
   // Pagination
@@ -3534,12 +3886,12 @@ function esc(s) {
   return d.innerHTML;
 }
 
-function attentionPriority(reasons) {
-  let score = 0;
-  if (reasons.includes('Manual review')) score += 4;
-  if (reasons.includes('Error logged')) score += 3;
-  if (reasons.includes('Unfinished quote')) score += 2;
-  return score;
+function followUpFocusScore(stage) {
+  if (stage.group === 'manual_review') return 1;
+  if (stage.due) return stage.sort || 5;
+  if (stage.group === 'payment_pending') return 20;
+  if (stage.group === 'unfinished') return 35;
+  return 99;
 }
 
 function renderAttentionWorkbench(leads) {
@@ -3548,33 +3900,37 @@ function renderAttentionWorkbench(leads) {
   if (!wrap || !count) return;
 
   const items = leads
-    .map(lead => ({ lead, reasons: leadAttentionReasons(lead) }))
-    .filter(item => item.reasons.length)
+    .map(lead => ({ lead, stage: getLeadFollowUpStage(lead) }))
+    .filter(item => item.stage.due || item.stage.group === 'payment_pending' || item.stage.group === 'unfinished')
     .sort((a, b) => {
-      const scoreDiff = attentionPriority(b.reasons) - attentionPriority(a.reasons);
+      const scoreDiff = followUpFocusScore(a.stage) - followUpFocusScore(b.stage);
       if (scoreDiff) return scoreDiff;
-      return new Date(b.lead.updated_at || b.lead.created_at || 0) - new Date(a.lead.updated_at || a.lead.created_at || 0);
+      return (a.stage.dueAt || 0) - (b.stage.dueAt || 0);
     });
 
   count.textContent = String(items.length);
 
   if (items.length === 0) {
-    wrap.innerHTML = `<div class="attention-empty">Nothing urgent in this view right now. The queue is clear enough that you can work straight from the table.</div>`;
+    wrap.innerHTML = `<div class="attention-empty">Nothing needs a human nudge in this view right now. The queue is clear enough to work from the full table.</div>`;
     return;
   }
 
-  wrap.innerHTML = items.slice(0, 6).map(({ lead, reasons }) => `
+  wrap.innerHTML = items.slice(0, 6).map(({ lead, stage }) => `
     <div class="attention-item" data-id="${lead.id}">
       <div class="attention-item-top">
         <div>
           <div class="attention-item-name">${esc(lead.name || 'Unnamed lead')}</div>
-          <div class="attention-item-meta">${esc(postcodeArea(lead.postcode))} · ${esc(statusLabel(lead.status || 'partial'))}</div>
+          <div class="attention-item-meta">${esc(postcodeArea(lead.postcode))} · ${esc(propertyDisplay(lead))}</div>
         </div>
         <div class="attention-item-time">${esc(relativeTime(lead.updated_at || lead.created_at))}</div>
       </div>
       <div class="attention-item-tags">
-        ${reasons.map(reason => `<span class="mini-pill mini-pill-attention">${esc(reason)}</span>`).join('')}
+        <span class="stage-pill ${esc(stage.tone)}">${esc(stage.label)}</span>
         <span class="mini-pill mini-pill-source">${esc(normalizeSourceLabel(lead.source_page))}</span>
+      </div>
+      <div class="attention-action">
+        <strong>${esc(stage.action)}</strong>
+        <span>${esc(stage.actionDetail)}</span>
       </div>
     </div>
   `).join('');
@@ -3584,29 +3940,32 @@ function renderQueueSnapshot(leads) {
   const wrap = $('#queueSnapshot');
   if (!wrap) return;
 
-  const manualReview = leads.filter(hasManualReview).length;
-  const unfinished = leads.filter(l => l.status === 'partial').length;
-  const inChase = leads.filter(l => l.status && l.status.startsWith('chased')).length;
-  const paymentPending = leads.filter(l =>
-    (l.payment_link || l.gocardless_link || l.status === 'payment_pending' || l.status === 'quote_sent') &&
-    !['signed_up', 'confirmed', 'dead', 'cancelled'].includes(l.status)
-  ).length;
+  const staged = leads.map(lead => ({ lead, stage: getLeadFollowUpStage(lead) }));
+  const count = (predicate) => staged.filter(predicate).length;
+  const actionDue = count(({ stage }) => stage.due);
+  const unfinished = count(({ stage }) => stage.group === 'unfinished' || stage.group === 'partial_sent');
+  const chase1 = count(({ stage }) => stage.group === 'chase_1');
+  const chaseLater = count(({ stage }) => stage.group === 'chase_2' || stage.group === 'chase_3');
+  const paymentPending = count(({ stage }) => stage.group === 'payment_pending');
+  const signedUp = count(({ stage }) => stage.group === 'signed_up');
 
   const snapshotRows = [
-    { label: 'Manual review', sub: 'Valid quotes that need a human check on service fit.', value: manualReview },
-    { label: 'Unfinished quotes', sub: 'Partials still sitting in the quote journey.', value: unfinished },
-    { label: 'In chase', sub: 'Quoted leads currently in a follow-up sequence.', value: inChase },
-    { label: 'Payment pending', sub: 'Leads with payment steps still open or unresolved.', value: paymentPending }
+    { label: 'Action due', sub: 'Manual checks or follow-ups ready to work now.', value: actionDue, filter: 'due' },
+    { label: 'Quote unfinished', sub: 'Partials in the reminder sequence.', value: unfinished, filter: 'unfinished' },
+    { label: 'Follow-up 1', sub: 'Quoted leads before or around the first chase.', value: chase1, filter: 'chase_1' },
+    { label: 'Follow-up 2/3', sub: 'Leads deeper in the quote chase sequence.', value: chaseLater, filter: 'chase_later' },
+    { label: 'Payment pending', sub: 'Closest wins: payment or mandate still open.', value: paymentPending, filter: 'payment_pending' },
+    { label: 'Signed up', sub: 'Won leads in this view.', value: signedUp, filter: 'signed_up' }
   ];
 
   wrap.innerHTML = snapshotRows.map(row => `
-    <div class="snapshot-row">
+    <button class="snapshot-row ${filterQueue === row.filter ? 'active' : ''}" type="button" data-stage-filter="${esc(row.filter)}">
       <div>
         <div class="snapshot-label">${esc(row.label)}</div>
         <div class="snapshot-sub">${esc(row.sub)}</div>
       </div>
       <div class="snapshot-value">${esc(String(row.value))}</div>
-    </div>
+    </button>
   `).join('');
 }
 
@@ -5180,7 +5539,7 @@ function renderBusinessTab(filteredLeads, analyticsLeads) {
       tone: 'alt'
     },
     {
-      label: 'Partial recovery pool',
+      label: 'Unfinished quote pool',
       value: metrics.live.partialCount || 0,
       display: formatCount(metrics.live.partialCount || 0),
       sub: 'Leads still sitting unfinished in the quote journey.',
@@ -5304,10 +5663,14 @@ $('#searchInput').addEventListener('input', e => {
 $('#queuePills').addEventListener('click', e => {
   const pill = e.target.closest('.queue-pill');
   if (!pill) return;
-  filterQueue = pill.dataset.queue || 'all';
-  $$('#queuePills .queue-pill').forEach(p => p.classList.toggle('active', p === pill));
-  currentPage = 1;
-  computeAll();
+  setQueueFilter(pill.dataset.queue || 'all');
+});
+
+$('#queueSnapshot').addEventListener('click', e => {
+  const row = e.target.closest('[data-stage-filter]');
+  if (!row) return;
+  const nextFilter = row.dataset.stageFilter || 'all';
+  setQueueFilter(filterQueue === nextFilter ? 'all' : nextFilter);
 });
 
 // Filters
@@ -5557,7 +5920,7 @@ function renderAiSummary(filteredLeads, analyticsLeads) {
   }
 
   if (partial > 0) {
-    bullets.push(`${partial} partial lead${partial === 1 ? '' : 's'} still need follow-up or a completed quote, so there is still recoverable demand sitting above the pipeline.`);
+    bullets.push(`${partial} unfinished quote${partial === 1 ? '' : 's'} still need a follow-up or a completed booking, so there is still warm demand sitting above the pipeline.`);
   } else {
     bullets.push(`There are no unfinished quotes in this ${rangeLabel()} view, so the queue is currently weighted toward quoted or converted work.`);
   }
