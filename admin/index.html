@@ -263,6 +263,14 @@ body.layout-editing .hidden-modules.has-hidden{display:flex}
 }
 .overview-side-row .stat-value{font-size:1.02rem;color:#fff;line-height:1.15}
 .overview-side-row .stat-sub{margin-top:0;color:rgba(255,255,255,0.44);font-size:.71rem;line-height:1.45}
+.overview-pulse-details{display:block}
+.overview-pulse-summary{display:none}
+.overview-pulse-summary::-webkit-details-marker{display:none}
+.overview-pulse-summary:focus{outline:none}
+.overview-pulse-summary:focus-visible{box-shadow:inset 0 0 0 2px rgba(211,161,52,0.55)}
+.overview-pulse-summary .summary-open{display:none}
+.overview-pulse-details[open] .summary-open{display:inline}
+.overview-pulse-details[open] .summary-closed{display:none}
 .stat-card-compact{padding:16px 16px 14px;border-top-width:3px}
 .stat-card-compact .stat-label{margin-bottom:6px}
 .stat-card-compact .stat-value{font-size:1.55rem}
@@ -835,6 +843,23 @@ tbody tr:has(.badge-test){border-left-color:#9b59b6}
 .panel-metric-sub{font-size:.73rem;color:var(--ink-faint);margin-top:4px}
 .panel-section{margin-top:0}
 .panel-section-title{font-size:.74rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-faint);margin-bottom:10px}
+.panel-snapshot-details{padding:0;overflow:hidden}
+.panel-snapshot-summary{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:16px;cursor:pointer;list-style:none;
+}
+.panel-snapshot-summary::-webkit-details-marker{display:none}
+.panel-snapshot-summary:focus{outline:none}
+.panel-snapshot-summary:focus-visible{box-shadow:inset 0 0 0 2px rgba(211,161,52,0.45)}
+.panel-snapshot-summary .panel-section-title{margin:0}
+.panel-summary-pill{
+  display:inline-flex;align-items:center;justify-content:center;padding:6px 10px;border-radius:999px;
+  background:rgba(28,36,52,0.06);color:var(--charcoal);font-size:.72rem;font-weight:800;white-space:nowrap;
+}
+.panel-summary-pill .summary-open{display:none}
+.panel-snapshot-details[open] .summary-open{display:inline}
+.panel-snapshot-details[open] .summary-closed{display:none}
+.panel-snapshot-details .panel-detail-grid{padding:0 16px 16px}
 .attention-list{display:flex;flex-wrap:wrap;gap:8px}
 .attention-chip{
   display:inline-flex;align-items:center;padding:6px 10px;border-radius:var(--radius-pill);
@@ -937,16 +962,60 @@ canvas{border-radius:8px}
   .revenue-row{grid-template-columns:repeat(3,1fr)}
 }
 @media(max-width:768px){
-  .topbar{position:sticky;padding:10px 16px;gap:10px;flex-wrap:wrap}
-  .topbar-actions{width:100%;margin-left:0;flex-wrap:wrap}
-  .topbar-search{max-width:none;min-width:220px}
-  .main{padding:16px 16px 32px}
+  html{font-size:14px}
+  body{background:#f7f5ef}
+  .topbar{
+    position:sticky;top:0;padding:12px 14px 14px;gap:10px;flex-wrap:wrap;
+    background:rgba(250,250,247,0.94);
+    box-shadow:0 1px 0 rgba(28,36,52,0.08),0 12px 30px rgba(28,36,52,0.08);
+  }
+  .topbar-brand{width:100%;justify-content:space-between;font-size:1rem}
+  .topbar-pill{font-size:.66rem;padding:4px 9px}
+  .topbar-actions{
+    width:100%;margin-left:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;
+  }
+  .topbar-search{
+    grid-column:1 / -1;max-width:none;min-width:0;width:100%;
+    min-height:43px;padding:10px 14px;border-radius:15px;background:#fff;
+  }
+  .btn-layout,.btn-refresh,.btn-logout{
+    justify-content:center;min-height:42px;padding:10px 9px;font-size:.78rem;
+  }
+  .btn-refresh svg{width:15px;height:15px}
+  .main{padding:14px 12px 32px;max-width:none}
   .overview-command-top{flex-direction:column;align-items:flex-start}
   .overview-command .date-range{justify-content:flex-start}
+  .overview-board{border-radius:20px;padding:14px}
+  .overview-main{gap:12px}
   .overview-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .pulse-highlights{grid-template-columns:1fr}
-  .overview-side-grid{grid-template-columns:1fr}
-  .view-tabs{flex-wrap:wrap}
+  .overview-side{padding:12px;gap:9px;border-radius:18px}
+  .overview-side-head{align-items:center}
+  .overview-side-copy{display:none}
+  .pulse-highlights{
+    grid-template-columns:repeat(3,minmax(112px,1fr));gap:8px;overflow-x:auto;
+    margin:0 -12px;padding:0 12px 3px;-webkit-overflow-scrolling:touch;
+  }
+  .pulse-highlight{min-width:112px;padding:11px 10px;border-radius:16px}
+  .pulse-highlight-label{font-size:.6rem;margin-bottom:6px}
+  .pulse-highlight-value{font-size:1.08rem}
+  .pulse-highlight-sub{display:none}
+  .overview-pulse-summary{
+    display:flex;align-items:center;justify-content:space-between;gap:10px;
+    margin-top:2px;padding:11px 12px;border-radius:15px;
+    background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.1);
+    color:rgba(255,255,255,0.84);font-size:.78rem;font-weight:800;
+  }
+  .overview-pulse-summary span:last-child{color:rgba(255,255,255,0.46);font-size:.7rem;font-weight:700}
+  .overview-pulse-details[open] .overview-side-grid{margin-top:8px}
+  .overview-side-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .overview-side-row{padding:9px 10px}
+  .overview-side-row .stat-sub{display:none}
+  .overview-side-row .stat-value{font-size:1rem}
+  .view-tabs{
+    flex-wrap:nowrap;overflow-x:auto;gap:8px;margin:2px -12px 14px;padding:0 12px 6px;
+    scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;
+  }
+  .view-tab{flex:0 0 auto;scroll-snap-align:start;padding:10px 14px}
   .layout-canvas[data-tab="dashboard"]{grid-template-columns:1fr}
   .layout-canvas[data-tab="dashboard"] .layout-module{grid-column:span 1}
   .stats-row{grid-template-columns:repeat(2,1fr);gap:10px}
@@ -956,13 +1025,106 @@ canvas{border-radius:8px}
   .business-overview-main{grid-template-columns:1fr}
   .insights-strip,.insight-pulse-grid,.insight-mix-grid{grid-template-columns:1fr}
   .insight-mix-block-wide{grid-column:auto}
-  .detail-panel{top:0;right:0;bottom:0;width:100%;max-height:100dvh;border-radius:0;border:none}
-  .filters-bar{flex-direction:column;align-items:stretch}
-  .lead-count{margin-left:0}
+  .filters-bar{display:grid;grid-template-columns:1fr;gap:10px;margin-bottom:14px}
+  .queue-pills{
+    flex-wrap:nowrap;overflow-x:auto;margin:0 -12px;padding:0 12px 5px;
+    -webkit-overflow-scrolling:touch;scroll-snap-type:x proximity;
+  }
+  .queue-pill{flex:0 0 auto;scroll-snap-align:start;padding:8px 14px}
+  .filter-select,.btn-export{width:100%;min-height:42px}
+  .lead-count{margin-left:0;order:-1;font-size:.8rem}
+  .table-wrap{overflow:visible;margin:0 0 20px}
+  table,tbody{display:block;width:100%}
+  thead{display:none}
+  tbody{display:grid;gap:12px}
+  tbody tr{
+    display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:0;
+    border:1px solid rgba(28,36,52,0.08);border-left:4px solid rgba(184,134,11,0.3);
+    border-radius:20px;overflow:hidden;background:rgba(255,255,255,0.94)!important;
+    box-shadow:0 12px 30px rgba(28,36,52,0.07);transform:none;
+  }
+  tbody tr:nth-child(even){background:rgba(255,255,255,0.94)!important}
+  tbody tr:hover{background:#fff!important;box-shadow:0 16px 34px rgba(28,36,52,0.1);transform:translateY(-1px)}
+  tbody tr:has(.stage-new){border-left-color:#315ea8}
+  tbody tr:has(.stage-unfinished),tbody tr:has(.stage-due){border-left-color:#e67e22}
+  tbody tr:has(.stage-waiting),tbody tr:has(.stage-dormant){border-left-color:#b8860b}
+  tbody tr:has(.stage-payment){border-left-color:#7f8c8d}
+  tbody tr:has(.stage-manual){border-left-color:#8e44ad}
+  tbody tr:has(.stage-won){border-left-color:#27ae60}
+  tbody tr:has(.stage-closed){border-left-color:#8a92a1}
+  tbody td{
+    display:block;padding:12px 14px;white-space:normal;border-top:1px solid rgba(28,36,52,0.06);
+  }
+  tbody td::before{
+    content:attr(data-label);display:block;margin-bottom:6px;
+    font-size:.66rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-faint);
+  }
+  tbody td[data-label="Lead"]{
+    grid-column:1 / -1;border-top:none;padding:15px 14px;
+    background:linear-gradient(180deg,#fff 0%,#fbf8f1 100%);
+  }
+  tbody td[data-label="Lead"]::before{display:none}
+  tbody td[data-label="Next action"]{grid-column:1 / -1}
+  .empty-row{display:block!important;border-left-color:transparent}
+  .empty-row td{display:block!important;text-align:left;padding:22px 16px}
+  .empty-row td::before{display:none}
+  .lead-name strong{font-size:1rem;line-height:1.25}
+  .lead-meta{gap:5px}
+  .mini-pill{font-size:.64rem;padding:3px 8px}
+  .stage-cell,.next-action{min-width:0}
+  .stage-pill{width:auto;max-width:100%;white-space:normal;line-height:1.2;padding:6px 10px}
+  .next-action strong{font-size:.92rem}
+  .next-action span,.lead-subtle{font-size:.74rem}
+  .pagination{flex-wrap:wrap}
+  .page-btn{min-width:38px;min-height:36px}
+  .panel-overlay{background:rgba(28,36,52,0.42)}
+  .detail-panel{
+    top:10px;left:0;right:0;bottom:0;width:100%;max-height:calc(100dvh - 10px);
+    border-radius:26px 26px 0 0;border:none;box-shadow:0 -18px 46px rgba(28,36,52,0.24);
+    transform:translateY(100%);
+  }
+  .detail-panel.open{transform:translateY(0)}
+  #panelContent{padding:20px 15px 28px}
+  .panel-close{top:14px;right:14px;width:36px;height:36px;background:#fff}
+  .panel-stack{gap:12px;padding-top:18px}
+  .panel-hero{padding:17px 15px 15px;border-radius:20px}
+  .panel-card{padding:15px;border-radius:20px}
+  .panel-snapshot-details{padding:0}
+  .panel-snapshot-summary{padding:15px}
+  .panel-snapshot-details .panel-detail-grid{padding:0 15px 15px}
+  .panel-name{font-size:1.38rem;padding-right:42px}
+  .panel-contact{gap:7px;font-size:.84rem}
+  .panel-metric-strip{
+    display:flex;overflow-x:auto;gap:9px;margin:14px -15px 0;padding:0 15px 3px;
+    -webkit-overflow-scrolling:touch;
+  }
+  .panel-metric{min-width:128px;flex:1 0 128px}
+  .panel-status-grid{
+    flex-wrap:nowrap;overflow-x:auto;margin:12px -15px 0;padding:0 15px 5px;
+    -webkit-overflow-scrolling:touch;
+  }
+  .panel-status-option{flex:0 0 auto;min-height:42px;padding:9px 12px}
+  .panel-inline-actions{grid-template-columns:1fr;gap:9px}
+  .btn-apply-status{width:100%;min-height:43px}
+  .panel-actions{gap:9px}
+  .btn-action{min-height:44px}
+  .view-tabs,.queue-pills,.pulse-highlights,.panel-metric-strip,.panel-status-grid{scrollbar-width:none}
+  .view-tabs::-webkit-scrollbar,
+  .queue-pills::-webkit-scrollbar,
+  .pulse-highlights::-webkit-scrollbar,
+  .panel-metric-strip::-webkit-scrollbar,
+  .panel-status-grid::-webkit-scrollbar{display:none}
 }
 @media(max-width:480px){
   .overview-stats,.stats-row{grid-template-columns:repeat(2,1fr)}
-  .topbar-brand span:first-child{display:none}
+  .topbar-brand span:first-child{display:inline}
+  .btn-layout,.btn-refresh,.btn-logout{font-size:.74rem;padding-inline:7px}
+  tbody tr{grid-template-columns:1fr}
+  tbody td[data-label="Lead"],tbody td[data-label="Next action"]{grid-column:auto}
+  tbody td[data-label="Updated"]{border-bottom-left-radius:16px;border-bottom-right-radius:16px}
+  .panel-detail-grid{grid-template-columns:1fr}
+  .panel-detail-item.wide{grid-column:auto}
+  .panel-actions{grid-template-columns:1fr}
 }
 </style>
 </head>
@@ -1075,18 +1237,25 @@ canvas{border-radius:8px}
                     <div class="pulse-highlight-sub">Annualised quote value still in play, excluding dead, cancelled, and partial leads.</div>
                   </div>
                 </div>
-                <div class="overview-side-grid">
-                  <div class="overview-side-row"><div><div class="stat-label">Total Quoted</div><div class="stat-sub">Quotes sent in this view.</div></div><div class="stat-value" id="statQuoted">--</div></div>
-                  <div class="overview-side-row"><div><div class="stat-label">Conversion Rate</div><div class="stat-sub">Quoted leads turning into signups.</div></div><div class="stat-value" id="statConversion">--</div></div>
-                  <div class="overview-side-row"><div><div class="stat-label">Avg Recurring Quote</div><div class="stat-sub">Average per-clean value for recurring quotes in this view.</div></div><div class="stat-value" id="statAvgQuote">--</div></div>
-                  <div class="overview-side-row"><div><div class="stat-label">Avg Live Clean</div><div class="stat-sub">Average per-clean value for recurring customers already won.</div></div><div class="stat-value" id="statAvgSignup">--</div></div>
-                  <div class="overview-side-row"><div><div class="stat-label">One-Off Quoted</div><div class="stat-sub">Standalone quoted value for one-off jobs in this view.</div></div><div class="stat-value" id="statOneoffQuoted">--</div></div>
-                  <div class="overview-side-row"><div><div class="stat-label">One-Off Booked</div><div class="stat-sub">One-off value that has already converted.</div></div><div class="stat-value" id="statOneoffBooked">--</div></div>
-                  <div class="overview-side-row"><div><div class="stat-label">Avg Response Time</div><div class="stat-sub">How quickly leads get handled.</div></div><div class="stat-value" id="statResponseTime">--</div></div>
-                  <div class="overview-side-row"><div><div class="stat-label">In Follow-up</div><div class="stat-sub">Open leads still inside the reminder flow.</div></div><div class="stat-value" id="statInChase">--</div></div>
-                  <div class="overview-side-row"><div><div class="stat-label">Email-Assisted Wins</div><div class="stat-sub">Won leads that had a logged email nudge first.</div></div><div class="stat-value" id="statChaseConv">--</div></div>
-                  <div class="overview-side-row"><div><div class="stat-label">Top Area</div><div class="stat-sub" id="statTopAreaSub">Highest lead concentration.</div></div><div class="stat-value" id="statTopArea">--</div></div>
-                </div>
+                <details class="overview-pulse-details" id="overviewPulseDetails" open>
+                  <summary class="overview-pulse-summary">
+                    <span class="summary-closed">Show full pulse</span>
+                    <span class="summary-open">Hide full pulse</span>
+                    <span>10 extra metrics</span>
+                  </summary>
+                  <div class="overview-side-grid">
+                    <div class="overview-side-row"><div><div class="stat-label">Total Quoted</div><div class="stat-sub">Quotes sent in this view.</div></div><div class="stat-value" id="statQuoted">--</div></div>
+                    <div class="overview-side-row"><div><div class="stat-label">Conversion Rate</div><div class="stat-sub">Quoted leads turning into signups.</div></div><div class="stat-value" id="statConversion">--</div></div>
+                    <div class="overview-side-row"><div><div class="stat-label">Avg Recurring Quote</div><div class="stat-sub">Average per-clean value for recurring quotes in this view.</div></div><div class="stat-value" id="statAvgQuote">--</div></div>
+                    <div class="overview-side-row"><div><div class="stat-label">Avg Live Clean</div><div class="stat-sub">Average per-clean value for recurring customers already won.</div></div><div class="stat-value" id="statAvgSignup">--</div></div>
+                    <div class="overview-side-row"><div><div class="stat-label">One-Off Quoted</div><div class="stat-sub">Standalone quoted value for one-off jobs in this view.</div></div><div class="stat-value" id="statOneoffQuoted">--</div></div>
+                    <div class="overview-side-row"><div><div class="stat-label">One-Off Booked</div><div class="stat-sub">One-off value that has already converted.</div></div><div class="stat-value" id="statOneoffBooked">--</div></div>
+                    <div class="overview-side-row"><div><div class="stat-label">Avg Response Time</div><div class="stat-sub">How quickly leads get handled.</div></div><div class="stat-value" id="statResponseTime">--</div></div>
+                    <div class="overview-side-row"><div><div class="stat-label">In Follow-up</div><div class="stat-sub">Open leads still inside the reminder flow.</div></div><div class="stat-value" id="statInChase">--</div></div>
+                    <div class="overview-side-row"><div><div class="stat-label">Email-Assisted Wins</div><div class="stat-sub">Won leads that had a logged email nudge first.</div></div><div class="stat-value" id="statChaseConv">--</div></div>
+                    <div class="overview-side-row"><div><div class="stat-label">Top Area</div><div class="stat-sub" id="statTopAreaSub">Highest lead concentration.</div></div><div class="stat-value" id="statTopArea">--</div></div>
+                  </div>
+                </details>
               </div>
             </div>
             <div class="overview-bottom">
@@ -3882,7 +4051,7 @@ function renderTable(leads) {
       const stage = getLeadFollowUpStage(l);
       return `
       <tr data-id="${l.id}" class="${stage.due || leadAttentionReasons(l).length ? 'row-attention' : ''}">
-        <td>
+        <td data-label="Lead">
           <div class="lead-name">
             <strong>${esc(l.name || '-')}</strong>
             <div class="lead-meta">
@@ -3892,23 +4061,23 @@ function renderTable(leads) {
             </div>
           </div>
         </td>
-        <td>
+        <td data-label="Follow-up stage">
           <div class="stage-cell">
             <span class="stage-pill ${esc(stage.tone)}">${esc(stage.label)}</span>
             <span class="lead-subtle">${esc(stage.detail)}</span>
           </div>
         </td>
-        <td>
+        <td data-label="Next action">
           <div class="next-action">
             <strong>${esc(stage.action)}</strong>
             <span>${esc(stage.actionDetail)}</span>
           </div>
         </td>
-        <td>
+        <td data-label="Value">
           <div><strong>${esc(getLeadDisplayValueParts(l).primary)}</strong></div>
           <div class="lead-subtle">${esc(getLeadDisplayValueParts(l).secondary)}</div>
         </td>
-        <td>
+        <td data-label="Updated">
           <div class="last-activity">
             <strong title="${fullDate(l.updated_at || l.created_at)}">${relativeTime(l.updated_at || l.created_at)}</strong>
             <span class="lead-subtle">${esc(statusLabel(l.status || 'partial'))} · ${esc(normalizeSourceLabel(l.source_page))}</span>
@@ -4279,6 +4448,7 @@ function openPanel(leadId) {
   const lastUpdated = lead.updated_at || lead.created_at;
   const snapshotTitle = quoteKind === 'commercial' ? 'Enquiry Snapshot' : 'Quote Snapshot';
   const currentStatus = lead.status || 'partial';
+  const snapshotOpenAttr = window.matchMedia('(max-width: 768px)').matches ? '' : ' open';
 
   const panel = $('#panelContent');
   panel.innerHTML = `
@@ -4300,6 +4470,19 @@ function openPanel(leadId) {
         <div class="panel-hero-copy">${panelHeroCopy(lead)}</div>
         ${renderPanelMetricStrip(lead, lastUpdated)}
       </div>
+
+      <details class="panel-card panel-section panel-snapshot-details"${snapshotOpenAttr}>
+        <summary class="panel-snapshot-summary">
+          <span class="panel-section-title">${snapshotTitle}</span>
+          <span class="panel-summary-pill">
+            <span class="summary-closed">Show details</span>
+            <span class="summary-open">Hide details</span>
+          </span>
+        </summary>
+        <div class="panel-detail-grid">
+          ${renderPanelSnapshot(lead, lastUpdated)}
+        </div>
+      </details>
 
       <div class="panel-card panel-section pipeline-control-card">
         <div class="panel-section-title">Pipeline Control</div>
@@ -4341,13 +4524,6 @@ function openPanel(leadId) {
           ${attentionReasons.map(reason => `<span class="attention-chip">${esc(reason)}</span>`).join('')}
         </div>
       </div>` : ''}
-
-      <div class="panel-card panel-section">
-        <div class="panel-section-title">${snapshotTitle}</div>
-        <div class="panel-detail-grid">
-          ${renderPanelSnapshot(lead, lastUpdated)}
-        </div>
-      </div>
 
       ${(lead.payment_link || lead.gocardless_link) ? `
       <div class="panel-card panel-section">
@@ -6020,9 +6196,17 @@ $('#btnResetBusinessGoals')?.addEventListener('click', () => {
   computeAll();
 });
 
+function applyMobileDisclosureDefaults() {
+  const pulseDetails = $('#overviewPulseDetails');
+  if (pulseDetails && window.matchMedia('(max-width: 768px)').matches) {
+    pulseDetails.open = false;
+  }
+}
+
 // ── INIT ────────────────────────────────────────────────────
 applyLayoutState();
 setLayoutEditing(false);
+applyMobileDisclosureDefaults();
 populateBusinessGoalInputs();
 fetchData();
 
