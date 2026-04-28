@@ -681,6 +681,7 @@ tbody td{padding:12px 14px;white-space:nowrap;vertical-align:middle}
 .stage-manual{background:#eee5f4;color:#6c3483}
 .stage-won{background:#ddf7e8;color:#1a6b3c}
 .stage-closed{background:#edf0f3;color:#5b6473}
+.stage-dormant{background:#fff2e6;color:#8a4b18}
 .next-action{display:flex;flex-direction:column;gap:4px;min-width:230px}
 .next-action strong{font-size:.88rem;color:var(--charcoal)}
 .next-action span{font-size:.75rem;color:var(--ink-faint);line-height:1.35}
@@ -902,10 +903,10 @@ canvas{border-radius:8px}
   .revenue-row{grid-template-columns:repeat(3,1fr)}
 }
 @media(max-width:768px){
-  .topbar{padding:10px 16px;gap:10px}
+  .topbar{position:sticky;padding:10px 16px;gap:10px;flex-wrap:wrap}
   .topbar-actions{width:100%;margin-left:0;flex-wrap:wrap}
   .topbar-search{max-width:none;min-width:220px}
-  .main{padding:70px 16px 32px}
+  .main{padding:16px 16px 32px}
   .overview-command-top{flex-direction:column;align-items:flex-start}
   .overview-command .date-range{justify-content:flex-start}
   .overview-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
@@ -1048,8 +1049,8 @@ canvas{border-radius:8px}
                   <div class="overview-side-row"><div><div class="stat-label">One-Off Quoted</div><div class="stat-sub">Standalone quoted value for one-off jobs in this view.</div></div><div class="stat-value" id="statOneoffQuoted">--</div></div>
                   <div class="overview-side-row"><div><div class="stat-label">One-Off Booked</div><div class="stat-sub">One-off value that has already converted.</div></div><div class="stat-value" id="statOneoffBooked">--</div></div>
                   <div class="overview-side-row"><div><div class="stat-label">Avg Response Time</div><div class="stat-sub">How quickly leads get handled.</div></div><div class="stat-value" id="statResponseTime">--</div></div>
-                  <div class="overview-side-row"><div><div class="stat-label">In Chase</div><div class="stat-sub">Leads currently sitting in follow-up.</div></div><div class="stat-value" id="statInChase">--</div></div>
-                  <div class="overview-side-row"><div><div class="stat-label">Chase Conversion</div><div class="stat-sub">Follow-up effectiveness once chasing starts.</div></div><div class="stat-value" id="statChaseConv">--</div></div>
+                  <div class="overview-side-row"><div><div class="stat-label">In Follow-up</div><div class="stat-sub">Open leads still inside the reminder flow.</div></div><div class="stat-value" id="statInChase">--</div></div>
+                  <div class="overview-side-row"><div><div class="stat-label">Email-Assisted Wins</div><div class="stat-sub">Won leads that had a logged email nudge first.</div></div><div class="stat-value" id="statChaseConv">--</div></div>
                   <div class="overview-side-row"><div><div class="stat-label">Top Area</div><div class="stat-sub" id="statTopAreaSub">Highest lead concentration.</div></div><div class="stat-value" id="statTopArea">--</div></div>
                 </div>
               </div>
@@ -1078,7 +1079,7 @@ canvas{border-radius:8px}
           <div class="rail-header">
             <div>
               <div class="card-title">Next Follow-ups</div>
-              <div class="rail-copy">The leads most ready for a nudge, ordered by follow-up stage and urgency.</div>
+              <div class="rail-copy">The leads most ready for a nudge or personal-channel test, ordered by stage and urgency.</div>
             </div>
             <span class="rail-count" id="attentionCount">0</span>
           </div>
@@ -1124,6 +1125,7 @@ canvas{border-radius:8px}
               <button class="queue-pill" data-queue="unfinished">Quote unfinished</button>
               <button class="queue-pill" data-queue="chase_1">Follow-up 1</button>
               <button class="queue-pill" data-queue="chase_later">Follow-up 2/3</button>
+              <button class="queue-pill" data-queue="dormant">Dormant</button>
               <button class="queue-pill" data-queue="payment_pending">Payment pending</button>
               <button class="queue-pill" data-queue="signed_up">Signed up</button>
               <button class="queue-pill" data-queue="manual_review">Manual review</button>
@@ -1176,7 +1178,7 @@ canvas{border-radius:8px}
           <div class="revenue-card">
             <div class="revenue-label">Open Annual Pipeline</div>
             <div class="revenue-value" id="revPipeline">&pound;0</div>
-            <div class="revenue-copy">Annualised quote value still in play across open, quoted, payment-pending, and chased leads.</div>
+            <div class="revenue-copy">Annualised quote value still in play across open, quoted, payment-pending, and followed-up leads.</div>
             <div class="revenue-note">This is pipeline value, not live revenue, and it excludes dead, cancelled, and unfinished quotes.</div>
           </div>
           <div class="revenue-card">
@@ -1230,8 +1232,8 @@ canvas{border-radius:8px}
               </div>
               <div class="insight-chip">
                 <div class="insight-chip-label">Follow-up</div>
-                <div class="insight-chip-value">Chase drag</div>
-                <div class="insight-chip-copy">Where unresolved leads are collecting after quote delivery.</div>
+                <div class="insight-chip-value">Email baseline</div>
+                <div class="insight-chip-copy">Immediate signups, email-assisted wins, and dormant follow-up leads.</div>
               </div>
             </div>
           </div>
@@ -1281,10 +1283,10 @@ canvas{border-radius:8px}
         <button class="module-resize" type="button" aria-label="Resize lead source performance"></button>
       </section>
 
-      <section class="layout-module" data-tab="insights" data-module="insights_chase" data-title="Chase Sequence" data-min-span="1" data-max-span="2" data-span="1">
-        <div class="layout-module-toolbar"><div class="layout-grip">⋮⋮ <span class="layout-toolbar-title">Chase Sequence</span></div><div class="layout-toolbar-actions"><span class="layout-size-pill">Signals</span><button class="module-hide-btn" data-hide-module="insights_chase">Hide</button></div></div>
-        <div class="module-surface"><div class="card"><div class="card-title">Chase Sequence</div><div class="signal-list" id="chaseBreakdown"></div></div></div>
-        <button class="module-resize" type="button" aria-label="Resize chase sequence"></button>
+      <section class="layout-module" data-tab="insights" data-module="insights_chase" data-title="Follow-up Impact" data-min-span="1" data-max-span="2" data-span="1">
+        <div class="layout-module-toolbar"><div class="layout-grip">⋮⋮ <span class="layout-toolbar-title">Follow-up Impact</span></div><div class="layout-toolbar-actions"><span class="layout-size-pill">Signals</span><button class="module-hide-btn" data-hide-module="insights_chase">Hide</button></div></div>
+        <div class="module-surface"><div class="card"><div class="card-title">Follow-up Impact</div><div class="signal-list" id="chaseBreakdown"></div></div></div>
+        <button class="module-resize" type="button" aria-label="Resize follow-up impact"></button>
       </section>
 
       <section class="layout-module" data-tab="insights" data-module="insights_payment" data-title="Payment Method" data-min-span="1" data-max-span="2" data-span="1">
@@ -2033,6 +2035,25 @@ function quoteChaseSentAt(lead, step) {
   return parseLeadTime(lead[`chase_${step}_sent_at`]) || (lead.status === `chased_${step}` ? parseLeadTime(lead.updated_at || lead.created_at) : null);
 }
 
+function getFollowUpTouchTimes(lead) {
+  return [
+    partialRecoverySentAt(lead, 1),
+    partialRecoverySentAt(lead, 2),
+    partialRecoverySentAt(lead, 3),
+    quoteChaseSentAt(lead, 1),
+    quoteChaseSentAt(lead, 2),
+    quoteChaseSentAt(lead, 3),
+  ].filter(Boolean).sort((a, b) => a - b);
+}
+
+function countFollowUpsBeforeSignup(lead) {
+  if (!isWonStatus(lead?.status)) return 0;
+  const signedAt = parseLeadTime(lead.signed_up_at || lead.confirmed_at || lead.updated_at);
+  const touches = getFollowUpTouchTimes(lead);
+  if (!signedAt) return Math.min(touches.length, 3);
+  return Math.min(touches.filter(time => time <= signedAt).length, 3);
+}
+
 function dueCopy(dueAt) {
   if (!dueAt) return '';
   const diff = dueAt - Date.now();
@@ -2111,12 +2132,12 @@ function getPartialFollowUpState(lead) {
   }
 
   return {
-    label: 'Reminder sequence complete',
-    detail: 'All unfinished-quote reminders sent',
-    action: 'Leave unless they re-engage',
-    actionDetail: 'The automatic unfinished-quote reminder sequence has finished.',
-    group: 'closed',
-    tone: 'stage-closed',
+    label: 'Dormant after reminders',
+    detail: `Final reminder sent ${relativeTime(new Date(sent3).toISOString())}`,
+    action: 'Move to personal-channel test',
+    actionDetail: 'Email reminders have finished. This is the future WhatsApp/call test pool.',
+    group: 'dormant',
+    tone: 'stage-dormant',
     sort: 85,
     due: false,
     dueAt: sent3,
@@ -2192,12 +2213,12 @@ function getQuoteFollowUpState(lead) {
   }
 
   return {
-    label: 'Follow-up 3 sent',
-    detail: 'Final quote chase logged',
-    action: 'Let this cool unless they reply',
-    actionDetail: 'The automatic quote chase sequence has finished.',
-    group: 'chase_3',
-    tone: 'stage-closed',
+    label: 'Dormant after follow-ups',
+    detail: `Final follow-up sent ${relativeTime(new Date(chase3).toISOString())}`,
+    action: 'Move to personal-channel test',
+    actionDetail: 'Email follow-ups have finished. This is the future WhatsApp/call test pool.',
+    group: 'dormant',
+    tone: 'stage-dormant',
     sort: 70,
     due: false,
     dueAt: chase3,
@@ -2281,7 +2302,7 @@ function getLeadFollowUpStage(lead) {
 
   return {
     label: statusLabel(status) || 'New lead',
-    detail: 'Not in a chase sequence',
+    detail: 'Not in a follow-up sequence',
     action: 'Open lead and choose the next step',
     actionDetail: 'This status does not map to an automatic follow-up stage yet.',
     group: 'new',
@@ -2299,6 +2320,7 @@ function matchesQueueFilter(lead, filter) {
   if (filter === 'unfinished') return stage.group === 'unfinished' || stage.group === 'partial_sent';
   if (filter === 'chase_1') return stage.group === 'chase_1';
   if (filter === 'chase_later') return stage.group === 'chase_2' || stage.group === 'chase_3';
+  if (filter === 'dormant') return stage.group === 'dormant';
   if (filter === 'payment_pending') return stage.group === 'payment_pending';
   if (filter === 'signed_up') return stage.group === 'signed_up';
   if (filter === 'manual_review') return stage.group === 'manual_review';
@@ -3112,6 +3134,7 @@ function buildBusinessMetrics(leads) {
     !['signed_up', 'confirmed', 'dead', 'cancelled'].includes(lead.status)
   );
   const livePartials = liveLeads.filter(lead => lead.status === 'partial');
+  const liveDormant = liveLeads.filter(lead => getLeadFollowUpStage(lead).group === 'dormant');
   const liveManualReview = liveLeads.filter(hasManualReview);
   const liveWon = liveLeads.filter(lead => getLeadQuoteKind(lead) === 'regular' && isWonStatus(lead.status));
   const liveOneoffQuoted = liveLeads
@@ -3131,6 +3154,7 @@ function buildBusinessMetrics(leads) {
         recurringPipeline: liveRecurringPipeline,
         paymentPendingCount: livePaymentPending.length,
         partialCount: livePartials.length,
+        dormantCount: liveDormant.length,
         manualReviewCount: liveManualReview.length,
         oneoffQuotedValue: liveOneoffQuoted,
         pipelineTrend: livePipelineTrend,
@@ -3310,6 +3334,7 @@ function buildBusinessMetrics(leads) {
       recurringPipeline: liveRecurringPipeline,
       paymentPendingCount: livePaymentPending.length,
       partialCount: livePartials.length,
+      dormantCount: liveDormant.length,
       manualReviewCount: liveManualReview.length,
       oneoffQuotedValue: liveOneoffQuoted,
       pipelineTrend: livePipelineTrend,
@@ -3734,15 +3759,12 @@ function computeStats(leads) {
   const oneoffQuotedValue = oneoffQuoted.reduce((sum, lead) => sum + (getLeadTotal(lead) || 0), 0);
   const oneoffBookedValue = oneoffBooked.reduce((sum, lead) => sum + (getLeadTotal(lead) || 0), 0);
 
-  const inChase = leads.filter(l => l.status && l.status.startsWith('chased'));
-  const chaseConv = (() => {
-    // Leads that were ever chased and became signed_up
-    const everChased = leads.filter(l =>
-      l.chase_1_sent_at || l.status?.startsWith('chased') || l.status === 'signed_up' || l.status === 'confirmed'
-    ).filter(l => l.chase_1_sent_at);
-    const chasedAndConverted = everChased.filter(l => l.status === 'signed_up' || l.status === 'confirmed');
-    return everChased.length > 0 ? ((chasedAndConverted.length / everChased.length) * 100) : 0;
-  })();
+  const inFollowUp = leads.filter(lead => {
+    const stage = getLeadFollowUpStage(lead);
+    return ['due', 'unfinished', 'partial_sent', 'chase_1', 'chase_2', 'chase_3'].includes(stage.group);
+  });
+  const emailAssistedWins = signedUp.filter(lead => countFollowUpsBeforeSignup(lead) > 0).length;
+  const chaseConv = signedUp.length > 0 ? ((emailAssistedWins / signedUp.length) * 100) : 0;
 
   // Top area
   const areaCounts = {};
@@ -3760,7 +3782,7 @@ function computeStats(leads) {
   $('#statAvgSignup').textContent = formatPrice(avgSignup);
   $('#statOneoffQuoted').textContent = formatCurrencyFull(Math.round(oneoffQuotedValue));
   $('#statOneoffBooked').textContent = formatCurrencyFull(Math.round(oneoffBookedValue));
-  $('#statInChase').textContent = inChase.length;
+  $('#statInChase').textContent = inFollowUp.length;
   $('#statChaseConv').textContent = chaseConv.toFixed(1) + '%';
   $('#statTopArea').textContent = topArea ? topArea[0] : '-';
   const topAreaSub = $('#statTopAreaSub');
@@ -3891,6 +3913,7 @@ function followUpFocusScore(stage) {
   if (stage.due) return stage.sort || 5;
   if (stage.group === 'payment_pending') return 20;
   if (stage.group === 'unfinished') return 35;
+  if (stage.group === 'dormant') return 70;
   return 99;
 }
 
@@ -3901,7 +3924,7 @@ function renderAttentionWorkbench(leads) {
 
   const items = leads
     .map(lead => ({ lead, stage: getLeadFollowUpStage(lead) }))
-    .filter(item => item.stage.due || item.stage.group === 'payment_pending' || item.stage.group === 'unfinished')
+    .filter(item => item.stage.due || item.stage.group === 'payment_pending' || item.stage.group === 'unfinished' || item.stage.group === 'dormant')
     .sort((a, b) => {
       const scoreDiff = followUpFocusScore(a.stage) - followUpFocusScore(b.stage);
       if (scoreDiff) return scoreDiff;
@@ -3946,14 +3969,16 @@ function renderQueueSnapshot(leads) {
   const unfinished = count(({ stage }) => stage.group === 'unfinished' || stage.group === 'partial_sent');
   const chase1 = count(({ stage }) => stage.group === 'chase_1');
   const chaseLater = count(({ stage }) => stage.group === 'chase_2' || stage.group === 'chase_3');
+  const dormant = count(({ stage }) => stage.group === 'dormant');
   const paymentPending = count(({ stage }) => stage.group === 'payment_pending');
   const signedUp = count(({ stage }) => stage.group === 'signed_up');
 
   const snapshotRows = [
     { label: 'Action due', sub: 'Manual checks or follow-ups ready to work now.', value: actionDue, filter: 'due' },
     { label: 'Quote unfinished', sub: 'Partials in the reminder sequence.', value: unfinished, filter: 'unfinished' },
-    { label: 'Follow-up 1', sub: 'Quoted leads before or around the first chase.', value: chase1, filter: 'chase_1' },
-    { label: 'Follow-up 2/3', sub: 'Leads deeper in the quote chase sequence.', value: chaseLater, filter: 'chase_later' },
+    { label: 'Follow-up 1', sub: 'Quoted leads before or around the first follow-up.', value: chase1, filter: 'chase_1' },
+    { label: 'Follow-up 2/3', sub: 'Leads deeper in the email follow-up sequence.', value: chaseLater, filter: 'chase_later' },
+    { label: 'Dormant', sub: 'All email reminders finished with no signup yet.', value: dormant, filter: 'dormant' },
     { label: 'Payment pending', sub: 'Closest wins: payment or mandate still open.', value: paymentPending, filter: 'payment_pending' },
     { label: 'Signed up', sub: 'Won leads in this view.', value: signedUp, filter: 'signed_up' }
   ];
@@ -4669,7 +4694,7 @@ function renderValueTrendChart(leads) {
 function renderFunnel(leads) {
   const total = leads.length;
   const quoted = leads.filter(l => l.status !== 'partial').length;
-  const chased = leads.filter(l => l.chase_1_sent_at || (l.status && l.status.startsWith('chased'))).length;
+  const followedUp = leads.filter(l => getFollowUpTouchTimes(l).length || (l.status && l.status.startsWith('chased'))).length;
   const signedUp = leads.filter(l => isWonStatus(l.status)).length;
   const confirmed = leads.filter(l => l.status === 'confirmed').length;
   const wrap = $('#funnelFlow');
@@ -4678,7 +4703,7 @@ function renderFunnel(leads) {
   const stages = [
     { label: 'All leads', sub: 'Every lead currently in this view.', value: total },
     { label: 'Quoted', sub: total ? `${Math.round((quoted / total) * 100)}% of all leads received a quote.` : 'No quote activity yet.', value: quoted },
-    { label: 'Chased', sub: quoted ? `${Math.round((chased / quoted) * 100)}% of quoted leads needed follow-up.` : 'No chase activity yet.', value: chased },
+    { label: 'Followed up', sub: total ? `${Math.round((followedUp / total) * 100)}% of all leads had at least one logged email nudge.` : 'No follow-up activity yet.', value: followedUp },
     { label: 'Signed up', sub: quoted ? `${Math.round((signedUp / quoted) * 100)}% of quoted leads converted.` : 'No conversions yet.', value: signedUp },
     { label: 'Confirmed', sub: signedUp ? `${Math.round((confirmed / signedUp) * 100)}% of signups are now fully confirmed.` : 'No confirmations yet.', value: confirmed }
   ];
@@ -4758,21 +4783,71 @@ function renderExtrasChart(leads) {
 }
 
 function renderChaseChart(leads) {
-  const quoted = leads.filter(l => l.status !== 'partial').length;
-  const chase1 = leads.filter(l => l.chase_1_sent_at).length;
-  const chase2 = leads.filter(l => l.chase_2_sent_at).length;
-  const chase3 = leads.filter(l => l.chase_3_sent_at).length;
-  const dead = leads.filter(l => l.status === 'dead').length;
-  const converted = leads.filter(l => (l.chase_1_sent_at) && (l.status === 'signed_up' || l.status === 'confirmed')).length;
+  const signedUp = leads.filter(lead => isWonStatus(lead.status));
+  const signedByTouchCount = signedUp.reduce((counts, lead) => {
+    const bucket = countFollowUpsBeforeSignup(lead);
+    counts[bucket] = (counts[bucket] || 0) + 1;
+    return counts;
+  }, { 0: 0, 1: 0, 2: 0, 3: 0 });
+  const dormant = leads.filter(lead => getLeadFollowUpStage(lead).group === 'dormant').length;
+  const unfinishedActive = leads.filter(lead => {
+    const stage = getLeadFollowUpStage(lead);
+    return stage.group === 'unfinished' || stage.group === 'partial_sent' || stage.group === 'due';
+  }).length;
+  const paymentPending = leads.filter(lead => getLeadFollowUpStage(lead).group === 'payment_pending').length;
+  const touchedBeforeSignup = signedByTouchCount[1] + signedByTouchCount[2] + signedByTouchCount[3];
+  const followUpConversionRate = signedUp.length ? (touchedBeforeSignup / signedUp.length) * 100 : 0;
+
   const items = [
-    { label: 'Quoted leads', value: quoted, display: String(quoted), sub: 'Baseline for the follow-up sequence.', tone: 'soft' },
-    { label: 'Chase 1', value: chase1, display: `${chase1}${quoted ? ` · ${Math.round((chase1 / quoted) * 100)}%` : ''}`, sub: 'First follow-up after quote delivery.' },
-    { label: 'Chase 2', value: chase2, display: `${chase2}${quoted ? ` · ${Math.round((chase2 / quoted) * 100)}%` : ''}`, sub: 'Second follow-up for leads still unresolved.' },
-    { label: 'Chase 3', value: chase3, display: `${chase3}${quoted ? ` · ${Math.round((chase3 / quoted) * 100)}%` : ''}`, sub: 'Final chase touch before the lead cools.', tone: 'alt' },
-    { label: 'Converted after chase', value: converted, display: `${converted}${chase1 ? ` · ${Math.round((converted / chase1) * 100)}%` : ''}`, sub: 'Leads that converted after entering chase.', tone: 'alt' },
-    { label: 'Marked dead', value: dead, display: String(dead), sub: 'Leads closed out without a signup.', tone: 'soft' }
+    {
+      label: 'Signed immediately',
+      value: signedByTouchCount[0],
+      display: `${signedByTouchCount[0]}${signedUp.length ? ` · ${Math.round((signedByTouchCount[0] / signedUp.length) * 100)}%` : ''}`,
+      sub: 'Won before any logged email reminder or quote follow-up.',
+      tone: 'alt'
+    },
+    {
+      label: 'Signed after 1 follow-up',
+      value: signedByTouchCount[1],
+      display: `${signedByTouchCount[1]}${signedUp.length ? ` · ${Math.round((signedByTouchCount[1] / signedUp.length) * 100)}%` : ''}`,
+      sub: 'Converted after one logged email nudge.'
+    },
+    {
+      label: 'Signed after 2 follow-ups',
+      value: signedByTouchCount[2],
+      display: `${signedByTouchCount[2]}${signedUp.length ? ` · ${Math.round((signedByTouchCount[2] / signedUp.length) * 100)}%` : ''}`,
+      sub: 'Converted after two logged email nudges.'
+    },
+    {
+      label: 'Signed after 3 follow-ups',
+      value: signedByTouchCount[3],
+      display: `${signedByTouchCount[3]}${signedUp.length ? ` · ${Math.round((signedByTouchCount[3] / signedUp.length) * 100)}%` : ''}`,
+      sub: 'Converted after the full email sequence.',
+      tone: 'soft'
+    },
+    {
+      label: 'Dormant after reminders',
+      value: dormant,
+      display: String(dormant),
+      sub: 'Email sequence finished with no signup. This is the future WhatsApp test pool.',
+      tone: 'soft'
+    },
+    {
+      label: 'Email-assisted signups',
+      value: touchedBeforeSignup,
+      display: `${touchedBeforeSignup}${signedUp.length ? ` · ${formatPercent(followUpConversionRate, 0)}` : ''}`,
+      sub: 'Share of won leads that had at least one logged email follow-up first.',
+      tone: 'alt'
+    },
+    {
+      label: 'Still in motion',
+      value: unfinishedActive + paymentPending,
+      display: `${unfinishedActive + paymentPending}`,
+      sub: `${unfinishedActive} in reminder/follow-up flow · ${paymentPending} payment pending.`,
+      tone: 'soft'
+    }
   ];
-  renderSignalList('chaseBreakdown', items, { emptyText: 'No chase-sequence data yet in this view.' });
+  renderSignalList('chaseBreakdown', items, { emptyText: 'No follow-up impact data yet in this view.' });
 }
 
 function renderPaymentChart(leads) {
@@ -5546,6 +5621,13 @@ function renderBusinessTab(filteredLeads, analyticsLeads) {
       tone: 'soft'
     },
     {
+      label: 'Dormant after reminders',
+      value: metrics.live.dormantCount || 0,
+      display: formatCount(metrics.live.dormantCount || 0),
+      sub: 'Email reminders finished with no signup yet. Useful as a future WhatsApp test group.',
+      tone: 'soft'
+    },
+    {
       label: 'One-off quoted value',
       value: Math.round(metrics.live.oneoffQuotedValue || 0),
       display: formatCurrencyFull(Math.round(metrics.live.oneoffQuotedValue || 0)),
@@ -5899,6 +5981,8 @@ function renderAiSummary(filteredLeads, analyticsLeads) {
   const partial = leads.filter(l => l.status === 'partial').length;
   const quoted = leads.filter(l => l.status !== 'partial').length;
   const signedUp = leads.filter(l => isWonStatus(l.status)).length;
+  const dormant = leads.filter(l => getLeadFollowUpStage(l).group === 'dormant').length;
+  const emailAssistedWins = leads.filter(l => isWonStatus(l.status) && countFollowUpsBeforeSignup(l) > 0).length;
   const manualReview = leads.filter(hasManualReview).length;
   const paymentPending = leads.filter(l =>
     (l.payment_link || l.gocardless_link || l.status === 'payment_pending' || l.status === 'quote_sent') &&
@@ -5929,8 +6013,12 @@ function renderAiSummary(filteredLeads, analyticsLeads) {
     bullets.push(`${paymentPending} lead${paymentPending === 1 ? '' : 's'} ${paymentPending === 1 ? 'is' : 'are'} already at payment or mandate setup, which makes ${paymentPending === 1 ? 'it your quickest win' : 'them your quickest wins'} right now.`);
   }
 
+  if (dormant > 0) {
+    bullets.push(`${dormant} lead${dormant === 1 ? ' is' : 's are'} dormant after all email reminders, making ${dormant === 1 ? 'it' : 'them'} the cleanest future WhatsApp or call test pool.`);
+  }
+
   if (quoted > 0) {
-    bullets.push(`Current conversion is ${conversion}% from ${quoted} quoted lead${quoted === 1 ? '' : 's'}, with ${signedUp} already converted into signed-up or live work.`);
+    bullets.push(`Current conversion is ${conversion}% from ${quoted} quoted lead${quoted === 1 ? '' : 's'}, with ${signedUp} already converted and ${emailAssistedWins} showing a logged email nudge before signup.`);
   } else {
     bullets.push('No quoted leads are visible in this view yet, so conversion is still waiting on quote delivery rather than follow-up.');
   }
